@@ -298,6 +298,19 @@ function paperSync() {
   }
   if (idx < 0) { idx = 0; }
   var quote = card.getAttribute('data-quote') || '';
+  /* 背景卡（拓展小节等）不对应某一处原文：说明清楚，而不是塞一段无关的话 */
+  if (!card.getAttribute('data-clip') && !quote) {
+    PP.cur = idx;
+    piGet('ppBody').innerHTML = '<p class="pp-note">This card is <b>background material</b> — it builds a general idea '
+      + 'rather than reading one passage of the paper, so there is no passage to put here. Cards that do read a passage '
+      + 'show it here as a screenshot from the paper. You can still walk the paper itself with the arrows below.</p>';
+    piGet('ppTag').textContent = '—';
+    var fb = piGet('ppFig');
+    fb.hidden = true; fb.innerHTML = '';
+    piGet('ppPrev').disabled = (idx === 0);
+    piGet('ppNext').disabled = (idx === PP.flat.length - 1);
+    return;
+  }
   /* 图表：卡里内嵌的原图直接克隆过来 */
   var figBox = piGet('ppFig');
   figBox.innerHTML = '';

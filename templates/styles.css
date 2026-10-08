@@ -355,6 +355,7 @@ li.ol-card.here::before {
 }
 .pp-body p { margin: 0 0 14px; text-indent: 1.4em; }
 .pp-body p.pp-lead { text-indent: 0; }
+.pp-note { text-indent: 0; font-family: -apple-system, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.7; color: #45566b; background: #f7f9fc; border: 1px solid #e5e8ee; border-radius: 10px; padding: 16px 18px; text-align: left; }
 .pp-fig { padding: 4px 18px 14px; background: #fff; flex: 0 0 auto; }
 .pp-fig img { display: block; width: 100%; height: auto; border: 1px solid #e5e8ee; border-radius: 6px; }
 .pp-fig .pp-figcap { font-size: 12.5px; color: #7a8699; margin-top: 6px; font-family: inherit; }
