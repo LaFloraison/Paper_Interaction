@@ -1,0 +1,138 @@
+{
+  "kind": "extension",
+  "title": "Loss functions: turning a task into a number to minimise",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **loss function** maps a model's prediction and the true target to a single non-negative real number measuring how wrong the prediction is, and the **training loss** is the average of this over all training examples. Training means choosing the parameters to make the training loss as small as possible. For regression the standard choice is the **mean squared error**; for classification over $K$ classes it is the **cross-entropy**.",
+      "plain": "A loss is one number summarising how bad the model's answers are across the data. Learning is just making that number small — so the loss has to be built so that a smaller number really does mean a better model."
+    },
+    {
+      "t": "p",
+      "md": "**Why the number has to be a single scalar.** The model has many parameters written as a vector, and a prediction error is naturally a vector too — one error per example. But gradient descent (card 5) works by asking 'if I nudge this parameter, which way does the *loss* move?' That question only has an answer if the loss is one number. A vector cannot be minimised: making one component smaller generally makes another larger, and there is no single direction that improves everything. Collapsing the error to a scalar — by squaring and averaging, or by averaging negative log-probabilities — creates the one quantity whose direction of decrease can be followed."
+    },
+    {
+      "t": "formula",
+      "tex": "\\mathrm{MSE} = \\frac{1}{n}\\sum_{i=1}^{n}\\big(\\hat{y}_i - y_i\\big)^2",
+      "note": "Mean squared error, the regression default. Each prediction's error is squared (so negative and positive misses both count as bad, and large misses count disproportionately) and the results are averaged over the $n$ examples. Squaring is what makes the loss a smooth function of the parameters, which is what lets the gradient exist and point somewhere useful.",
+      "gloss": [
+        { "sym": "n", "md": "the number of examples averaged over" },
+        { "sym": "\\hat{y}_i", "md": "the model's predicted value for example $i$" },
+        { "sym": "y_i", "md": "the true target for example $i$" },
+        { "sym": "(\\hat{y}_i - y_i)^2", "md": "the squared error for example $i$ — zero when perfect, growing quadratically with distance" }
+      ]
+    },
+    {
+      "t": "formula",
+      "tex": "\\mathrm{CE} = -\\frac{1}{n}\\sum_{i=1}^{n} \\log p_{i,\\,y_i}",
+      "note": "Cross-entropy, the classification default. For each example the model outputs a probability for every class; $p_{i,y_i}$ is the probability it assigned to the *true* class of example $i$, and the loss is the average negative log of that number. If the model is confident and right, the probability is near 1, its log near 0, and the loss near 0; if it is confident and wrong, the probability is near 0, its log is a large negative number, and the minus sign makes the loss large. The negative logarithm's steep drop near zero is what punishes confident mistakes.",
+      "gloss": [
+        { "sym": "p_{i,y_i}", "md": "the probability the model gave to the correct class of example $i$" },
+        { "sym": "\\log", "md": "the natural logarithm — here it measures unlikelihood: the closer a probability is to 0, the more negative its log" },
+        { "sym": "-", "md": "the leading minus sign flips log-probabilities (which are negative) into non-negative losses that we want to drive to zero" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**What each loss is for, and where each fails.** Mean squared error belongs to regression, where the target is a real number and distance is the natural notion of error. Applying it to a classifier is a known mistake: combine the squared error with a sigmoid output and the gradient at a confidently wrong prediction becomes nearly zero, so the model learns *slowest* exactly where it is most wrong. Cross-entropy fixes this — its penalty grows without bound as the assigned probability of the true class approaches zero, so a confident mistake produces a large gradient and is corrected fast. Its own failure mode is the mirror image: because it never stops penalising, a single mislabelled example can contribute a very large loss and pull the model towards fitting an error, and its logarithm means a predicted probability of exactly zero yields an infinite loss, so probabilities are always clamped away from the extremes in practice."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — mean squared error, three predictions.** A regression model predicts $\\hat{y} = (2.0,\\, 5.0,\\, 3.0)$; the true targets are $y = (2.5,\\, 4.0,\\, 5.0)$. Compute the mean squared error."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Errors: $2.0 - 2.5 = -0.5$, $5.0 - 4.0 = +1.0$, $3.0 - 5.0 = -2.0$.",
+          "why": "The sign records the direction of the miss, but MSE will discard it — over-prediction and under-prediction should be penalised equally."
+        },
+        {
+          "md": "Squares: $(-0.5)^2 = 0.25$, $(1.0)^2 = 1.0$, $(-2.0)^2 = 4.0$.",
+          "why": "Squaring removes the signs and weights the misses by size. The third example's error of 2 contributes 4, four times as much as the first example's error of 1, which contributes 1."
+        },
+        {
+          "md": "Sum: $0.25 + 1.0 + 4.0 = 5.25$. Mean over three examples: $5.25 / 3 = 1.75$.",
+          "why": "So the model's mean squared error is $1.75$. In the same units squared, the error is moderate: the worst single example is off by 2."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — cross-entropy on three probability vectors.** A three-class classifier outputs a probability vector for each example. Take three examples whose true class is the *first* class in every case, so the only thing changing is how the model distributes its probability. The three predicted vectors are $(0.90, 0.08, 0.02)$, $(0.50, 0.30, 0.20)$, and $(0.05, 0.50, 0.45)$."
+    },
+    {
+      "t": "table",
+      "head": ["Predicted vector", "Probability of true class", "Cross-entropy $-\\log p$"],
+      "rows": [
+        ["$(0.90, 0.08, 0.02)$", "$0.90$", "$0.105361$"],
+        ["$(0.50, 0.30, 0.20)$", "$0.50$", "$0.693147$"],
+        ["$(0.05, 0.50, 0.45)$", "$0.05$", "$2.995732$"]
+      ]
+    },
+    {
+      "t": "calc",
+      "md": "Row 1: $-\\log 0.90 = -(-0.105361) = 0.105361$, because $\\log 0.90 = -0.105361$. Row 2: $-\\log 0.50 = -(0.693147) = 0.693147$ — the familiar value that makes $0.5$ the 'one bit' of uncertainty. Row 3: $-\\log 0.05 = -(-2.995732) = 2.995732$. Mean over the three: $(0.105361 + 0.693147 + 2.995732)/3 = 3.794240/3 = 1.264747$."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Compare rows 1 and 3. The model that was *right* about the true class, giving it 0.90, pays $0.105$; the model that was *wrong*, giving the true class only 0.05, pays $2.996$ — about twenty-eight times as much for a prediction that was confidently wrong in the other direction. The logarithm is doing precisely the work the classification task needs: **a confident error is expensive, and the loss cannot be reduced by hedging on the wrong class.** Confident and correct is cheap, which is the behaviour you want."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why must a loss function produced by averaging the error be a single scalar rather than a vector of per-example errors?",
+      "opts": [
+        {
+          "md": "Because gradient descent minimises a single number: it needs one direction of improvement, and a vector has no well-defined minimum",
+          "correct": true,
+          "expl": "Correct. With a vector error, shrinking one component tends to grow another, so there is no single direction that improves everything. Collapsing to a scalar creates the one quantity whose rate of decrease defines the gradient."
+        },
+        {
+          "md": "Because a vector would be too large to store in memory",
+          "expl": "Storage is not the issue — per-example errors are computed and stored all the time. The problem is optimisation: a vector cannot be minimised as a whole."
+        },
+        {
+          "md": "Because the true targets are themselves vectors",
+          "expl": "Regardless of the shape of the targets, the quantity that is minimised must be one number. That is a requirement of the optimiser, not of the data."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A three-class classifier predicts $(0.8, 0.1, 0.1)$ for an example whose true class is the first one. What is this example's cross-entropy, $-\\log p_{\\text{true}}$, to four decimal places?",
+      "answer": 0.2231,
+      "tol": 0.001,
+      "hint": "Read off the probability assigned to the true class only, then take the negative natural logarithm of it.",
+      "sol": "The true class is the first, and the model assigned it probability $0.80$. So the cross-entropy is $-\\log 0.80 = -(-0.223144) = 0.223144$, which rounds to $0.2231$. The other two probabilities do not enter the loss at all for this example — only the probability given to the true class does.",
+      "unit": ""
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A team trains a classifier with mean squared error on sigmoid outputs and finds that examples the model gets confidently wrong barely change it. What is the explanation, and what fixes it?",
+      "opts": [
+        {
+          "md": "The model is overfitting; adding more data fixes it",
+          "expl": "Overfitting makes training error small and validation error large. Here the model is not fitting even the training examples it gets wrong, so the issue is the gradient, not generalisation."
+        },
+        {
+          "md": "Squared error with sigmoid outputs gives a near-zero gradient for confident mistakes; switching to cross-entropy fixes it",
+          "correct": true,
+          "expl": "Correct. A confidently wrong sigmoid prediction is saturated, so its squared-error gradient is small — the model learns least where it is most wrong. Cross-entropy's penalty grows without bound as the true class's probability approaches zero, so the same mistake yields a large gradient and is corrected."
+        },
+        {
+          "md": "The learning rate is too large, causing the updates to overshoot",
+          "expl": "Overshooting produces oscillation or divergence, not a systematic failure to correct confident errors. The pattern here — small updates exactly where the error is largest — points at the loss function's gradient, not the step size."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** with a loss in hand, training becomes a search over parameters. Card 5 shows the search — gradient descent — and card 6 shows how the gradient it needs is actually computed."
+}

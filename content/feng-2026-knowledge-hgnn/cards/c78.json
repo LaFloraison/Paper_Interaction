@@ -1,0 +1,153 @@
+{
+  "id": "78",
+  "kind": "lab",
+  "chapter": "method",
+  "section": "5.19 Laboratory 2",
+  "kicker": "Laboratory 2 · Equations (4)–(9)",
+  "title": "Laboratory: turn a tree ensemble into a vector",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "This laboratory runs Equations (4) through (9) on the two-tree ensemble of Figure 2. It computes the content bits $\\mu_c$ by testing every inner-node predicate against the vertex's features, the position weights $\\mu_p = \\alpha/(d(o)+\\beta)$ from each node's depth, the per-tree block $\\varphi_r^i$ as their product, the concatenated row $X_r$, and finally the fused vector $Z = (X_s \\odot X_r) \\Vert X_r$ with $X_s$ fixed at $0.9526$ for display.",
+      "plain": "Slide three feature values and two weighting knobs, and watch each question in a two-tree ensemble turn into a number — then watch those numbers become the vector the network actually receives."
+    },
+    {
+      "t": "p",
+      "md": "**What to look for.** Three things. First, that a **satisfied** question contributes **zero** — the inverted convention from Equation (5), which is the single easiest thing to get backwards. Second, that the nonzero entries are exactly the **depth weights** of the questions that failed, so the vector's magnitudes come from a small set rather than a continuum. Third, that the fused vector $Z$ is always **twice** as wide as $X_r$, and that its first half is the second half scaled by the same number for a given vertex."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**$X_s$ is held fixed here.** A real vertex's structural value comes from its degree through Equation (3), which needs the hypergraph — this laboratory isolates the rule side, so the structural factor is pinned at one value to keep the arithmetic visible. The scaling behaviour is what matters: multiply any entry of the first half by $1/0.9526$ and you recover the corresponding entry of the second half."
+    }
+  ],
+  "example": [
+    {
+      "t": "html",
+      "html": "<div class=\"lab-panel\"><div class=\"lab-title\">TDR rule pipeline &mdash; Equations (4)&ndash;(9)</div><div class=\"lab-hint\">The ensemble is the two trees of Figure 2. T1 asks x2&ge;2 (depth 0) then x1&ge;1 (depth 1). T2 asks x3&ge;5 (depth 0), then x1&ge;2 and x2&ge;1 (both depth 1). Five questions in total.</div><div class=\"slider-row\"><label for=\"lab2x1\">x1</label><input type=\"range\" id=\"lab2x1\" min=\"0\" max=\"10\" step=\"1\" value=\"3\"><output id=\"lab2x1o\">3</output></div><div class=\"slider-row\"><label for=\"lab2x2\">x2</label><input type=\"range\" id=\"lab2x2\" min=\"0\" max=\"10\" step=\"1\" value=\"5\"><output id=\"lab2x2o\">5</output></div><div class=\"slider-row\"><label for=\"lab2x3\">x3</label><input type=\"range\" id=\"lab2x3\" min=\"0\" max=\"10\" step=\"1\" value=\"7\"><output id=\"lab2x3o\">7</output></div><div class=\"slider-row\"><label for=\"lab2alpha\">&alpha; (scale, 6&ndash;10)</label><input type=\"range\" id=\"lab2alpha\" min=\"6\" max=\"10\" step=\"2\" value=\"6\"><output id=\"lab2alphao\">6</output></div><div class=\"slider-row\"><label for=\"lab2beta\">&beta; (shift, 6&ndash;10)</label><input type=\"range\" id=\"lab2beta\" min=\"6\" max=\"10\" step=\"2\" value=\"6\"><output id=\"lab2betao\">6</output></div><div class=\"lab-read\" id=\"lab2chips\"></div><div class=\"lab-read\">X<sub>r</sub>: <div class=\"vec\" id=\"lab2xr\"></div></div><div class=\"lab-read\">X&#771;<sub>r</sub> = X<sub>s</sub> &#8857; X<sub>r</sub>: <div class=\"vec\" id=\"lab2xrscaled\"></div></div><div class=\"lab-read\">Z = X&#771;<sub>r</sub> &#8214; X<sub>r</sub>: <div class=\"vec\" id=\"lab2z\"></div></div><div class=\"lab-read\" id=\"lab2dim\"></div></div>"
+    },
+    {
+      "t": "p",
+      "md": "**Task 1 — reproduce the walkthrough.** Leave everything at its default: $x_1 = 3$, $x_2 = 5$, $x_3 = 7$, $\\alpha = 1$, $\\beta = 1$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Read the five chips. Every question should be marked *covered*, because 3, 5 and 7 satisfy all five thresholds.",
+          "why": "Five questions, five chips — and the chip list is the encoding's table of contents. Its length is $C_r$, the width of the rule embedding."
+        },
+        {
+          "md": "Read $X_r$. It should be all zeros.",
+          "why": "**This is the inverted convention in its most extreme form.** A vertex the ensemble explains completely has no failures to record, so its entire rule row is zero — and therefore, via Equation (9), so is its fused vector. Card 69 explains why the paper's encoding has this property and why it is essentially unreachable with a large ensemble."
+        },
+        {
+          "md": "Check the dimensions readout: $C_r = 5$ and $\\dim(Z) = 10$.",
+          "why": "The doubling is the concatenation. Note that $X_r$ and the scaled copy are both five entries wide, so $Z$ is ten — the paper's $2C_r$."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Task 2 — make some questions fail.** Move $x_1$ down to 0, leaving $x_2 = 5$ and $x_3 = 7$. The sliders start at $\\alpha = \\beta = 6$, the middle of the paper's searched range."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "See which chips flip to *not covered*: the two that depend on $x_1$, namely $x_1 \\ge 1$ at depth 1 and $x_1 \\ge 2$ at depth 1.",
+          "why": "Two questions fail out of five, and they are in different trees — evidence that the questionnaire spans the ensemble rather than following one tree's path."
+        },
+        {
+          "md": "Read $X_r$ and note which entries are nonzero and what their values are: $0.500$ in positions 2 and 4, and zero elsewhere.",
+          "why": "Both failing questions sit at depth 1, so both carry the weight $\\mu_p = 1/(1+1) = 0.5$. **The nonzero values are exactly the depth weights of the failed questions** — the vector takes its magnitudes from a small discrete set, never from a continuum."
+        },
+        {
+          "md": "Now move $x_2$ down to 0 as well. The root question $x_2 \\ge 2$ at depth 0 also fails, and its entry becomes $1.000$.",
+          "why": "Failing a root question costs twice what failing a depth-1 question costs. This is the depth weighting doing its job, and it is the mechanism by which the encoding expresses that some questions matter more."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Task 3 — separate the two knobs.** With $x_1 = 0$, $x_2 = 0$, $x_3 = 7$ so that three questions fail at depths 0, 1 and 1, vary $\\alpha$ and then $\\beta$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Watch the pattern while moving only $\\alpha$: every nonzero entry scales by the same factor.",
+          "why": "$\\alpha$ multiplies the whole weighting. The relative standing of the root question against the deeper ones does not move — so $\\alpha$ cannot change *which* question dominates."
+        },
+        {
+          "md": "Now 1 and vary only $\\beta$ from 1 to 2, then to 0.5.",
+          "why": "At $\\beta = 2$ the root's weight falls to $0.5$ and the depth-1 questions to $0.333$ — the gap narrows. At $\\beta = 0.5$ the root weighs $2.0$ against the depth-1 weight $0.667$ — the gap widens. **$\\beta$ is the knob that expresses how strongly the authors believe the root matters more**, and it is the one the paper never reports."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Task 4 — watch the fusion's structure.** With a nonzero $X_r$, compare the two vector rows on screen."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Pick any nonzero entry of $\\tilde{X}_r$ and divide it by the corresponding entry of $X_r$. You get $0.9526$ every time — the structural scalar, applied to the whole row at once. **That is the fusion's exact behaviour**: one number per vertex reweights every rule slot identically. It cannot make one rule count more than another, and it cannot amplify, because $0.9526 < 1$. Both facts follow from the shapes, and both are visible here in a way they are not in the equations."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "q": "A vertex satisfies every question in both trees. What does $X_r$ look like?",
+      "opts": [
+        {
+          "md": "All ones",
+          "expl": "Ones would be the convention where 1 means satisfied. The paper uses the opposite convention, and this is exactly the trap it sets."
+        },
+        {
+          "md": "All zeros",
+          "correct": true,
+          "expl": "Correct. A satisfied question contributes $\\mu_p(o) \\times 0 = 0$. A fully explained vertex therefore has an all-zero rule row, and consequently an all-zero fused vector. This is the extreme case of the inverted convention, and the laboratory lets you produce it by leaving the sliders at their defaults."
+        },
+        {
+          "md": "All equal to the root's weight",
+          "expl": "The weights enter only where the bit is 1. A satisfied question has bit 0, so its weight is multiplied away — nothing survives."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "q": "With $\\alpha = 1$, $\\beta = 1$ and $x_1 = 0$, $x_2 = 5$, $x_3 = 7$, how many entries of $X_r$ are nonzero?",
+      "answer": 2,
+      "tol": 0.01,
+      "hint": "Count the questions the feature values fail — not the ones they satisfy.",
+      "sol": "Two. With $x_1 = 0$ the questions $x_1 \\ge 1$ and $x_1 \\ge 2$ both fail, contributing their depth weights; $x_2 = 5$ and $x_3 = 7$ satisfy everything else, contributing zero. So $X_r = (0,\\; 0.5,\\; 0,\\; 0.5,\\; 0)$. Answering 3 counts the satisfied questions instead, which inverts the convention.",
+      "unit": "entries"
+    },
+    {
+      "t": "multi",
+      "q": "Which statements about the fused vector $Z$ are true for every vertex?",
+      "opts": [
+        {
+          "md": "It is twice as wide as $X_r$",
+          "correct": true,
+          "expl": "Right — the concatenation joins two blocks of the same width, so $Z \\in \\mathbb{R}^{2C_r}$ always."
+        },
+        {
+          "md": "Its first half equals its second half",
+          "expl": "That would be the degenerate case. The first half is the second half *multiplied by the structural scalar*, so the two halves differ whenever that scalar differs from 1 — and it always does, since it comes from a sigmoid."
+        },
+        {
+          "md": "Every entry of its first half has smaller magnitude than the corresponding entry of its second half",
+          "correct": true,
+          "expl": "Right, whenever the rule entry is nonzero. The structural scalar lies strictly in $(0,1)$, so it shrinks everything it touches. This is the range fact from Equation (9)'s card, and it is why the word \"amplified\" in the paper's own description should be read as a relative statement."
+        },
+        {
+          "md": "It can distinguish two rule slots of the same vertex",
+          "expl": "It cannot. One scalar per vertex multiplies the whole row, so the relative sizes of a vertex's rule entries are preserved exactly. Distinguishing one slot from another would need a structural embedding with one value per slot, which this design does not have."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** a practice set on the fusion, for the parts of Equations (9) and (10) that are worth drilling — then Chapter 6 turns to the experiments."
+}

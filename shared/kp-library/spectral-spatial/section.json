@@ -1,0 +1,7 @@
+{
+  "key": "spectral-spatial",
+  "name": "Two roads to a graph convolution",
+  "title": "Spectral and spatial: two roads to a graph convolution",
+  "blurb": "Convolution cannot be lifted from a grid onto a graph unchanged, so the field built it twice. One road reads the Laplacian's eigenvectors as the graph's Fourier basis and defines convolution there; the other writes the aggregation directly on vertices and relations. This section walks the spectral road — the eigenbasis, the convolution, the two problems that stalled it, and the polynomial approximation that rescued it — and then places the paper's own incidence-matrix layer on the spatial road.",
+  "skip_hint": "If you can write the graph Fourier convolution y = U g(Λ) Uᵀx, say why the eigendecomposition is the obstacle, and explain how a polynomial filter removes it, skip this section."
+}

@@ -1,0 +1,108 @@
+{
+  "kind": "extension",
+  "title": "Where hyperedges come from (1): when the data already has groups",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A hypergraph is called **native** when each hyperedge corresponds to an event or container that exists in the data independently of any modelling choice — a publication, a purchase, a session, an enrolment. In that case the hyperedge is read off the record rather than invented, and the incidence matrix is filled in directly.",
+      "plain": "Sometimes the groups are simply there in the data. A paper has authors; a receipt has items; a class has students. You read the group off the record — you do not have to invent it."
+    },
+    {
+      "t": "p",
+      "md": "**This is the case where a hypergraph is unambiguously the right structure**, because forcing the data into pairs would destroy a unit that the data itself treats as a unit. The modelling questions do not disappear entirely — you still have to decide what counts as an event (is one paper an event, or a whole journal issue?) — but the hyperedges are not fabricated out of similarity."
+    },
+    {
+      "t": "table",
+      "head": ["Data", "Vertex", "Hyperedge", "Where the group comes from"],
+      "rows": [
+        ["Co-authorship", "author", "one publication", "the author list on the paper"],
+        ["Market baskets", "product", "one receipt", "the items on that transaction"],
+        ["Course enrolment", "student", "one course", "the class roster"],
+        ["Co-citation", "paper", "papers cited together", "the reference list of a citing paper"],
+        ["Browsing sessions", "page", "one session", "the sessionised click stream"],
+        ["Conference lists", "author", "one conference", "everyone who published there"]
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "Even in the native case, one decision is unavoidable: **how large a group is allowed to be.** A conference with 982 authors produces a hyperedge that is essentially a broadcast — it says \"these people are all in this field\" and nothing more specific. Truncating, weighting or splitting such groups is a judgement call, and it is a call the dataset does not make for you."
+    }
+  ],
+  "example": [
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Take DBLP-Conf: 4,057 authors and 20 hyperedges with an average size of 982.2. The paper says these hyperedges are formed from shared authorship, shared terms or a shared venue — so they are read off the data rather than invented.",
+          "why": "This dataset is native — the conference is the event, and the membership is the author list."
+        },
+        {
+          "md": "Read one column of the incidence matrix: 982 rows carry a 1, the remaining 3,075 carry a 0.",
+          "why": "One relation, almost a quarter of the dataset as its members. This is what \"higher arity\" looks like at full scale — and it is why the paper needs a normalisation that damps large relations."
+        },
+        {
+          "md": "Now ask what such a hyperedge can express. Any two authors at that conference become neighbours of each other through it.",
+          "why": "The relation is real but coarse. It says \"could have met\" rather than \"worked together\". Contrast the same dataset's other use: co-authorship hyperedges would have size 2–10 and carry far more specific information. **Same domain, two different native groupings, two very different graphs.**"
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "That last step is the important one for reading papers critically. \"DBLP-Conf\" does not name a dataset; it names a *decision about what the groups are*. When Chapter 7 asks whether the authors' choice of hyperedges was justified, this is the kind of choice being questioned."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What distinguishes a native hypergraph from a constructed one?",
+      "opts": [
+        {
+          "md": "A native hypergraph has larger hyperedges",
+          "expl": "Size is not the distinction. Native hyperedges can be tiny — a two-author paper is a native hyperedge of size 2, indistinguishable from a graph edge."
+        },
+        {
+          "md": "In a native hypergraph the groups are records in the data; in a constructed one they are derived by an algorithm",
+          "correct": true,
+          "expl": "Correct. The distinction determines what can go wrong: a native hypergraph can be mis-scoped (wrong notion of an event), a constructed one can be mis-parameterised (wrong $k$, wrong similarity). The two failure modes need different scrutiny, which is why the distinction is worth holding onto."
+        },
+        {
+          "md": "A native hypergraph needs no normalisation",
+          "expl": "It needs more. Native relations are frequently huge — conference rosters, popular products — which is exactly when degree normalisation stops being optional and starts being the difference between usable and useless."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A bookshop records 500 receipts, each with 6 books on average. How many memberships does the resulting hypergraph contain?",
+      "answer": 3000,
+      "tol": 1,
+      "hint": "Memberships, not hyperedges: how many (book, receipt) pairs exist in total.",
+      "sol": "$500 \\times 6 = 3{,}000$ memberships across 500 hyperedges, so the average edge degree is 6. If you answered 500 you counted hyperedges. The average vertex degree would need the number of distinct books, which was not given — noticing what is *missing* from a question is as useful as computing what is present.",
+      "unit": "memberships"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "For a co-authorship dataset, which choice is *not* settled by the data itself?",
+      "opts": [
+        {
+          "md": "Whether each paper contributes exactly one hyperedge",
+          "correct": true,
+          "expl": "Correct — this is a modelling decision the data does not make. You might instead group by research lab, by year, by venue, or by institution. Each produces a defensible hypergraph over the same authors, with very different edge degrees and very different information content. The paper's Related Work surveys several such constructions."
+        },
+        {
+          "md": "Who the authors of each paper are",
+          "expl": "That is read directly off the record. This part genuinely is given."
+        },
+        {
+          "md": "That an author is a vertex rather than a paper",
+          "expl": "This one is conventional for co-authorship and rarely contested — though the transpose (papers as vertices, authors as hyperedges) is also used, and yields a different problem."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** most datasets do not arrive with groups. Card 5 covers the other answer — inventing hyperedges from features — which is what this paper does for several of its ten datasets."
+}

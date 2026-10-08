@@ -1,0 +1,7 @@
+{
+  "key": "fusion-methods",
+  "name": "Ways to combine two signals",
+  "title": "Fusion: the four ways to combine two signals, and which one the paper picks",
+  "blurb": "The taught paper holds two descriptions of every vertex — a one-number structural embedding and a many-number rule embedding — and has to combine them into one representation. This section lays out the four standard ways to do that (concatenation, weighted sum, elementwise gating, cross-attention), shows with worked arithmetic what each one gains and what each one loses, and then identifies exactly which one the paper uses: a broadcast gate followed by concatenation.",
+  "skip_hint": "If you can say what concatenation does to two widths, why a fixed weighted sum pre-commits to a ratio that training cannot undo, and why a one-column gate can only rescale a whole row, skip this section."
+}

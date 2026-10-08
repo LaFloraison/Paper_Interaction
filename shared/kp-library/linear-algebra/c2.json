@@ -1,0 +1,109 @@
+{
+  "kind": "extension",
+  "title": "Transpose: swapping rows and columns",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "The transpose of an $m \\times n$ matrix $A$, written $A^{\\mathsf T}$, is the $n \\times m$ matrix whose $(i,j)$ entry is $A_{ji}$: every row becomes a column and every column becomes a row. A matrix is symmetric if $A = A^{\\mathsf T}$, which requires it to be square.",
+      "plain": "Turn the table on its side. What was a row is now a column, and nothing else changes."
+    },
+    {
+      "t": "p",
+      "md": "**Transpose as a change of direction.** In card 1 the incidence matrix had rows for vertices and columns for hyperedges, and $H^{\\mathsf T}x$ summed a per-vertex signal over each hyperedge. Transposing gives you the opposite traversal: paths that ran from vertices to edges now run from edges back to vertices. Equations that move information back and forth in a structure — which is what all of Equation (1) is — are built by alternating a matrix with its own transpose."
+    },
+    {
+      "t": "p",
+      "md": "**Symmetry is the special case worth naming.** An adjacency matrix is symmetric because adjacency has no direction: if $i$ is adjacent to $j$, then $j$ is adjacent to $i$. Degree matrices are diagonal, hence symmetric. The Laplacian is symmetric. Almost everything in this subject is symmetric, and the interesting quantities (its eigenvalues) are exactly the ones that survive transposition."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — see it happen.** Take the incidence matrix of the four-person graph, which is $4 \\times 3$:"
+    },
+    {
+      "t": "formula",
+      "tex": "H = \\begin{pmatrix} 1 & 0 & 0 \\\\ 1 & 1 & 1 \\\\ 0 & 1 & 0 \\\\ 0 & 0 & 1 \\end{pmatrix} \\qquad H^{\\mathsf T} = \\begin{pmatrix} 1 & 1 & 0 & 0 \\\\ 0 & 1 & 1 & 0 \\\\ 0 & 1 & 0 & 1 \\end{pmatrix}",
+      "note": "Every column of $H$ has become a row of $H^{\\mathsf T}$, so the shape goes from $4 \\times 3$ to $3 \\times 4$. Column $e_1$ of $H$, which read $(1,1,0,0)$, is now row 1 of $H^{\\mathsf T}$ — **a hyperedge's membership list, laid out horizontally.**",
+      "gloss": [
+        { "sym": "A^{\\mathsf T}", "md": "the transpose — rows and columns exchanged" },
+        { "sym": "H^{\\mathsf T}H", "md": "a $3 \\times 3$ matrix; entry $(e, f)$ counts the vertices shared by hyperedges $e$ and $f$" }
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Now multiply $H$ by its own transpose: $H H^{\\mathsf T}$, which is $(4 \\times 3)(3 \\times 4) \\to 4 \\times 4$.",
+          "why": "Shapes first. A square result tells you this matrix is about *pairs of vertices* — the same kind of object as an adjacency matrix."
+        },
+        {
+          "md": "Entry $(u,v)$ counts the hyperedges containing **both** $u$ and $v$: $H H^{\\mathsf T} = \\begin{pmatrix} 1 & 1 & 0 & 0 \\\\ 1 & 3 & 1 & 1 \\\\ 0 & 1 & 1 & 0 \\\\ 0 & 1 & 0 & 1 \\end{pmatrix}$.",
+          "why": "Check the diagonal: entry $(2,2) = 3$ is the number of hyperedges containing vertex 2 — its degree. Off the diagonal, $(1,2) = 1$ because vertices 1 and 2 share exactly one edge."
+        },
+        {
+          "md": "Compare with $A + D$, where $A$ is the adjacency matrix and $D$ the degree matrix: $A + D = \\begin{pmatrix} 1 & 1 & 0 & 0 \\\\ 1 & 3 & 1 & 1 \\\\ 0 & 1 & 1 & 0 \\\\ 0 & 1 & 0 & 1 \\end{pmatrix}$.",
+          "why": "They are identical. This is not a coincidence of the example: $H H^{\\mathsf T}$ puts the degree on the diagonal and the number of shared edges off it, which for a plain graph is exactly $A + D$. **The incidence matrix and the adjacency matrix are two encodings of the same structure, related by a transpose.**"
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "The identity $H H^{\\mathsf T} = A + D$ holds for **plain graphs**, where every hyperedge has two members. On a true hypergraph it does not — and the difference is informative: $(u,v)$ becomes the number of *relationships* $u$ and $v$ share, which can exceed 1 in ways a plain graph cannot express."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does transposing do to a $4 \\times 3$ matrix?",
+      "opts": [
+        {
+          "md": "Nothing; the entries are unchanged",
+          "expl": "The *values* are unchanged but their positions are not: entry $(2,1)$ moves to $(1,2)$. A transpose that changed nothing would be the identity, and only square symmetric matrices have that property."
+        },
+        {
+          "md": "Produces a $3 \\times 4$ matrix in which each column of the original is a row",
+          "correct": true,
+          "expl": "Correct. This is why transposing an incidence matrix turns membership lists from vertical to horizontal, and why alternating $H$ with $H^{\\mathsf T}$ moves information from vertices to edges and back."
+        },
+        {
+          "md": "Produces a $3 \\times 4$ matrix in which the entries are inverted",
+          "expl": "Transposition is a rearrangement, not an arithmetic operation on the values. In particular a 0 stays a 0."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "For the four-person graph, what is entry $(2,2)$ of $H H^{\\mathsf T}$?",
+      "answer": 3,
+      "tol": 0.01,
+      "hint": "The diagonal entry $(v,v)$ counts the hyperedges containing $v$ — the same quantity card 2 of the graph-theory section named.",
+      "sol": "Vertex 2 lies in all three edges, so the entry is 3. In general $(H H^{\\mathsf T})_{vv}$ is the degree of $v$, because each 1 in row $v$ of $H$ multiplies itself once. This is why $H H^{\\mathsf T} = A + D$ rather than $A$ alone — the diagonal has to carry the degrees.",
+      "unit": "count"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why do graph methods repeatedly alternate a matrix with its transpose?",
+      "opts": [
+        {
+          "md": "To keep the matrices square so they can be inverted",
+          "expl": "Invertibility is rarely the goal here; $H$ itself is not square and nobody inverts it."
+        },
+        {
+          "md": "Because the two directions carry information in opposite senses — vertices to relations, then relations back to vertices",
+          "correct": true,
+          "expl": "Correct. One pass collects each relation's membership into a summary; the transpose pass distributes that summary back to the members. Equation (1) is exactly this round trip, which is why it reads $H$ then $H^{\\mathsf T}$ with a normalisation wedged between them."
+        },
+        {
+          "md": "Because the transpose is cheaper to compute than the original",
+          "expl": "They cost the same; in most implementations the transpose is never materialised at all."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the paper's Equation (1) is a vertex → hyperedge → vertex round trip: $H$ sends each vertex's value into its relations, then $H^{\\mathsf T}$ sends the relation summaries back out. Cards 3 and 4 supply the two remaining operations Equation (9) needs."
+}

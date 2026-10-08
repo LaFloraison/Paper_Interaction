@@ -1,0 +1,191 @@
+{
+  "kind": "extension",
+  "title": "The Laplacian's eigenvectors are the graph's Fourier basis",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "For a **symmetric** matrix $M$, the spectral **eigendecomposition** is the factorisation $M = U\\Lambda U^{\\mathsf T}$ in which the columns $u_1,\\dots,u_N$ of $U$ are mutually perpendicular unit vectors and $\\Lambda$ is diagonal with real entries $\\lambda_1,\\dots,\\lambda_N$, chosen so that $M u_i = \\lambda_i u_i$. (A general square matrix need not admit this form — its eigenvalues can be complex and its eigenvectors need not be perpendicular; symmetry is exactly what guarantees the tidy version.) The $u_i$ are the **eigenvectors**, the $\\lambda_i$ the **eigenvalues**, and because the columns are *orthonormal* we have $U^{\\mathsf T}U = I$. The graph Laplacian $L = D - A$ is symmetric, so this decomposition exists for it; it is also **positive semi-definite** in the graph case (meaning $z^{\\mathsf T} L z \\ge 0$ for every real vector $z$; the quadratic form equals $\\sum_{(i,j)\\in E}(z_i - z_j)^{2}$, a sum of squares, which is what forces every $\\lambda_i \\ge 0$). Its eigenvectors are the **graph Fourier basis** — the objects playing the role sines and cosines play on a line.",
+      "plain": "The Laplacian has its own set of special directions: vectors it stretches but never rotates. Those directions are the graph's pure oscillation patterns, and how much each one is stretched measures how fast that pattern alternates from vertex to vertex."
+    },
+    {
+      "t": "p",
+      "md": "You have already met the Laplacian $L = D - A$ (with $D$ the diagonal matrix of vertex degrees and $A$ the adjacency matrix), its zero row sums ($L\\mathbf{1} = \\mathbf{0}$), and the fact that a graph has no translation operator with which to slide a convolution window. This card builds the substitute that the spectral road offers: a graph's own notion of frequency."
+    },
+    {
+      "t": "p",
+      "md": "**Why anyone reaches for eigenvectors.** On a line, Fourier analysis writes any signal as a sum of sines and cosines, and the sines have a privileged status: differentiating one twice gives back the same sine scaled by a constant — by a *negative* constant, which is why the operator usually taken for the analogy is the **negative** second derivative, whose eigenvalue on $\\sin(kx)$ is the positive number $k^{2}$. That property — an operator returning a scaled copy of its own input — is the definition of an eigenvector. The Laplacian $L$ is the graph-shaped version of that operator: at each vertex it sums the differences between the vertex's own value and its neighbours', $(Lu)_i = \\sum_{j \\sim i}(u_i - u_j)$, so its eigenvectors inherit the sines' role. One warning about the word 'frequency': on a graph there is no time axis, so a frequency is not a rate in cycles per second. It is *how often a pattern changes sign as you cross the graph's edges*."
+    },
+    {
+      "t": "p",
+      "md": "**The Laplacian's eigenvectors are the graph's Fourier modes.** Each eigenvector is a pattern over the vertices that the Laplacian leaves unchanged in shape; its eigenvalue says how rapidly that pattern alternates across the graph's edges. Together they form the basis in which a signal on the graph can be described frequency by frequency — the graph's substitute for the sines and cosines of the line."
+    },
+    {
+      "t": "p",
+      "md": "**Two structural facts carry the whole analogy.** First, $L$ is symmetric, so its eigenvectors can be chosen mutually perpendicular and of length one, giving $U^{\\mathsf T}U = I$. This makes the transform free to invert: $U^{\\mathsf T}$ is the inverse of $U$, so moving a signal into the basis and back loses nothing. For an arbitrary matrix you would need to compute a separate inverse; here the transpose already is one. Second, $L$ is positive semi-definite, so every eigenvalue is $\\ge 0$. This is the fact that lets a graph eigenvalue be read as a **squared** frequency: a squared quantity cannot be negative, and the smallest allowed value, $0$, sits at the flattest possible pattern."
+    },
+    {
+      "t": "formula",
+      "tex": "L = U \\Lambda U^{\\mathsf T}",
+      "note": "Read the equation as a description of what $L$ does: change coordinates into the eigenbasis ($U^{\\mathsf T}$), stretch each coordinate independently by its eigenvalue ($\\Lambda$), and return to the original coordinates ($U$).",
+      "gloss": [
+        { "sym": "L", "md": "the graph Laplacian $D - A$ — the graph's version of a second derivative" },
+        { "sym": "U", "md": "the matrix whose columns $u_1,\\dots,u_N$ are the eigenvectors — the Fourier modes. Because they are orthonormal, $U^{\\mathsf T}$ is its inverse." },
+        { "sym": "\\Lambda", "md": "the diagonal matrix of eigenvalues $\\lambda_1 \\le \\dots \\le \\lambda_N$ — all real and all $\\ge 0$. These are the squared frequencies." },
+        { "sym": "U^{\\mathsf T}", "md": "the transpose, equal to $U^{-1}$. Multiplying by it is the graph Fourier transform; multiplying by $U$ is the inverse transform." }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**A first misconception, and a second.** The most common first reading takes an eigenvalue to *be* a frequency. It is the **squared** frequency: in the two-vertex graph below the non-constant eigenvalue is $2$, corresponding to frequency $\\sqrt{2}$, not $2$. On a line the **negative** second derivative of $\\sin(kx)$ is $k^{2}\\sin(kx)$, so there the eigenvalue is exactly $k^{2}$ — the pattern is the same here, but the numbers need not be. A second common misreading assumes the eigenvalues run evenly like $0,1,2,3,\\dots$ along a frequency axis. They do not: their actual spacing is a property of the graph, and some may repeat. What survives is only the *order* — larger eigenvalue means faster oscillation."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**When the analogy breaks — three ways.** (i) On a disconnected graph there is not one constant mode but one per connected component, so the number of zero eigenvalues equals the number of components; the zero-frequency component is then not a single vector. (ii) Eigenvalues can repeat, and a filter that is a function of $\\lambda$ cannot tell two modes sharing one eigenvalue apart. (iii) The entire basis belongs to *this* graph: change the graph and every frequency changes, so there is no graph-independent notion of frequency. That third point becomes the second problem of the next card."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — small enough to do by hand.** Two vertices joined by a single edge. Then $A = \\begin{pmatrix} 0 & 1 \\\\ 1 & 0 \\end{pmatrix}$ and $D = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}$, so"
+    },
+    {
+      "t": "formula",
+      "tex": "L = D - A = \\begin{pmatrix} 1 & -1 \\\\ -1 & 1 \\end{pmatrix}",
+      "note": "Every row sums to zero, as it must."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Find the eigenvalues without solving the characteristic equation from scratch. The trace is $1 + 1 = 2$, and the eigenvalues of a $2\\times2$ matrix sum to the trace, so $\\lambda_1 + \\lambda_2 = 2$. The determinant is $1\\cdot1 - (-1)(-1) = 0$, and the eigenvalues multiply to the determinant, so $\\lambda_1\\lambda_2 = 0$.",
+          "why": "The trace and determinant give two equations in the two unknown eigenvalues, which is quicker than expanding a determinant and is a useful habit for small cases."
+        },
+        {
+          "md": "The only pair satisfying both is $\\lambda_1 = 0$ and $\\lambda_2 = 2$.",
+          "why": "One of the two eigenvalues is forced to $0$ by the determinant; the other is then fixed by the trace. The $0$ is the general row-sum fact $L\\mathbf{1} = \\mathbf{0}$ showing up in a two-vertex case."
+        },
+        {
+          "md": "The $\\lambda = 0$ mode: $Lu = 0$ reads $u_1 - u_2 = 0$, so $u_1 = u_2$ — the constant pattern $(1,1)$, normalised to $(1,1)/\\sqrt{2} \\approx (0.7071,\\ 0.7071)$. This is the zero-frequency (DC, or constant) mode; it is flat because the two vertices agree across their one edge.",
+          "why": "Constant means it never changes sign across any edge, which is the definition of frequency zero."
+        },
+        {
+          "md": "The $\\lambda = 2$ mode: $Lu = 2u$ reads $u_1 - u_2 = 2u_1$, i.e. $u_2 = -u_1$ — the alternating pattern $(1,-1)$, normalised to $(1,-1)/\\sqrt{2} \\approx (0.7071,\\ -0.7071)$.",
+          "why": "The two entries have opposite signs, so across the single edge this graph owns, the pattern disagrees as much as it possibly can. That is the highest frequency a two-vertex graph can carry."
+        },
+        {
+          "md": "Verify the two facts that make it a Fourier basis. Orthonormality: the dot product is $0.7071\\cdot0.7071 + 0.7071\\cdot(-0.7071) = 0.5 - 0.5 = 0$, so the modes are perpendicular, and each has length $\\sqrt{0.7071^{2}+0.7071^{2}} = \\sqrt{0.5+0.5} = 1$. Reconstruction: $U\\Lambda U^{\\mathsf T}$ with $U = \\begin{pmatrix} 0.7071 & 0.7071 \\\\ 0.7071 & -0.7071 \\end{pmatrix}$ and $\\Lambda = \\begin{pmatrix} 0 & 0 \\\\ 0 & 2 \\end{pmatrix}$ returns $\\begin{pmatrix} 1 & -1 \\\\ -1 & 1 \\end{pmatrix} = L$.",
+          "why": "Both properties are what the definition claimed: perpendicular unit modes ($U^{\\mathsf T}U = I$) and exact reconstruction of the matrix. Checking them on a tiny case is what makes the general statement believable."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — a graph whose modes are no longer obvious.** The four-vertex hub from the earlier section: edges $1\\!-\\!2$, $2\\!-\\!3$, $2\\!-\\!4$, so vertex $2$ is the hub. Its Laplacian is"
+    },
+    {
+      "t": "formula",
+      "tex": "L = \\begin{pmatrix} 1 & -1 & 0 & 0 \\\\ -1 & 3 & -1 & -1 \\\\ 0 & -1 & 1 & 0 \\\\ 0 & -1 & 0 & 1 \\end{pmatrix}",
+      "note": "Its eigenvalues are $0$, $1$, $1$ and $4$. The two extremes can be confirmed by hand."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "The $\\lambda = 0$ mode is forced: every row sums to zero, so $L\\mathbf{1} = \\mathbf{0}$ and the constant vector $(1,1,1,1)$ is an eigenvector with eigenvalue $0$. Normalised, each entry is $1/\\sqrt{4} = 0.5$.",
+          "why": "This reuses the row-sum identity you already hold: $\\mathbf{1}$ is always in the kernel, so $0$ is always an eigenvalue."
+        },
+        {
+          "md": "Test $(1,-3,1,1)$ for the large eigenvalue. Row 1: $1\\cdot1 - 1\\cdot(-3) = 4$, which is $4 \\times 1$, matching the first entry. Row 2: $-1\\cdot1 + 3\\cdot(-3) - 1\\cdot1 - 1\\cdot1 = -1 - 9 - 1 - 1 = -12$, which is $4 \\times (-3)$, matching the second entry. Row 3: $-1\\cdot(-3) + 1\\cdot1 = 4 = 4 \\times 1$. Row 4: same, $4 = 4 \\times 1$.",
+          "why": "Every row of $L$ applied to the candidate reproduces the candidate entry scaled by $4$, which is precisely the statement $Lu = 4u$. So $4$ is an eigenvalue and $(1,-3,1,1)$ its mode."
+        },
+        {
+          "md": "Interpret that mode. It is normalised by dividing by $\\sqrt{1+9+1+1} = \\sqrt{12} \\approx 3.4641$, giving $(0.2887,\\ -0.8660,\\ 0.2887,\\ 0.2887)$. The hub carries a large negative value while the three leaves carry small positive ones, so on every edge the pattern flips sign — the fastest oscillation this graph allows.",
+          "why": "A mode alternating across every edge is exactly what a large eigenvalue should look like; here the hub is the vertex that can disagree with all three leaves at once."
+        },
+        {
+          "md": "The remaining eigenvalue is $1$, and it occurs **twice**. The three leaves $1, 3, 4$ play symmetric roles, and that symmetry yields a two-dimensional space of patterns all with eigenvalue $1$. A numerical routine returns the spectrum as $0, 1, 1, 4$ and the normalised $\\lambda = 4$ mode as $(0.2887,\\ -0.8660,\\ 0.2887,\\ 0.2887)$, matching $(1,-3,1,1)/\\sqrt{12}$.",
+          "why": "A repeated eigenvalue means two genuinely different patterns share one frequency. Any filter that depends only on $\\lambda$ gives both the same gain and cannot separate them — the concrete form of failure mode (ii) above."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "The two examples span the range. On two vertices the eigenbasis can be guessed outright; on four it already needs a symmetry argument, and the spectrum contained a surprise (a repeated eigenvalue). On the graphs a paper actually uses, guessing is hopeless and a numerical routine is the only option — and that routine is exactly what the next card identifies as a cost."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In the graph Fourier analogy, what is the analogue of a *frequency*?",
+      "opts": [
+        {
+          "md": "The eigenvalue itself: $\\lambda_i$ is the frequency of the $i$-th mode",
+          "expl": "This is the most common first reading. The eigenvalue is the **squared** frequency — on a line the negative second-derivative eigenvalue is k², not k. On the two-vertex graph the non-constant mode has λ = 2, corresponding to frequency √2."
+        },
+        {
+          "md": "The eigenvalue is the square of the frequency — the frequency itself is $\\sqrt{\\lambda}$ — and a larger $\\lambda$ means the eigenvector changes sign more often across edges",
+          "correct": true,
+          "expl": "Correct. The pattern is inherited from the line, where $\\sin(kx)$ has second-derivative eigenvalue $k^{2}$. What carries over is the order — bigger eigenvalue, faster oscillation — not an evenly spaced frequency axis."
+        },
+        {
+          "md": "The degree of the vertex, since the Laplacian's diagonal holds the degrees",
+          "expl": "Degrees set the Laplacian's diagonal, but they are not its spectrum. Two graphs with identical degree sequences can have different eigenvalues, so degrees cannot be the frequencies."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "The path graph with vertices $1\\!-\\!2\\!-\\!3$ (edges $\\{1,2\\}$ and $\\{2,3\\}$) has the Laplacian $L = \\begin{pmatrix} 1 & -1 & 0 \\\\ -1 & 2 & -1 \\\\ 0 & -1 & 1 \\end{pmatrix}$. What is its largest eigenvalue?",
+      "answer": 3,
+      "tol": 0.01,
+      "hint": "Build $L$ and ask which number $\\lambda$ makes $Lx = \\lambda x$ solvable with a nonzero $x$. One solution is the constant vector; the largest eigenvalue is not that one.",
+      "sol": "The degrees are $1, 2, 1$, so $L = D - A$ is as given. Its eigenvalues are $0$, $1$ and $3$, so the largest is $3$. As a consistency check, the eigenvalues must sum to the trace $1 + 2 + 1 = 4$, and $0 + 1 + 3 = 4$. The $\\lambda = 0$ mode is the constant $(1,1,1)$; the $\\lambda = 3$ mode alternates across both edges.",
+      "unit": "largest eigenvalue"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A graph consists of two connected components that share no edge. What does its Laplacian's spectrum show?",
+      "opts": [
+        {
+          "md": "Still exactly one zero eigenvalue, because $\\lambda = 0$ always means the single constant vector",
+          "expl": "A plausible half-truth. Solving $Lx = 0$ requires $x$ to be constant across each connected piece, so a pattern that is constant on one component and zero on the other is also a solution. Two components give two independent such patterns."
+        },
+        {
+          "md": "Two zero eigenvalues — one constant mode per component — because a pattern constant on one component and zero on the other has no edge across which to disagree",
+          "correct": true,
+          "expl": "Correct. The count of zero eigenvalues equals the number of connected components, since $Lx = 0$ forces $x$ constant within each piece. This is why a 'DC component' is only single-valued on a connected graph."
+        },
+        {
+          "md": "No zero eigenvalue, because the graph is not connected",
+          "expl": "Disconnectedness *adds* zero eigenvalues rather than removing them. Disconnecting the graph gives each piece its own constant mode, so the kernel grows."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why can the graph Fourier basis not be computed once and reused for every graph?",
+      "opts": [
+        {
+          "md": "Because eigenvectors are never unique — even the sign of each one is arbitrary",
+          "expl": "Non-uniqueness is real but irrelevant here. Signs and rotations inside repeated eigenspaces can be pinned down by a convention, and a canonical choice would still be *this graph's* basis. The blocker is the dependency on the graph, not the ambiguity."
+        },
+        {
+          "md": "Because the basis is a property of a specific Laplacian, so a different graph has a different set of frequencies",
+          "correct": true,
+          "expl": "Correct. Frequency on a graph is defined only relative to that graph's structure, so the basis cannot be shipped alongside a model. This is the seed of the spectral road's second problem: parameters learned against one spectrum do not mean the same thing against another."
+        },
+        {
+          "md": "Because graphs have no notion of frequency at all",
+          "expl": "They do — this card just built it. The claim confuses 'not universal' with 'not defined'."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** with a graph Fourier basis in hand, convolution can be defined as scaling each frequency independently. The next card writes that definition down and finds the two costs that make it unusable at scale."
+}

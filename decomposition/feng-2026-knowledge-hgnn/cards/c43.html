@@ -1,0 +1,50 @@
+<!-- ============ c43 图3 消融三联 ============ -->
+<section class="card" data-c="43" data-title-zh="图 3 · 消融三联图（α / β / 噪声）" data-title-en="Figure 3 · the three-panel ablation">
+  <div class="card-inner">
+    <div class="card-kicker k-fig"><span class="len">Figure 3 · three questions, three curves</span><span class="lz">图 3 · 三个问题，三张曲线</span></div>
+    <h2><span class="lz">图 3：把两只旋钮和一场噪声各自拧一遍</span><span class="len">Figure 3: twist two knobs and pour in noise</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz"><b><span class="hl">图 3 是三个并排的"敏感度实验"：左格拧 α、中格拧 β、右格往特征里掺噪声，各画一条准确率响应曲线。</span></b>它们回答同一类问题：<b>把某个因素从很小调到很大，成绩会怎么动？</b>三个子图的横轴分别是 α（1→10）、β（1→10）、噪声比例（0→80%）。</p>
+    <p class="len"><b><span class="hl">Figure 3 is three side-by-side sensitivity experiments: left twists α, middle twists β, right pours noise into features, each drawing an accuracy response.</span></b> All three answer one kind of question: <b>sweep a factor from tiny to huge — how do scores move?</b> The x-axes are α (1→10), β (1→10), and noise ratio (0→80%).</p>
+    <p class="lz">图里两条常驻曲线：红线（方块）= RD-HGNN，黑线（圆圈）= DD-HGNN。右格多两条：紫线（三角）= GBDT、蓝线（倒三角）= HGNN——用来对比"纯特征派"和"纯结构派"在噪声下的表现。</p>
+    <p class="len">Two resident curves: red squares = RD-HGNN, black circles = DD-HGNN. The right panel adds two: purple triangles = GBDT, blue inverted triangles = HGNN — contrasting the feature-only and structure-only camps under noise.</p>
+    <div class="figbox">
+      <img data-fig="fig3" alt="Figure 3 of the paper: ablation of alpha, beta, and noise robustness">
+      <div class="figcap"><span class="lz">论文图 3 原图（Feng et al., TPAMI 2026）。(a) α 消融；(b) β 消融；(c) 抗噪性。横轴量级从 1 到 10 / 0 到 80%。</span><span class="len">Original Figure 3 (Feng et al., TPAMI 2026). (a) α ablation; (b) β ablation; (c) noise robustness. Axes run 1–10 and 0–80%.</span></div>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>走查 1（左格 (a)：α 拧不动成绩）：</b>α 从 1 调到 10，红黑两线几乎水平——RD 在 75.5–76.7 之间起伏、DD 在 74.5–75.7 之间起伏，起落不到 1.5 个点。结论：<b>α 不敏感</b>。为什么？回看第 30 卡：α 在分子上、只是把所有位置分整体放大或缩小——后续打分机器能轻松吃掉这个统一缩放（第 30 卡迁移题的原话）。</p>
+    <p class="len"><b>Walk 1 (left panel (a): α cannot move the scores):</b> sweeping α 1→10, both curves run almost flat — RD wobbles within 75.5–76.7, DD within 74.5–75.7, under a 1.5-point swing. Verdict: <b>α-insensitive</b>. Why? Card 30: α sits in the numerator, scaling all positions uniformly — a uniform scale the scoring machine absorbs easily (card 30's transfer answer).</p>
+    <p class="lz"><b>走查 2（中格 (b)：β 一拧，红线跳水）：</b>β 从 10 减到 1，<b>红线（RD）明显下坠</b>——β = 1 时它掉到五成上下；而黑线（DD）基本守住 76 一线。两线在低 β 区张开约 20–25 个点（正文说"约 10 个百分点"，图上按横轴刻度估算更大——这类"读图约值"与正文数不一致时，以你自己量的为准并记账，第 48 卡）。为什么 β 敏感？它在分母上，改变的是"衰减形状"（第 30 卡），深层规则的分量相对根层大变——而 DD 还带着结构账这一路，单路知识变差时另一路托底。</p>
+    <p class="len"><b>Walk 2 (middle panel (b): twist β, the red line dives):</b> dropping β 10→1, <b>red (RD) plunges</b> — near five-tens at β = 1 — while black (DD) holds around 76. The two pull apart by roughly 20–25 points at low β (the text says "about 10 percentage points"; estimating from the axis the gap looks larger — when read-off values clash with the text, trust your own measurement and keep the account; card 48). Why β-sensitive? It sits in the denominator, reshaping the decay (card 30), so deep rules' relative weight shifts sharply — and DD still carries the structural stream to cushion a weakening partner.</p>
+    <p class="lz"><b>走查 3（右格 (c)：噪声下的四条命）：</b>噪声按 <b>X̃ = (1−α)·X + α·ε</b> 掺入（ε 是均值 0、波动 0.5 的正态噪声；α 这里指噪声比例，与 (a)(b) 的 α 同名不同物——记号冲突，论文的锅）。横轴 0→80% 时：<b>DD 从 76 缓降到 71.5（最稳）</b>；RD 从 74.5 降到 70；GBDT 72→65（缓降但仍跌）；<b>蓝线 HGNN 崩得最快——它掉的具体点数，习题会请你上图量一次</b>。为什么 HGNN 最脆？第 22 卡的软肋①——它靠"沿超边平均"吃饭，噪声被平均<b>放大传播</b>到邻居；而 GBDT 不平均、DD 有结构账托底，都比它抗噪。</p>
+    <p class="len"><b>Walk 3 (right panel (c): four lives under noise):</b> noise enters as <b>X̃ = (1−α)·X + α·ε</b> (ε normal noise, mean 0, spread 0.5; here α is the noise ratio — same letter as (a)(b)'s α, a different beast: the paper's notation clash, not yours). Sweeping 0→80%: <b>DD eases 76 → 71.5 (steadiest)</b>; RD falls 74.5 → 70; GBDT 72 → 65 (gentle but real); <b>blue HGNN collapses fastest — the exercises will have you measure its drop off the chart</b>. Why is HGNN frailest? Card 22's soft spot (1) — it lives on "averaging along hyperedges", and averaging <b>broadcasts</b> noise to neighbors; GBDT never averages and DD has the structural lifeline — both outlast it.</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">为什么 α 的曲线平、β 的曲线陡？</span><span class="len">Why is α's curve flat while β's is steep?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="两者都在公式里、都起作用——区别是位置：α 在分子（统一缩放，可被后续层吸收），β 在分母（改变曲线形状，骗不过后续层）。"><span class="lz">因为 α 根本没参与计算</span><span class="len">Because α takes no part in the computation</span></button>
+        <button class="opt" data-correct="1" data-expl="对！α 在分子上 = 整体放大缩小，是个可被吸收的统一缩放；β 在分母上 = 改变“深层衰减多快”，曲线形状变了，深层规则分量相对大改——形状骗不过任何后续层。"><span class="lz">α 是分子上的统一缩放（可被吸收）；β 在分母上、改变衰减形状（骗不过后续层）</span><span class="len">α scales uniformly in the numerator (absorbable); β reshapes the decay from the denominator (un-absorbable)</span></button>
+        <button class="opt" data-expl="两图用的数据集、模型完全相同——只换了拧的那只旋钮。差异必来自公式位置，不是数据。"><span class="lz">因为两张图用了不同的数据集</span><span class="len">Because the two panels use different datasets</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="16.5" data-tol="1.5" data-hint="右图蓝线（HGNN）：读噪声 0% 与 80% 两个端点的值，相减。" data-sol="读图近似：74.5 − 58 ≈ 16.5 个百分点——四条线里最大的落差。对照另外三条：GBDT 约掉 7、RD 与 DD 各约掉 4.5。“平均机制放大噪声”的代价，在蓝线上一目了然。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题（读图近似）：右图里 HGNN（蓝线）从噪声 0% 到 80% 大约掉了多少个百分点（填约值，容差 ±1.5）？</span><span class="len">Numeric (read-off): in the right panel, roughly how many points does HGNN (blue) drop from 0% to 80% noise? (tolerance ±1.5)</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：右图告诉我们，如果你的数据特征经常脏（噪声大），该优先补哪一路知识？</span><span class="len">Transfer: if your features are routinely dirty (noisy), which knowledge stream should you prioritize?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="纯特征派（GBDT）也在掉——它不平均、掉得慢，但没有结构托底的中段也会丢分；图上最稳的解法是“两路都带”。"><span class="lz">只补特征路：把 GBDT 树队加多</span><span class="len">Features only: grow the GBDT team</span></button>
+        <button class="opt" data-correct="1" data-expl="正确！蓝线（纯结构、靠平均）崩得最快、紫线（纯特征）也在掉，而黑线（双路 DD）最稳——图 3(c) 的结论正是“两路互补”：特征脏时，结构账是那条不被噪声污染的底线。"><span class="lz">两路都要：结构账不读特征、不被噪声污染，是噪声下的托底（DD 最稳）</span><span class="len">Both streams: the structural ledger never reads features, so noise cannot touch it — DD stays steadiest</span></button>
+        <button class="opt" data-expl="图上没有这个选项的支撑——数据不干净时“什么都不补”的铁证是蓝线的自由落体。"><span class="lz">什么都不用补，噪声对最终成绩无影响</span><span class="len">Nothing to add; noise does not affect the score</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>
+
+<!-- NEXT-CARD -->

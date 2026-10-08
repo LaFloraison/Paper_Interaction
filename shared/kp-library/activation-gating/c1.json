@@ -1,0 +1,331 @@
+{
+  "kind": "extension",
+  "title": "The logistic sigmoid",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "The **logistic sigmoid** is the function $\\sigma : \\mathbb{R} \\to (0,1)$ defined by $\\sigma(x) = 1 / (1 + e^{-x})$, where $e \\approx 2.71828$ is Euler's number. It accepts any real number, however large or negative, and returns a number strictly greater than 0 and strictly less than 1. The notation $(0,1)$ means the *open* interval: the endpoints 0 and 1 are never produced.",
+      "plain": "Hand the sigmoid any number at all; it hands back a number that behaves like a probability — always above 0, always below 1, and never exactly either one."
+    },
+    {
+      "t": "p",
+      "md": "**Why anyone wants this.** A neural network computes numbers that can be any real value: a pre-activation might be $-7.3$ or $18.2$. Sometimes the next step needs a number on a fixed scale instead — a weight, a percentage, a probability. That is the job of an **activation function**: a fixed, simple function applied entry by entry to turn unbounded numbers into something with a controlled range. The sigmoid is the oldest and most familiar activation, and it is the one the paper you are reading relies on."
+    },
+    {
+      "t": "p",
+      "md": "**What the curve looks like.** Plot $x$ along the bottom and $\\sigma(x)$ up the side. The curve is an S-shaped ramp: low and nearly flat on the left, steep through the middle, high and nearly flat on the right. The two flat regions are called the **saturated** regions, and they are the source of every problem the sigmoid causes."
+    },
+    {
+      "t": "formula",
+      "tex": "\\sigma(x) = \\dfrac{1}{1 + e^{-x}}",
+      "note": "The formula is built from three pieces, each with an intuitive job: $e^{-x}$ turns any input into a positive number; adding 1 keeps the denominator above 1; dividing 1 by a number above 1 keeps the result below 1. The minus sign in the exponent is what makes the curve rise from left to right rather than fall.",
+      "gloss": [
+        {
+          "sym": "x",
+          "md": "the input — any real number, typically a pre-activation, meaning a weighted sum of earlier values plus a bias"
+        },
+        {
+          "sym": "e^{-x}",
+          "md": "Euler's number raised to $-x$; always strictly positive, and tiny when $x$ is large positive, huge when $x$ is large negative"
+        },
+        {
+          "sym": "1 + e^{-x}",
+          "md": "the denominator, always strictly greater than 1"
+        },
+        {
+          "sym": "\\sigma(x)",
+          "md": "the output, always strictly between 0 and 1"
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The range is an open interval.** Because the denominator $1 + e^{-x}$ is always strictly larger than 1, the quotient is always strictly less than 1. Because the numerator is positive, the quotient is always strictly greater than 0. Neither endpoint is achievable: to reach 0 you would need $e^{-x}$ to be infinite, and to reach 1 you would need $e^{-x}$ to be exactly 0. As $x$ grows, the output creeps towards 1 without ever arriving; the same holds for 0 on the far left. This is not a pedantic detail — it is exactly why the paper's structural embedding can never contain a 0 or a 1."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Input $x$",
+        "$\\sigma(x)$",
+        "Reading"
+      ],
+      "rows": [
+        [
+          "$-6$",
+          "0.002473",
+          "deep in the left flat region"
+        ],
+        [
+          "$-4$",
+          "0.017986",
+          "nearly flat"
+        ],
+        [
+          "$-2$",
+          "0.119203",
+          "beginning to bend"
+        ],
+        [
+          "$-1$",
+          "0.268941",
+          "on the ramp"
+        ],
+        [
+          "$0$",
+          "0.500000",
+          "the exact midpoint"
+        ],
+        [
+          "$1$",
+          "0.731059",
+          "on the ramp"
+        ],
+        [
+          "$2$",
+          "0.880797",
+          "past the bend"
+        ],
+        [
+          "$4$",
+          "0.982014",
+          "nearly flat"
+        ],
+        [
+          "$6$",
+          "0.997527",
+          "deep in the right flat region"
+        ]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "Notice two things. First, the table is symmetric around the midpoint: $\\sigma(-1) = 0.269$ and $\\sigma(1) = 0.731$ add to exactly 1, which follows from $\\sigma(-x) = 1 - \\sigma(x)$. Second, the outputs crowd towards the ends: by $x = 6$ the value is already 0.9975, so a further increase in $x$ changes almost nothing visible. That flattening is saturation."
+    },
+    {
+      "t": "p",
+      "md": "**Saturation and the gradient.** Training a network by gradient descent uses the derivative, which measures how strongly an output moves when the input is nudged. Differentiating $\\sigma(x) = (1 + e^{-x})^{-1}$ by the chain rule gives $\\sigma'(x) = e^{-x}/(1+e^{-x})^{2}$; since $1 - \\sigma(x) = e^{-x}/(1+e^{-x})$, the same expression rearranges into the compact identity $\\sigma'(x) = \\sigma(x)\\,(1 - \\sigma(x))$, written in terms of the output alone. The derivative is largest at $x = 0$, where it equals $0.25$, and it falls off quickly on both sides. This is the derivative with respect to the input; a small number here means the gradient signal travelling backwards through this unit is multiplied by something near zero."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Input $x$",
+        "$\\sigma'(x)$",
+        "Fraction of the peak (peak $= 0.25$)"
+      ],
+      "rows": [
+        [
+          "$-6$",
+          "0.002467",
+          "about 1%"
+        ],
+        [
+          "$-4$",
+          "0.017663",
+          "about 7%"
+        ],
+        [
+          "$-2$",
+          "0.104994",
+          "about 42%"
+        ],
+        [
+          "$-1$",
+          "0.196612",
+          "about 79%"
+        ],
+        [
+          "$0$",
+          "0.250000",
+          "100%"
+        ],
+        [
+          "$1$",
+          "0.196612",
+          "about 79%"
+        ],
+        [
+          "$2$",
+          "0.104994",
+          "about 42%"
+        ],
+        [
+          "$4$",
+          "0.017663",
+          "about 7%"
+        ],
+        [
+          "$6$",
+          "0.002467",
+          "about 1%"
+        ]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The consequence for gradient-based training.** When a unit's pre-activation is large in magnitude, its sigmoid is saturated, its derivative is near zero, and the gradient passing through that unit is multiplied by near zero. In a deep network, hundreds of such multiplications compound, and the gradient reaching the early layers collapses towards zero. The early layers then receive almost no signal and stop improving. This is the **vanishing gradient** problem, and it is the price the sigmoid pays for its tidy range. It is also why modern deep networks avoid the sigmoid in hidden layers and keep it for output units and gates, where a bounded, probability-like value is what is actually wanted."
+    },
+    {
+      "t": "p",
+      "md": "**The standard alternatives.** Two other activations appear so often that they belong in the same picture. **Hyperbolic tangent**, written $\\tanh$, is the sigmoid stretched and shifted: $\\tanh(x) = 2\\sigma(2x) - 1$, with range $(-1,1)$ instead of $(0,1)$. Its derivative at 0 is $1.0$, four times the sigmoid's peak, so its gradients are healthier — but it still saturates at both ends, so it only delays the vanishing gradient rather than removing it. **ReLU**, the rectified linear unit, is $\\max(0, x)$: it passes positive values through untouched and outputs exactly 0 for negative ones. ReLU does not saturate on the positive side at all, which is why it became the default activation for hidden layers. Its failure is different: on the negative side its derivative is exactly 0, and a unit stuck there receives no gradient and can stop updating altogether."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Activation",
+        "Formula",
+        "Range",
+        "Derivative at 0",
+        "Failure mode"
+      ],
+      "rows": [
+        [
+          "Sigmoid",
+          "$1/(1+e^{-x})$",
+          "$(0,1)$ open",
+          "0.25",
+          "saturates at both ends — vanishing gradient"
+        ],
+        [
+          "Tanh",
+          "$(e^{x}-e^{-x})/(e^{x}+e^{-x})$",
+          "$(-1,1)$ open",
+          "1.0",
+          "saturates at both ends, but less sharply"
+        ],
+        [
+          "ReLU",
+          "$\\max(0, x)$",
+          "$[0, \\infty)$ closed at 0",
+          "not defined at 0; 1 to the right, 0 to the left",
+          "units with negative input output 0 and can stop learning"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "The most common mistake is to treat the sigmoid's output as a genuine 0 or 1. It is not: $\\sigma(6) = 0.9975$ is close to 1, and $\\sigma(20) = 0.999999998$ is closer, but no finite input reaches 1. The paper you are reading contains a proof that depends on this exact fact. Its **structural encoder** — the part of the model that turns the graph's structure into a vector — ends in a sigmoid, so the vector it produces inherits the open range $(0,1)$. An argument that treated those entries as possibly 1 or 0 would be wrong, which is why this small detail is stated here rather than assumed."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — compute two values by hand.** Start with the easiest point, then one off-centre point."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "$\\sigma(0) = 1 / (1 + e^{0}) = 1/(1 + 1) = 1/2 = 0.5$.",
+          "why": "Since $e^{0} = 1$, the midpoint falls out with no arithmetic. This is why 0 is always the symmetry centre of the curve."
+        },
+        {
+          "md": "$\\sigma(2)$: first the exponent, $e^{-2} = 0.135335$.",
+          "why": "Compute the inner quantity before the outer division; this is the piece most easily got wrong by entering the exponent with the wrong sign."
+        },
+        {
+          "md": "Then $1 + 0.135335 = 1.135335$, and $1 / 1.135335 = 0.880797$.",
+          "why": "The denominator is only slightly greater than 1, so the output is pushed well above the midpoint. Large positive inputs land here."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — a sigmoid applied to a real pre-activation.** In a neuron the input to the sigmoid is a weighted sum. Take a single input value $x = 2$ with weight $1.5$ and a bias of $-0.5$:"
+    },
+    {
+      "t": "calc",
+      "md": "z = 1.5 × 2 + (−0.5) = 3.0 − 0.5 = 2.5"
+    },
+    {
+      "t": "calc",
+      "md": "σ(2.5) = 1 / (1 + e^(−2.5)) = 1 / (1 + 0.082085) = 1 / 1.082085 = 0.924142"
+    },
+    {
+      "t": "p",
+      "md": "So the neuron outputs about $0.924$. If we pushed the input value from 2 up to 4, the pre-activation would rise from $2.5$ to $1.5 \\times 4 - 0.5 = 5.5$, and the output would rise only from $0.924$ to $\\sigma(5.5) = 0.995930$. Doubling the input moved the output by about 0.07. That is saturation being felt in a concrete forward pass — the second half of the input's effect was nearly erased."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**Check the extremes.** $\\sigma(10) = 0.999955$ and $\\sigma(-10) = 0.000045$. These two numbers sum to exactly 1, and neither is 1 or 0. However far you push $x$, the output stays inside the open interval — the claim the rest of this section relies on."
+    },
+    {
+      "t": "callout",
+      "md": "This example used a single input. That is enough to show the range and the saturation, but it does not demonstrate the derivative identity or the multi-entry behaviour a real layer has; those appear in the next card."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is the range of the logistic sigmoid?",
+      "opts": [
+        {
+          "md": "The closed interval $[0,1]$ — it can output exactly 0 or exactly 1 for extreme inputs",
+          "expl": "This is the standard slip: the curve is *visually* flat at the ends, so the ends look reachable. They are not. Reaching 0 would need e^(−x) to be infinite and reaching 1 would need it to be exactly 0; no finite input does either."
+        },
+        {
+          "md": "The open interval $(0,1)$ — every output is strictly above 0 and strictly below 1",
+          "correct": true,
+          "expl": "Correct. The denominator is always greater than 1, so the quotient is always below 1, and the positive numerator keeps it above 0. This open range is the property the paper's structural encoder output inherits, and later cards use it to bound what the paper's combination step can do."
+        },
+        {
+          "md": "All real numbers — the sigmoid can output any value",
+          "expl": "That describes the identity function or ReLU on the positive side, not the sigmoid. The sigmoid's whole purpose is to bound the output."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Compute $\\sigma(1.5)$ to three decimal places.",
+      "answer": 0.818,
+      "tol": 0.001,
+      "hint": "Work from the inside out: evaluate the exponent first, add 1, then take the reciprocal. Use e ≈ 2.718.",
+      "sol": "σ(1.5) = 1/(1 + e^(−1.5)). First e^(−1.5) ≈ 0.2231, so 1 + 0.2231 = 1.2231. Then 1/1.2231 ≈ 0.8176, which rounds to 0.818. As a sanity check, 1.5 is above 0, so the answer must sit above the midpoint 0.5 — and it does.",
+      "unit": "value"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A deep network's early layers stop improving. The team finds that the pre-activations entering their sigmoid units have drifted to values like $-9$ and $+9$. What is the most likely mechanism?",
+      "opts": [
+        {
+          "md": "The learning rate (the size of each training step) is too large, so the weights oscillate",
+          "expl": "Large pre-activations and oscillation are different failures. Oscillation comes from an oversized step; the symptom here is a *stalled* update, which points at the gradient rather than the step size."
+        },
+        {
+          "md": "The sigmoids are saturated, so their derivatives are near zero and the gradient reaching the early layers has collapsed",
+          "correct": true,
+          "expl": "Correct. At x = 9 the derivative is about 0.00012 — roughly one two-thousandth of the peak of 0.25. Each such unit multiplies the backward gradient by a near-zero number, and stacked across layers the signal vanishes before it reaches the early weights. The fix in practice is to replace the hidden-layer sigmoids with ReLU or tanh, not to tweak the step size."
+        },
+        {
+          "md": "The network needs more training data",
+          "expl": "More data helps generalisation, not optimisation. The early layers failing to move is an optimisation symptom, visible even on the training set."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which statement about $\\tanh$ and ReLU is accurate?",
+      "opts": [
+        {
+          "md": "$\\tanh$ has range $(-1,1)$ and still saturates; ReLU does not saturate on the positive side but is flat at 0 on the negative side",
+          "correct": true,
+          "expl": "Correct on both. tanh is a rescaled sigmoid, so it keeps the saturation that causes vanishing gradients, though its steeper midrange (derivative 1.0 at 0) softens the effect. ReLU trades that problem for a different one: its negative side has derivative exactly 0."
+        },
+        {
+          "md": "$\\tanh$ has range $(0,1)$ and ReLU has range $(-1,1)$",
+          "expl": "The ranges are swapped: tanh outputs between −1 and 1, while ReLU outputs anything from 0 upward with no upper bound."
+        },
+        {
+          "md": "ReLU saturates at both ends, which is why it replaced the sigmoid",
+          "expl": "ReLU was adopted *because* it does not saturate for positive inputs — an unbounded region of derivative 1. Saturating at both ends is precisely the sigmoid's weakness, not ReLU's advantage."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the sigmoid hands you a number in $(0,1)$. The next card asks what that number can do when it is used as a multiplier — and shows why it can only ever shrink an entry."
+}

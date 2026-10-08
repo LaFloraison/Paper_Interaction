@@ -1,0 +1,47 @@
+<!-- ============ c35 实验室 · TDR 手搓流水线 ============ -->
+<section class="card" data-c="35" data-title-zh="实验室 · TDR 手搓流水线" data-title-en="Lab · hand-crank the TDR pipeline">
+  <div class="card-inner">
+    <div class="card-kicker k-lab"><span class="len">Laboratory · build the rule ledger yourself</span><span class="lz">实验室 · 亲手造规则账</span></div>
+    <h2><span class="lz">转旋钮，造出一本规则账</span><span class="len">Turn the knobs, build a rule ledger</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">这个面板把第 29–32 卡的四步缝成了一台可玩的机器：三个滑块给顶点设定特征 (x₁, x₂, x₃)，两个旋钮调位置公式 (<b>α</b>、<b>β</b>)，一个旋钮假装"结构分"（第 33 卡那个 X<sub>s</sub>）。下面实时显示：哪些规则被满足、每条规则得到多少分、拼出来的 X<sub>r</sub> 与融合账长什么样。</p>
+    <p class="len">This panel stitches cards 29–32 into one playable machine: three sliders set the vertex's features (x₁, x₂, x₃), two knobs tune the position formula (<b>α</b>, <b>β</b>), and one knob fakes the "structural score" (card 33's X<sub>s</sub>). Below it, live: which rules are satisfied, each rule's score, and the resulting X<sub>r</sub> plus the fused ledger.</p>
+    <p class="lz">树队固定为第 27 卡那两棵：T₁ 问 x₂ ≥ 2（第 0 层）、x₁ ≥ 1（第 1 层）；T₂ 问 x₃ ≥ 5（第 0 层）、x₁ ≥ 2（第 1 层）、x₂ ≥ 1（第 1 层）。<b>先预测再动手</b>——每改一次滑块，先猜猜哪几格会变。</p>
+    <p class="len">The team is fixed as card 27's two trees: T₁ asks x₂ ≥ 2 (layer 0), x₁ ≥ 1 (layer 1); T₂ asks x₃ ≥ 5 (layer 0), x₁ ≥ 2 (layer 1), x₂ ≥ 1 (layer 1). <b>Predict before you touch</b> — at each change, guess which slots will move.</p>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <div class="lab-panel">
+      <div class="lab-title"><span class="lz">沙盒 · 规则账工作台</span><span class="len">Sandbox · rule-ledger workbench</span></div>
+      <div class="lab-hint"><span class="lz">滑动的每个控件都实时改变下方的账本。</span><span class="len">Every control updates the ledger below live.</span></div>
+      <div class="slider-row"><label>x₁</label><input type="range" id="tdrf0" min="0" max="6" step="1" value="1"><output id="tdrfo0">1</output></div>
+      <div class="slider-row"><label>x₂</label><input type="range" id="tdrf1" min="0" max="6" step="1" value="3"><output id="tdrfo1">3</output></div>
+      <div class="slider-row"><label>x₃</label><input type="range" id="tdrf2" min="0" max="6" step="1" value="4"><output id="tdrfo2">4</output></div>
+      <div class="slider-row"><label>α（总幅度）</label><input type="range" id="tdra" min="1" max="10" step="1" value="9"><output id="tdrao">9</output></div>
+      <div class="slider-row"><label>β（缓冲）</label><input type="range" id="tdrb" min="1" max="10" step="1" value="8"><output id="tdrbo">8</output></div>
+      <div class="slider-row"><label><span class="lz">结构分 Xs（假装）</span><span class="len">structural Xs (pretend)</span></label><input type="range" id="tdrsig" min="0" max="1.5" step="0.01" value="0.88"><output id="tdrso">0.88</output></div>
+      <div id="tdrx" data-x1="1" data-x2="3" data-x3="4" style="display:none"></div>
+      <div class="vec-lab"><span class="lz">规则判定（内容 × 位置）</span><span class="len">Rule verdicts (content × position)</span></div>
+      <div id="tdrchips"></div>
+      <div class="vec-lab"><span class="lz">规则账 X<sub>r</sub></span><span class="len">Rule ledger X<sub>r</sub></span></div>
+      <div class="vec" id="tdrxr"></div>
+      <div class="vec-lab"><span class="lz">结构加权版 X̃<sub>r</sub>（Xs ⊙ Xr）</span><span class="len">Structure-weighted X̃<sub>r</sub></span></div>
+      <div class="vec" id="tdrz"></div>
+      <div class="lab-read dim" id="tdrdim"></div>
+    </div>
+    <div class="task"><div class="task-no">1</div><div><span class="lz"><b>任务 1 · 认一遍账</b>：默认 x = (1, 3, 4)、α=9、β=8。对照上方账本：T₁ 两格（0、0，两条都被满足）；T₂ 三格（1.125、1.0、0）。与第 31 卡例 1 的数字逐一对上——面板和笔算应当一字不差。</span><span class="len"><b>Task 1 · read the ledger:</b> default x = (1, 3, 4), α = 9, β = 8. Check the panel: T₁'s two slots (0, 0 — both satisfied); T₂'s three (1.125, 1.0, 0). Match them against card 31's Example 1 — the panel and your hand work should agree digit for digit.</span></div></div>
+    <div class="task"><div class="task-no">2</div><div><span class="lz"><b>任务 2 · 拨一个特征</b>：把 x₃ 从 4 拉到 5。<b>预测：哪几格会变？</b>答案：只有 T₂ 的第一格（x₃ ≥ 5 从"不满足"翻成"满足"，1.125 → 0）——一次滑动只翻一条规则。</span><span class="len"><b>Task 2 · nudge one feature:</b> drag x₃ from 4 to 5. <b>Predict: which slots move?</b> Answer: only T₂'s first slot (x₃ ≥ 5 flips from missed to satisfied, 1.125 → 0) — one nudge flips one rule.</span></div></div>
+    <div class="task"><div class="task-no">3</div><div><span class="lz"><b>任务 3 · 调位置旋钮</b>：把 β 从 8 拉到 2。观察深层格子（第 1 层的三格）：分母变小，位置分集体变大——规则的"轻重差"被拉开了。再调到 10：整条账变平缓。<b>β 管曲线的陡缓，这正是消融图 3(b) 里 β 一动成绩就动的微观原因。</b></span><span class="len"><b>Task 3 · tune the position knobs:</b> drag β from 8 to 2. Watch the deeper slots (layer-1's three): smaller denominator lifts all positions — the weight spread widens. Push β to 10: the ledger flattens. <b>β sets the curve's steepness — the micro reason why Fig. 3(b)'s β moves accuracy.</b></span></div></div>
+    <div class="task"><div class="task-no">4</div><div><span class="lz"><b>任务 4 · 结构分打个折</b>：把 Xs 从 0.88 拉到 0.5。下方"加权版"整列同步变小——但<b>格数不变、模式不变</b>：这就是第 33 卡的 ⊙，只缩放、不增删。</span><span class="len"><b>Task 4 · discount the structure:</b> drag Xs from 0.88 to 0.5. The weighted row shrinks as a whole — yet <b>the slot count and pattern hold</b>: that is card 33's ⊙, scaling only, never adding or dropping.</span></div></div>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz quiz-num" data-answer="1.125" data-tol="0.005" data-hint="把三个特征都设到 2（α=9、β=8），看 T₂ 的第一格（规则 x₃ ≥ 5）：内容分是几？位置分是几？乘起来。" data-sol="x = (2, 2, 2)：x₃ ≥ 5？2 ≥ 5 不满足 → 内容分 1；该规则在第 0 层 → 位置分 9 ÷ (0+8) = 1.125 → 乘积 1 × 1.125 = 1.125。也可直接在面板上把所有滑块拉到 2，读 T₂ 第一格。">
+      <p class="quiz-q"><span class="ex-tag">CHECK</span><span class="lz">收束题：把 x = (2, 2, 2) 输进机器（α=9、β=8），T₂ 的第一格（规则 x₃ ≥ 5）得分是多少？</span><span class="len">Wrap-up: feed x = (2, 2, 2) (α = 9, β = 8). What is T₂'s first slot (rule x₃ ≥ 5) worth?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout good">
+      <b><span class="lz">你现在会了什么：</span><span class="len">What you can now do:</span></b>
+      <span class="lz">手上这台面板就是 TDR-Encoder 的全貌——内容登记（0/1 翻牌）、位置登记（除法配权重）、逐位相乘、逐树拼接。论文式 (4)–(8) 的全部算术，你都亲手转过了。</span>
+      <span class="len">This panel is the TDR-Encoder in full — content registry (0/1 flips), position registry (division-assigned weights), slot-wise multiply, tree-wise concatenation. Every piece of arithmetic in Eqs. (4)–(8) has now passed through your hands.</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

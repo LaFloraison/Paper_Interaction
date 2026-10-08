@@ -1,0 +1,209 @@
+{
+  "kind": "extension",
+  "title": "Gating, and the broadcast trick",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **Hadamard product**, written $\\odot$, combines two signals of the *same* shape by multiplying them entry by entry: $(A \\odot B)_{ij} = A_{ij}\\, B_{ij}$. **Broadcasting** extends entrywise operations to different shapes by copying the smaller signal along the dimension where it is missing: a column of shape $(n, 1)$ broadcast against a matrix of shape $(n, d)$ is first stretched to $(n, d)$ by repeating its single value across each row, and only then multiplied entry by entry. When the narrow signal is itself the output of a **squashing function** — a function that maps any input into a bounded interval, the sigmoid $\\sigma(x) = 1/(1+e^{-x})$, which maps any real number into $(0,1)$, being the standard example — it is called a **gate**, and the broadcast product is called **gating**.",
+      "plain": "Gating multiplies two signals number by number. When one signal holds a single number per row, that number is copied across the row first, so it scales the entire row by the same factor."
+    },
+    {
+      "t": "p",
+      "md": "**The vocabulary this card uses.** A **row** of a signal is one object, and the paper's objects are the **vertices** of a graph — one row per vertex. The narrow signal stores one number per vertex. The wide signal's row at a vertex is that vertex's **rule row**: its **rule features**, one number per feature, where each feature is one learned dimension describing the logical rules attached to that vertex. The examples below use rule rows of three entries ($d = 3$) so the arithmetic stays visible; the paper's rule rows are wide."
+    },
+    {
+      "t": "p",
+      "md": "**Why anyone wants a gate.** Cards 1 and 2 left one thing undone: neither concatenation nor a fixed weighted sum lets the emphasis between the two signals depend on the object. A gate does. Because the gate value can be computed from one of the signals itself, a vertex can carry a gate near 1 (its rule features come through nearly intact) while another vertex carries a gate near 0 (its rule features are pushed towards zero). The weighting becomes per-object, and it is learned, rather than fixed at design time."
+    },
+    {
+      "t": "p",
+      "md": "**What broadcasting actually does.** The narrow signal has one number per row. Broadcasting copies it across all $d$ columns, so it multiplies every entry of that row by the same factor. The result is a row that has been scaled — not a row whose columns have been readjusted relative to one another. It is worth being explicit about what this means: the gate cannot, for a single object, treat two features differently. One row, one factor."
+    },
+    {
+      "t": "p",
+      "md": "**Honest limit: attenuation only.** If every gate value lies strictly inside $(0,1)$, then for each entry $|g\\, v| = g\\,|v| \\le |v|$, with strict decrease whenever $g < 1$ and $v \\ne 0$. A gate in $(0,1)$ therefore can only shrink a magnitude; it can never enlarge one, and it cannot flip a sign. It can change the *relative* size of entries across rows — a row whose gate is near 1 keeps its entries while a row whose gate is near 0 loses them — but within one row every entry is scaled by the same positive factor, so their ordering is untouched."
+    },
+    {
+      "t": "p",
+      "md": "**Why the gated result is concatenated with the ungated original.** Because a gate can drive an entry towards zero, using the gated product alone would risk discarding the wide signal at any object whose gate is small. Concatenating the product with the untouched original keeps both views: the model sees a modulated copy *and* a full-strength copy, and can read whichever the task needs. The gate contributes an extra, context-weighted reading — it does not replace the signal it modulates."
+    },
+    {
+      "t": "p",
+      "md": "**The contrast with attention.** The table below sets gating beside **cross-attention** — a different mechanism for combining two signals, which this paper does *not* use, included here only because its multipliers also lie in $(0,1)$ and are easy to confuse with a gate. In cross-attention each entry of one signal is reweighted by how well it **matches** entries of the other: the mechanism computes a **match score** for every pair of entries, turns the scores into weights, and forms a weighted average of the values. Two consequences appear in the table. The weights are **normalised** — across the set they are matched to, they are positive and sum to 1, so the output is an average and cannot exceed its largest input. And because they sum to 1, one entry's larger weight must be paid for by another's smaller weight: attention reallocates a fixed total, while a gate scales each entry independently and the total falls."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Property",
+        "Gating (broadcast Hadamard)",
+        "Cross-attention"
+      ],
+      "rows": [
+        [
+          "Number of multipliers",
+          "one per row (under broadcast) or one per entry (same-shape product)",
+          "one per pair of matched entries"
+        ],
+        [
+          "Range of each multiplier",
+          "whatever the producing function gives — $(0,1)$ if a sigmoid produces it",
+          "$(0,1)$, and they are **normalised**: across the matched set they sum to 1"
+        ],
+        [
+          "Linked across the set",
+          "no — gate values are independent of one another",
+          "yes — the sum-to-one rule means one weight's rise is another's fall"
+        ],
+        [
+          "Effect on the total magnitude",
+          "the total shrinks whenever a gate is below 1",
+          "the total is **reallocated**; a normalised average lies between the smallest and largest inputs"
+        ],
+        [
+          "Depends on the other signal's content",
+          "only in that the gate may be computed from it; the multiplication itself is per-entry",
+          "yes — the weights are the match scores between the two signals"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "The wording to distrust is \"the gate amplifies the important part.\" A value in $(0,1)$ cannot amplify anything. What a gate can do is change the ratio *between objects*: a row with a gate near 1 keeps its entries, a row with a gate near 0 loses them, so the first row stands out relative to the second. That is a relative claim among objects, and it is true; the absolute claim that an entry grew is false."
+    },
+    {
+      "t": "p",
+      "md": "**When gating fails.** Two failure modes follow from the definition. A gate cannot strengthen a signal that everything upstream has already suppressed. And a gate held near 0 blocks not only the forward value but also the **backward gradient** — the error signal that training sends back through the network to adjust the weights — because that signal is multiplied by the same small gate on its way back. A gate that shut a channel therefore also stops learning to reopen it. Gates earn their keep when they are allowed to sit away from the extremes."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a single gate value scaling a whole row.** Let the broadcast gate at one vertex be $g = 0.5$ and the rule row there be $r = (4, -2, 8)$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Broadcast first: the single value $0.5$ is copied across the three columns, giving $(0.5, 0.5, 0.5)$.",
+          "why": "This is the step that distinguishes gating from an entrywise product of equal shapes. Only after this copy do the shapes match and the multiplication become legal."
+        },
+        {
+          "md": "Multiply entry by entry: $0.5 \\times 4 = 2$, $0.5 \\times (-2) = -1$, $0.5 \\times 8 = 4$, so the gated row is $(2, -1, 4)$.",
+          "why": "The same factor touches every entry, so the whole row is scaled by 0.5 — not adjusted column by column."
+        },
+        {
+          "md": "Check the magnitudes: $|4| \\to 2$, $|-2| \\to 1$, $|8| \\to 4$. Every one halved, and no sign changed.",
+          "why": "A gate below 1 shrinks; it never enlarges and never flips a sign, because the multiplier is positive and less than 1. This is the attenuation fact seen on actual numbers."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — two vertices with different gates.** Take the same rule row, $r = (4, -2, 8)$, at a second vertex whose gate is $g = 0.9$."
+    },
+    {
+      "t": "calc",
+      "md": "g = 0.9:  (0.9 × 4, 0.9 × (−2), 0.9 × 8) = (3.6, −1.8, 7.2)"
+    },
+    {
+      "t": "calc",
+      "md": "g = 0.5:  (0.5 × 4, 0.5 × (−2), 0.5 × 8) = (2.0, −1.0, 4.0)"
+    },
+    {
+      "t": "p",
+      "md": "Look at the first column across the two vertices: $3.6$ against $2.0$. Their ratio is $3.6 / 2.0 = 1.8$, which is exactly the ratio of the gates $0.9 / 0.5 = 1.8$. The gate has made one vertex's rule entry stand out against the other's by a factor of 1.8 — **yet both gated entries are smaller than the original $4.0$**. That is the whole character of a gate: relative differences between objects change, absolute magnitudes only fall."
+    },
+    {
+      "t": "p",
+      "md": "Total magnitude tells the same story. The un-gated row has $|4| + |-2| + |8| = 14$. At gate 0.5 the gated row's total is $2 + 1 + 4 = 7$; at gate 0.9 it is $3.6 + 1.8 + 7.2 = 12.6$. Both fell, both stayed below 14 — a gate in $(0,1)$ removes energy, it does not move it."
+    },
+    {
+      "t": "calc",
+      "md": "concat with the original:  (2, −1, 4, 4, −2, 8)"
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "The last line is the fusion step. The gated copy $(2, -1, 4)$ and the untouched original $(4, -2, 8)$ are concatenated, so both views of the rule row survive. The first block is the modulated reading, the second the full-strength one — the model is not forced to choose between them."
+    },
+    {
+      "t": "callout",
+      "md": "This example uses one row of width 3 and two gate values. It shows the broadcast, the attenuation, the relative-vs-absolute distinction, and the concatenation step; it does not show how the narrow signal's gate values are *produced*, it does not work through the attention comparison in the table, and it does not show a gate saturating near 0 and suppressing a gradient during training."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "A gate of shape $(n, 1)$ is broadcast against a rule matrix of shape $(n, d)$ and multiplied entry by entry. What does broadcasting accomplish?",
+      "opts": [
+        {
+          "md": "It copies each row's single gate value across that row, so each row is scaled by its own factor",
+          "correct": true,
+          "expl": "Correct. Broadcasting stretches the column to match the width before the product, which makes the multiplication legal and gives every row one uniform scaling factor. The consequence — one factor per row, not per entry — is what limits the gate, as card 4 states."
+        },
+        {
+          "md": "It repeats the rule matrix so that it matches the gate's single column",
+          "expl": "The replication goes the other way: the *narrow* signal is the one enlarged to the wider shape. Repeating the rule matrix would collapse its width, which is the opposite of what broadcasting does."
+        },
+        {
+          "md": "It randomly samples gate values for different columns",
+          "expl": "Broadcasting introduces no randomness. It copies the same value across the row deterministically — which is precisely why a broadcast gate cannot treat two columns differently."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A broadcast gate of $0.25$ is applied to a rule row $(8, -4, 12)$. What is the sum of the absolute values of the gated row?",
+      "answer": 6,
+      "tol": 0.01,
+      "hint": "Gate each entry first, take absolute values, then add. Because the gate is a single factor, you can also sum the originals' magnitudes first — check that both routes agree.",
+      "sol": "Gated row: 0.25 × 8 = 2, 0.25 × (−4) = −1, 0.25 × 12 = 3, giving (2, −1, 3). Sum of magnitudes: 2 + 1 + 3 = 6. The shortcut agrees: the original magnitudes sum to 8 + 4 + 12 = 24, and 0.25 × 24 = 6. The single factor can be pulled outside the sum precisely because it is the same for every entry of the row.",
+      "unit": "sum"
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "According to the gate-vs-attention table, what is the essential difference between the two?",
+      "opts": [
+        {
+          "md": "Gate values are independent, so the total magnitude shrinks; attention weights are normalised to sum to 1, so the total is reallocated",
+          "correct": true,
+          "expl": "Correct. Both use multipliers in (0, 1), but only attention links them by requiring them to sum to 1. That link is why one attention weight's rise is paid for by another's fall, while turning one gate down forces no other gate up."
+        },
+        {
+          "md": "Attention can amplify because its weights sum to 1, while a gate cannot",
+          "expl": "Backwards. Summing to 1 makes attention a normalised average, which cannot exceed its largest input. The sum-to-one rule constrains attention rather than empowering it."
+        },
+        {
+          "md": "Gates depend on the other signal's content; attention does not",
+          "expl": "The dependency is the other way round. Attention weights *are* match scores between the two signals, so they depend on content by construction; a broadcast gate is a per-row factor whose source may or may not look at the other signal."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A vertex's broadcast gate is $0.2$, applied to a rule row of moderate values. Which claim about this vertex is accurate?",
+      "opts": [
+        {
+          "md": "The gate can only shrink this row's entries; it cannot make any of them larger than they started",
+          "correct": true,
+          "expl": "Correct. Multiplying by a value in (0, 1) contracts: |g·v| = g·|v| < |v| for non-zero entries. The vertex may still stand out *relative* to a vertex whose gate is nearer 0, but no entry of this row grew in magnitude."
+        },
+        {
+          "md": "It amplifies the structurally important rule features by boosting their values",
+          "correct": false,
+          "expl": "A value of 0.2 divides by five; it cannot boost. This is the central misconception the card names: gates in (0, 1) attenuate, and \"amplified\" can only mean a change in the ratio between vertices."
+        },
+        {
+          "md": "It preserves the row's total magnitude by redistributing it among the columns",
+          "expl": "Redistribution is what a normalised set of attention weights does. A single broadcast factor multiplies every entry by 0.2, so the total magnitude is reduced to a fifth — nothing is moved between columns."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the paper's fusion is exactly this broadcast gate followed by the concatenation from card 2. The last card states the paper's choice in full, prices what it buys, and ends with the skip check."
+}

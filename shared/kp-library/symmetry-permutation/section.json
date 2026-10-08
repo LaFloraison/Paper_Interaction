@@ -1,0 +1,7 @@
+{
+  "key": "symmetry-permutation",
+  "name": "Symmetry and permutation invariance",
+  "title": "Symmetry and permutation invariance: why the file's order must not matter",
+  "blurb": "Every graph and hypergraph in this paper arrives as numbers in an order that someone else chose, and the paper proves its structural encoder does not depend on that order — a lemma about exchanging columns of the incidence matrix. This section supplies the general idea that lemma is an instance of: what a symmetry of a function is, the difference between invariance and equivariance, which relabellings of a graph are free, and the two standard routes to invariance together with what each route costs.",
+  "skip_hint": "If you can define invariance and equivariance, name which relabellings of an incidence matrix an encoder must be invariant to, and state one cost of each route to invariance, skip this section."
+}

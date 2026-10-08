@@ -1,0 +1,155 @@
+{
+  "kind": "extension",
+  "title": "The supervised setup: labelled examples, a hypothesis class, and the gap between fitting and generalising",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **supervised learning problem** is a triple. First, a set of labelled examples $(x_i, y_i)$ for $i = 1, \\dots, n$, where $x_i$ is a *feature vector* — a list of measurements describing one case — and $y_i$ is its *target*, the answer we want to predict. Second, a **hypothesis class** $\\mathcal{H}$: a fixed family of candidate functions, each mapping a feature vector to a predicted target. Third, a **loss function** that scores how far a prediction $h(x)$ is from the true $y$. Learning means searching $\\mathcal{H}$ for the $h$ that fits the training examples best.",
+      "plain": "You show the program a pile of labelled examples. It picks one rule out of a family of rules you supplied. The rule that fits the examples you showed it is the one it keeps. But the number that matters is how that rule behaves on cases it has never been shown."
+    },
+    {
+      "t": "p",
+      "md": "**Why the machinery is the topic, not the model.** A paper's headline claim is rarely \"our network is clever.\" It is \"our network scored 73.4 on these five datasets.\" That sentence is a claim about a *procedure*: how the data was cut, what was fixed before learning began, and what was finally measured. A reader who skips this part cannot tell a strong result from a lucky one — and reviewing a paper consists almost entirely of trying to tell exactly that."
+    },
+    {
+      "t": "p",
+      "md": "**Features and targets.** Every example is a pair. The feature vector $x$ gathers everything you are permitted to know *before* the answer appears: a node's neighbourhood, a molecule's atom types, a patient's lab values. The target $y$ is the answer: a category, or a number. A dataset is *labelled* when each example arrives with its $y$. The word *supervised* names the role of $y$ — it supervises the search, because it is the signal the learner is told to reproduce."
+    },
+    {
+      "t": "p",
+      "md": "**The hypothesis class.** The learner is not free to return an arbitrary program. You hand it a family and let it pick one member. The family \"lines of the form $y = w x + b$\" is indexed by two numbers; \"a neural network with this fixed architecture\" is a family indexed by all of its weights. The family decides what can be expressed at all: no quantity of data will teach a straight line to bend. Choosing the family is the modeller's decision, taken before any learning happens, and it cannot be corrected by the training set."
+    },
+    {
+      "t": "p",
+      "md": "**Fitting is a means, not the goal.** During training the learner reduces error on the examples it was given. That is a proxy. The quantity that matters is error on examples it has never seen — which nobody can compute exactly, only estimate from held-out data. When a model does well on the first and badly on the second, it has *memorised* rather than learned. This is why \"accuracy on the data you trained on\" is not a result: it is guaranteed to look good, because the training procedure was explicitly instructed to make it good."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The trap, stated plainly.** A model with enough capacity can reach 100% training accuracy on almost anything, including data whose targets were assigned by a coin flip, by drawing a boundary that threads through every point. Perfect training accuracy is therefore evidence of nothing — not of a good model, not of an informative dataset, not of a good idea. The only number that carries information is one computed on examples that had no influence on training."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — two rules fit equally well and disagree anyway.** Four students, one feature each: hours studied. The target is the outcome, pass or fail."
+    },
+    {
+      "t": "table",
+      "head": ["hours studied", "outcome"],
+      "rows": [["1", "fail"], ["2", "fail"], ["4", "pass"], ["5", "pass"]]
+    },
+    {
+      "t": "p",
+      "md": "The hypothesis class is every rule of the form \"pass if hours $\\geq t$,\" with $t$ a whole number from 1 to 5 — five candidate rules. We try each on the four examples and count how many it gets right."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Rule $t = 3$: predict pass when hours $\\geq 3$. Hours 1 and 2 give fail (correct); hours 4 and 5 give pass (correct). Training accuracy $4/4 = 1.00$.",
+          "why": "Every training example is matched. This is the only quantity the training procedure can see, so it is the only quantity it can optimise."
+        },
+        {
+          "md": "Rule $t = 4$: predict pass when hours $\\geq 4$. Hours 1, 2 and 3 give fail; hours 4 and 5 give pass. Training accuracy again $4/4 = 1.00$.",
+          "why": "A different rule with the identical training score. The training data expresses no preference between the two."
+        },
+        {
+          "md": "Now a fifth student, 3 hours studied, whose true outcome is fail. Rule $t = 3$ predicts pass — wrong. Rule $t = 4$ predicts fail — right.",
+          "why": "The two rules were indistinguishable on the training set and disagree precisely where it matters. Training accuracy cannot separate them; only data they did not learn from can. That is the concrete sense in which it is not a result."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "The training set contains no example at 3 hours, so the two rules differ only on inputs it never mentions. This is the normal situation, not a contrived one: **a finite training set under-determines the model** unless it happens to pin down the answer everywhere. Generalisation is the study of what the model does in those gaps."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — a trained model with a large gap.** A model is fitted to 100 labelled examples. On those it scores $100/100 = 1.00$. On 100 fresh examples drawn from the same source it scores $55/100 = 0.55$."
+    },
+    {
+      "t": "calc",
+      "md": "Training accuracy $= 1.00$. Test accuracy $= 0.55$. Gap $= 1.00 - 0.55 = 0.45$. With two classes, guessing would score $0.50$, so the model is five percentage points above chance on new data."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "Notice which number the word *result* attaches to. \"100% accuracy,\" quoted without any mention of a held-out set, describes how hard the model worked, not how well it works. Example 2 is not a failure of the model; it is what the two different measurements mean."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In the supervised setup, what is the *target* of an example?",
+      "opts": [
+        {
+          "md": "The list of measurements taken before the answer is known",
+          "expl": "That is the feature vector $x$. Features are the inputs you are allowed to use; the target is what you are asked to produce from them."
+        },
+        {
+          "md": "The answer the learner is asked to predict",
+          "correct": true,
+          "expl": "Correct: $y$. It is called the target because it is what the search aims at, and it is the only source of supervision in the whole setup."
+        },
+        {
+          "md": "The rule the learner returns at the end",
+          "expl": "That is the hypothesis $h$ chosen from the hypothesis class. The target is the label attached to an example, not the function that predicts it."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A model scores 47 correct out of 50 on its training set and 31 correct out of 50 on a held-out set. What is the gap between training accuracy and held-out accuracy, as a fraction?",
+      "answer": 0.32,
+      "tol": 0.01,
+      "hint": "Convert each count to a fraction first, then subtract the held-out figure from the training figure.",
+      "sol": "Training accuracy $= 47/50 = 0.94$. Held-out accuracy $= 31/50 = 0.62$. Gap $= 0.94 - 0.62 = 0.32$. Answering 0.62 alone is the usual slip — that is the held-out score, and the gap is the difference between the two measurements.",
+      "unit": "fraction"
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why is training accuracy guaranteed to look good?",
+      "opts": [
+        {
+          "md": "Because datasets are usually easy",
+          "expl": "Plenty of datasets are hard, and training accuracy still looks high. The effect comes from the procedure, not the difficulty of the data."
+        },
+        {
+          "md": "Because the training procedure is explicitly instructed to maximise it",
+          "correct": true,
+          "expl": "Correct. Whatever search you run, you ran it to reduce error on these examples. Reporting that error back is reporting the objective you optimised, not a discovery about the world."
+        },
+        {
+          "md": "Because models have more parameters than data points",
+          "expl": "That is one route to memorisation, but training accuracy would still be high for a small model that fits its data. The guaranteed-good property comes from the objective, not the parameter count."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "In Example 1, rules $t = 3$ and $t = 4$ both scored 1.00 on the training set. What does that tell you about the training set itself?",
+      "opts": [
+        {
+          "md": "That it is too small to be useful",
+          "expl": "Size is not the issue here. A larger set containing the same hours, 1, 2, 4 and 5, would leave exactly the same ambiguity."
+        },
+        {
+          "md": "That it contains no example between 2 and 4 hours, so it does not determine which rule is correct",
+          "correct": true,
+          "expl": "Correct. The two rules agree everywhere the training set looks and differ only in the gap it never visits. This is the general shape of under-determination: the data fixes the model on the points it contains and leaves the rest to the choice of hypothesis class."
+        },
+        {
+          "md": "That one of the two rules must be overfitting",
+          "expl": "You cannot tell either rule is overfitting from the training scores alone — they are equal. Which one is right depends on data neither has seen, which is exactly the gap Example 1 opens up."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the gap in Example 1 is the reason data must be divided. The next card takes the single held-out set and runs it through its three distinct jobs — training, choosing, and reporting — and shows what happens when they are confused."
+}

@@ -1,0 +1,164 @@
+{
+  "kind": "extension",
+  "title": "Parameters and hyperparameters: what the model learns versus what you decide",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Parameters** are the quantities a learning algorithm adjusts by optimisation in order to fit the training data — the weights and biases inside the model. They are the output of training and are meaningless before it. **Hyperparameters** are the quantities fixed before optimisation begins, chosen by the experimenter, that control the learning process itself: the learning rate, the model's depth and width, the strength of regularisation, the batch size. They are not fitted by the training loop; they are inputs to it.",
+      "plain": "Parameters are what the model learns from the data. Hyperparameters are what you, the experimenter, decide before learning starts. One is produced by training; the other steers it."
+    },
+    {
+      "t": "p",
+      "md": "**Parameters, concretely.** For a small fully connected network taking 100 input features, with one hidden layer of 32 units and 2 output classes, the first layer holds $100 \\times 32 = 3200$ weights plus 32 biases, and the second holds $32 \\times 2 = 64$ weights plus 2 biases: $3232 + 66 = 3298$ parameters in total. Every one of those 3,298 numbers is set by the training loop, by repeatedly nudging them to reduce the loss. You never write any of them down."
+    },
+    {
+      "t": "p",
+      "md": "**Hyperparameters, concretely.** The same network has a hidden size (32) that you *did* write down, before training. It also has a learning rate, a batch size, a number of training epochs, and a weight-decay strength. None of these is adjusted by the training loop. The hidden size is not learned; a network with 32 units and a network with 64 units are different hypothesis classes, and choosing between them is a decision outside learning."
+    },
+    {
+      "t": "p",
+      "md": "**Why the distinction carries weight.** It marks the boundary between the part of the experiment that is legitimately automatic and the part that is the experimenter's judgement. That judgement is a research degree of freedom, and every degree of freedom must be documented and must be exercised on data that is not the test set. It also explains a habit of careful papers: they report hyperparameters in a table or an appendix, because a result without them is not reproducible. The parameters need not be reported; they can be retrained. The hyperparameters cannot be inferred from the result and must be stated."
+    },
+    {
+      "t": "p",
+      "md": "**The protocol.** Search hyperparameters on the validation set (or a nested cross-validation), select the combination that performs best there, then retrain once on training plus validation and report on the test set. The order matters: the test set is consulted only after every hyperparameter is frozen. Reporting a hyperparameter *because* it scored well on test is card 2's leak wearing a different hat."
+    },
+    {
+      "t": "list",
+      "ordered": false,
+      "items": [
+        "Model shape: number of layers, hidden dimension, number of attention heads or message-passing steps.",
+        "Optimisation: learning rate, weight decay, batch size, number of epochs, early-stopping patience, learning-rate schedule.",
+        "Regularisation: dropout rate, feature dropout, label smoothing.",
+        "Architecture-specific choices: the aggregation function or the type of graph layer, the readout or pooling function, the number of samples per estimate.",
+        "Evaluation: which metric, the fold count, and the number of random seeds to average over.",
+        "A typical graph-network paper must fix at least ten such choices, and each is a degree of freedom a reviewer is entitled to see stated."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The misconception to kill.** It is tempting to think that hyperparameters are also \"learned from data,\" since they are picked using validation data. They are not learned by the model — they are chosen by a search *you* run, and that search can be inspected, stopped, and reported. The distinction is not \"magic versus method\"; it is \"produced by optimisation inside the model\" versus \"fixed outside it, by choice.\""
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — sorting one model's numbers into the two boxes.** Take the 100-to-32-to-2 network."
+    },
+    {
+      "t": "table",
+      "head": ["quantity", "value", "parameter or hyperparameter", "why"],
+      "rows": [
+        ["first-layer weights and biases", "3200 + 32 = 3232", "parameter", "set by the training loop"],
+        ["second-layer weights and biases", "64 + 2 = 66", "parameter", "set by the training loop"],
+        ["hidden size", "32", "hyperparameter", "fixed before training; it defines the architecture"],
+        ["learning rate", "e.g. 0.01", "hyperparameter", "controls each update step; not fitted"],
+        ["training epochs", "e.g. 200", "hyperparameter", "decides how long the loop runs"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "The 3,298 parameters are the model's contents. The four listed hyperparameters are the experimenter's settings. If someone deleted the saved weights, the model could be retrained from the hyperparameters; if someone deleted the hyperparameters, the weights would not tell you how the model was made."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — what a search actually costs.** A grid search considers every combination in a list. Suppose a paper tries 4 learning rates, 3 hidden sizes, and 3 layer counts."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Count the combinations: $4 \\times 3 \\times 3 = 36$ distinct hyperparameter settings.",
+          "why": "A grid tries the Cartesian product, so the count multiplies rather than adds. Adding one more learning rate to the list costs 9 new settings, not 1."
+        },
+        {
+          "md": "Evaluate each setting by 5-fold cross-validation: each setting requires 5 training runs, so $36 \\times 5 = 180$ training runs in total.",
+          "why": "This is the search multiplied by the resampling. It explains why cross-validation and grid search together dominate the compute of a small paper — neither multiplier is large, but they compound."
+        },
+        {
+          "md": "Choose the setting with the best cross-validated score, then retrain once on the full training set and report on test.",
+          "why": "The 180 runs produced a choice, not a result. The reported number comes from the single frozen configuration evaluated once on data that took no part in the 180 runs."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Notice that a random search over the same budget would usually beat the grid. If only 3 of the 36 combinations turn out to matter, a grid spends most of its runs varying settings that do nothing, whereas sampling the space at random gives each important setting many distinct values to try. This is the standard reason large searches are randomised rather than gridded."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which of these is a hyperparameter rather than a parameter?",
+      "opts": [
+        {
+          "md": "The weight connecting the first hidden unit to the first output",
+          "expl": "That weight is one of the 3,298 numbers set by the training loop — a parameter, meaningless before training."
+        },
+        {
+          "md": "The learning rate",
+          "correct": true,
+          "expl": "Correct. The learning rate is fixed before optimisation and controls it; the loop never adjusts it from the data. It is the canonical hyperparameter, and it is the one most often misreported as an implementation detail."
+        },
+        {
+          "md": "The bias added in the second layer",
+          "expl": "A bias is a parameter, fitted alongside the weights. Being small or auxiliary does not make it a hyperparameter."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A search tries 5 learning rates, 4 dropout rates, and 3 layer counts, evaluating every combination with 10-fold cross-validation. How many training runs does the search require?",
+      "answer": 600,
+      "tol": 0.5,
+      "hint": "First count the distinct combinations in the grid, then multiply by the number of training runs each one costs under cross-validation.",
+      "sol": "The grid has $5 \\times 4 \\times 3 = 60$ combinations. Ten-fold cross-validation costs 10 training runs per combination, so $60 \\times 10 = 600$ runs. Answering 60 is the usual slip — that is the count of settings, before multiplying by the folds.",
+      "unit": "training runs"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A reader tries to reproduce a paper and cannot match its number. The paper reports the architecture and the number of layers but no learning rate, batch size, or dropout. What has been left out, and why does it matter?",
+      "opts": [
+        {
+          "md": "Only parameters were left out, and those can be retrained anyway",
+          "expl": "It is the reverse. Parameters can indeed be retrained, but the missing items are hyperparameters — and those cannot be recovered from the result."
+        },
+        {
+          "md": "Hyperparameters were left out; they are the experimenter's choices and cannot be inferred from the reported score",
+          "correct": true,
+          "expl": "Correct. The learning rate and dropout rate are not determined by the result, so a reader cannot back them out. Without them the experiment is not reproducible, which is why careful papers list every hyperparameter and say where it was chosen."
+        },
+        {
+          "md": "Nothing important was left out, since layers and architecture are the main choices",
+          "expl": "Architecture is one hyperparameter among several, and often not the one that moves the score most. A different learning rate can change results as much as a different depth, which is precisely why both must be stated."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Where should hyperparameters be chosen, and where should the reported number come from?",
+      "opts": [
+        {
+          "md": "Chosen on the test set, reported on the training set",
+          "expl": "This inverts both roles. Choosing on test is the tuning leak; reporting on training is the uninformative quantity from card 1."
+        },
+        {
+          "md": "Chosen on validation (or nested cross-validation), reported on the test set",
+          "correct": true,
+          "expl": "Correct, and this is the whole protocol in one line. The validation side is where choice is legitimate; the test side is consulted once, after all choices are frozen, so its number is not a maximum over the options you tried."
+        },
+        {
+          "md": "Chosen and reported on the same set, as long as the set is large",
+          "expl": "A large test set shrinks the inflation but does not remove it. The maximum of many noisy scores still exceeds their average no matter how big the set is."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** once the protocol is fixed, the question becomes what the results table is obliged to disclose — which metric, which split, which hyperparameters, and over how many seeds. That contract, and a check that you can leave this section, is the last card."
+}

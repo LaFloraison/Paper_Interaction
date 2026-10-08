@@ -1,0 +1,210 @@
+{
+  "kind": "check",
+  "title": "What the taught paper does — and the skip check",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "In the taught paper, the **fused representation** over the $n$ vertices is $\\mathrm{Fused} = [\\, X_s \\odot R \\;\\Vert\\; R \\,]$. The **structural embedding** $X_s$ has shape $(n, 1)$ — one number per vertex — and it is the output of a **sigmoid**, a squashing function that maps any input into the open interval $(0,1)$, so each entry of $X_s$ lies strictly inside $(0,1)$: it may be $0.5$ or $0.99$, but never $0$ and never $1$. The **rule embedding** $R$ has shape $(n, d)$ — one number per rule feature per vertex, where a **rule feature** is one learned dimension describing the logical rules attached to a vertex. The symbol $\\odot$ is the elementwise product, applied after $X_s$ is **broadcast** across each row of $R$; the bar $\\Vert$ denotes **concatenation** along the column axis. The fused width is $d + d = 2d$.",
+      "plain": "Take the single structural number at a vertex — always between 0 and 1, since it comes out of a sigmoid — multiply it into every rule feature of that vertex, then place the result and the original rule features side by side. The structural value ends up shaping the rule features rather than sitting next to them as an extra column."
+    },
+    {
+      "t": "p",
+      "md": "This section built a menu of four ways to combine two signals of different widths, priced the first two, worked the third, and set attention beside it. The final step is to name the paper's own choice precisely, and to price exactly what it does and does not buy."
+    },
+    {
+      "t": "h3",
+      "md": "The paper's fusion, stated exactly"
+    },
+    {
+      "t": "p",
+      "md": "The paper's fusion **broadcasts** $X_s$ across $R$, multiplies entry by entry, and then concatenates the product with the original rule embedding. Written out:"
+    },
+    {
+      "t": "formula",
+      "tex": "\\mathrm{Fused} = \\big[\\, X_s \\odot R \\;\\Vert\\; R \\,\\big]",
+      "note": "The vertical bar denotes concatenation: the gated block $X_s \\odot R$ is placed immediately before the untouched block $R$. The gate $X_s$ is broadcast first — its single value per row is stretched across all $d$ columns — so the entrywise product is legal.",
+      "gloss": [
+        {
+          "sym": "X_s",
+          "md": "the structural embedding, shape $(n,1)$ — one number per vertex, produced by a squashing function whose output lies in $(0,1)$"
+        },
+        {
+          "sym": "R",
+          "md": "the rule embedding, shape $(n,d)$ — many numbers per vertex, one per rule feature"
+        },
+        {
+          "sym": "\\odot",
+          "md": "the elementwise (Hadamard) product, with $X_s$ broadcast across each row"
+        },
+        {
+          "sym": "\\Vert",
+          "md": "concatenation: the two blocks are joined along the column axis"
+        },
+        {
+          "sym": "2d",
+          "md": "the width of the fused result — two blocks of width $d$, so the structural embedding adds **no** column of its own"
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "The fused width is therefore $d + d = 2d$: **twice the rule width**. The structural embedding does not appear as an extra column in the result — it enters only through the gate. This is worth noticing, because it is the opposite of plain concatenation, where the width-1 signal would have survived as its own extra column."
+    },
+    {
+      "t": "h3",
+      "md": "What this buys, stated precisely"
+    },
+    {
+      "t": "p",
+      "md": "A downstream linear layer with weight blocks $W_1$ and $W_2$ computes $W_1 (X_s \\odot R) + W_2 R$. Read the two terms: the layer receives **two different linear readings of the same rule embedding** — one taken from the gated copy, one from the untouched original — and it is free to weight the two readings differently. Within the gated reading, each vertex's row has been scaled by its own structural value."
+    },
+    {
+      "t": "p",
+      "md": "So the structural scalar acts as **per-vertex context**, not as a separate information channel. It does not carry new facts alongside the rule features; it changes how strongly each vertex's rule features come through one of the two readings. A vertex with a structural value near 1 contributes its rules nearly intact to the gated reading; a vertex near 0 contributes them heavily suppressed — while the unscaled copy keeps the full-strength version available in every case."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The honest limit.** Because the gate has one value per row, no two columns of the rule embedding can be gated differently for the same vertex. One vertex, one factor, applied to all $d$ of its rule entries. A full-width gate of shape $(n, d)$ could suppress some rule features and keep others for the same vertex; this fusion cannot. Whatever the structural signal needs to express, it must express it as a single per-vertex weight."
+    },
+    {
+      "t": "h3",
+      "md": "The section, in five claims"
+    },
+    {
+      "t": "list",
+      "items": [
+        "Fusion combines two signals with the same $n$ rows into one; the four standard mechanisms are concatenation, weighted sum, elementwise gating, and cross-attention (which reweights one signal by how well it matches the other).",
+        "Plain concatenation preserves both signals but dilutes the narrow one: a width-1 column joined to width $d$ supplies a share $1/(d+1)$ of the entries — $1/201 = 0.4975\\%$ when $d = 200$.",
+        "A fixed weighted sum merges the two signals irreversibly and freezes their ratio; downstream scaling multiplies both contributions by the same constant, so it cannot change the balance.",
+        "Gating multiplies a narrow signal into a wide one by broadcasting: one gate value per row scales the whole row. A gate in $(0,1)$ can only attenuate, and concatenating the gated product with the ungated original prevents the shrinkage from destroying information.",
+        "The taught paper broadcasts a width-1 structural embedding into the rule embedding and concatenates the product with the original, giving a fused width of $2d$; the structural value is a per-vertex context, and since it is one number per row it cannot gate columns differently."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The questions below are the check. The bar is not a score — it is that you did not have to think hard about any of them. If the sentence \"the fused width is twice the rule width\" still reads as a surprise, or if you cannot say why the structural embedding adds no column of its own, stay: every later claim about the paper's fusion is read against exactly this shape."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**One worked pass over the paper's fusion, at a small width.** Take a rule row $R = (4, -2, 8)$ at one vertex ($d = 3$ here, instead of the real 200), and let the broadcast structural gate at that vertex be $X_s = 0.5$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Gate: broadcast $0.5$ across the three columns and multiply, giving $X_s \\odot R = (2, -1, 4)$.",
+          "why": "Each entry is scaled by the same per-vertex factor. Every magnitude fell — $|4| \\to 2$, $|-2| \\to 1$, $|8| \\to 4$ — since the gate is below 1."
+        },
+        {
+          "md": "Concatenate the product with the original: the fused row is $(2, -1, 4,\\; 4, -2, 8)$.",
+          "why": "The first three numbers are the gated reading, the last three the untouched rule row. Both readings are now present, which is what stops the gate from erasing the rule signal."
+        },
+        {
+          "md": "Read off the width: the rule row had $3$ columns, the fused row has $3 + 3 = 6 = 2 \\times 3$.",
+          "why": "The structural embedding contributed the gate but no column, so the width doubled rather than grew by one. At the real rule width of $d = 200$, the same rule gives a fused width of $2 \\times 200 = 400$."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — a second vertex, with a small gate.** Take the same rule row $R = (4, -2, 8)$, but now at a vertex whose structural value is $X_s = 0.05$."
+    },
+    {
+      "t": "calc",
+      "md": "X_s ⊙ R  =  (0.05 × 4, 0.05 × (−2), 0.05 × 8)  =  (0.2, −0.1, 0.4)"
+    },
+    {
+      "t": "calc",
+      "md": "fused row  =  (0.2, −0.1, 0.4,  4, −2, 8)"
+    },
+    {
+      "t": "p",
+      "md": "Put the two vertices side by side. Corresponding rule features share the same original value, so the first columns of the two gated blocks are $2$ (from gate $0.5$) and $0.2$ (from gate $0.05$). Their ratio is $2 / 0.2 = 10$, exactly the ratio of the structural values $0.5 / 0.05 = 10$. A small structural value does not merely shrink the gated block — it shrinks it *relative to other vertices*, which is the per-vertex-context effect described above. And note once more that both gated blocks are smaller than the original $R$: the gate removes magnitude, it does not move it."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Compare the two blocks with the downstream layer's eye. At the first vertex the gated block $(2, -1, 4)$ is a mildly shrunk view of the rule row and the untouched block $(4, -2, 8)$ is the full view; at the second vertex the gated block is $(0.2, -0.1, 0.4)$, heavily suppressed. In both rows a linear layer weighting the two blocks differently obtains a modulated reading *and* a plain one — the two readings the WHAT section described, now on concrete numbers."
+    },
+    {
+      "t": "callout",
+      "md": "What these passes do not show: neither demonstrates how $X_s$ is produced, and neither exhibits the limitation on columns — at $d = 3$ one could easily imagine gating the three columns separately. The point that a single per-row value cannot treat columns differently is a statement about width, not something a three-column row makes visible."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In the paper's fusion, how wide is the fused representation, and where does the structural signal enter?",
+      "opts": [
+        {
+          "md": "Width $2d$; the structural signal enters only as the broadcast gate, adding no column of its own",
+          "correct": true,
+          "expl": "Correct. The gate is multiplied in, so it leaves no column behind; the two blocks of the concatenation are the gated and ungated copies of the rule embedding, each of width d. This is the shape fact every later reading of the fusion depends on."
+        },
+        {
+          "md": "Width $d + 1$; the structural value is appended as one extra column",
+          "expl": "That is plain concatenation from card 1, not the paper's fusion. In the paper the structural value is *multiplied* into the rule embedding, so it changes the values rather than occupying a column."
+        },
+        {
+          "md": "Width $d$; the gated product replaces the rule embedding",
+          "expl": "The product does not replace R — it is **concatenated with** R, so the untouched copy survives. Replacing would leave the width at d but discard the full-strength reading, which is exactly what the paper avoids."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A rule embedding has 64 columns. After the paper's gate-and-concatenate fusion, how many columns does the fused representation have?",
+      "answer": 128,
+      "tol": 0.5,
+      "hint": "Count the blocks that end up in the concatenation — the structural embedding is multiplied in, so ask whether it forms a block of its own.",
+      "sol": "The fused representation concatenates the gated copy of the rule embedding (width 64) with the original rule embedding (width 64), so its width is 64 + 64 = 128 = 2 × 64. The structural embedding contributes no columns: it acts as the broadcast gate on the first block only, and a multiplication cannot add a column.",
+      "unit": "columns"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "At one vertex, two different rule features sit in two different columns. Can the paper's structural gate, from the same vertex, scale those two features by different factors?",
+      "opts": [
+        {
+          "md": "No — the gate holds one value per vertex and is broadcast across the row, so both features receive the same factor",
+          "correct": true,
+          "expl": "Correct, and this is the honest limit of the design. A full-width gate of shape (n, d) could treat the two features differently, but the paper's structural embedding is a single number per vertex, so its gate is one factor for the whole row. The structural signal must express itself as a per-vertex weight."
+        },
+        {
+          "md": "Yes — the entrywise product gives every entry its own multiplier",
+          "expl": "An entrywise product of two same-shape signals would give every entry its own multiplier, but here one operand is a single column. Broadcasting copies that one value across the row, so the multiplier is identical for every column — this is the distinction between an entrywise gate and a broadcast gate."
+        },
+        {
+          "md": "Yes — because the two blocks are concatenated, the second block's features are scaled separately",
+          "expl": "The second block is *ungated*; it is the full-strength original, deliberately left unscaled. Concatenation keeps a separate reading, but it does not give the gate per-column control of either block."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does the paper keep the ungated $R$ in the concatenation instead of using only the gated product $X_s \\odot R$?",
+      "opts": [
+        {
+          "md": "Because the gate can only shrink entries and may drive some towards zero, so the untouched copy guarantees the full-strength rule signal remains available",
+          "correct": true,
+          "expl": "Correct. A gate near 0 would nearly erase a vertex's rule row in the gated block; concatenating the original keeps the unscaled values present regardless of the gate. The gate supplies an extra modulated reading, not the only reading."
+        },
+        {
+          "md": "Because concatenation has to be used somewhere to make the widths match",
+          "expl": "Widths are not the reason. The gated product already has R's width, so no concatenation would be needed for shape compatibility — it is added for information, not for shape."
+        },
+        {
+          "md": "Because the gate values are above 1 and would otherwise grow the signal unboundedly",
+          "expl": "The gate values lie in (0, 1) — they shrink rather than grow entries. Reading the concatenation as a guard against explosion inverts the actual reason, which is protection against information being *suppressed*, not inflated."
+        }
+      ]
+    }
+  ],
+  "close": "**You are ready for the paper's fusion.** The structural embedding is a single number per vertex; the paper broadcasts it into the rule embedding, concatenates the product with the original, and hands the doubled-width result downstream. Every later question about the fusion can be checked against three facts: the fused width is $2d$, the gate carries one value per vertex and so cannot gate columns differently, and the untouched copy means nothing is destroyed when a gate is small."
+}

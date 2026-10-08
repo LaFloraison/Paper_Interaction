@@ -1,0 +1,159 @@
+{
+  "kind": "extension",
+  "title": "GraphSAGE and GIN: learning on unseen vertices, and which aggregation is sharpest",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**GraphSAGE** (Hamilton, Ying and Leskovec, 2017) is a message-passing architecture that, instead of reading every neighbour of a vertex, *samples* a fixed number of neighbours and aggregates only those. This makes the layer a reusable function of features rather than a lookup over a fixed vertex set, so it produces features for vertices that were not present during training. **GIN**, the graph isomorphism network (Xu, Hu, Leskovec and Jegelka, 2019), is the study of which choice of aggregation gives the most discriminating layer, and its conclusion is that a sum aggregation combined with a sufficiently expressive transform is strictly more powerful than mean or max.",
+      "plain": "GraphSAGE fixes a *sample size* so that a vertex's update depends on a bounded, randomly chosen handful of its neighbours; because the rule is about features rather than about specific vertices, it also works on vertices the model has never seen. GIN is the question of how much two different neighbourhoods can be told apart by a layer at all, answered: a sum can tell apart more than a mean or a max."
+    },
+    {
+      "t": "p",
+      "md": "**The first problem: vertices that were not there during training.** GCN and GAT, as originally posed, are *transductive*: the graph — including the vertices you will later be asked to predict on — is present while the weights are trained, and the layer's output is an embedding of that particular, fixed vertex set. Introduce a genuinely new vertex afterwards and the weights do not tell you what to do, because the new vertex was never part of the sum. **GraphSAGE** answers this with two changes. It samples a fixed *fan-out* — say two neighbours per vertex per layer — from each vertex's neighbourhood, so the computation graph for a minibatch has a size you chose in advance rather than a size the data dictates. And it defines the update as a *function* of the self feature and the aggregated sample, so the same function can be applied to any vertex, seen or unseen. The trained object stops being a table of embeddings and becomes a rule for producing embeddings."
+    },
+    {
+      "t": "p",
+      "md": "**Why sampling is doing real work, not only saving time.** Consider a vertex of degree $100$, two hops out, in a graph where each neighbour also has degree $100$. Updating that one vertex by reading every neighbour touches $1 + 100 + 100^2 = 10{,}101$ vertices. Sample two neighbours per vertex instead and a two-hop update touches $1 + 2 + 4 = 7$ vertices — a fixed budget that does not grow with degree. The saving is the point: without it, a minibatch's memory footprint is set by the densest vertex in the graph. GraphSAGE's paper pairs this with several aggregator choices — a mean, a pooling/max variant, and an LSTM — to show the recipe is not tied to one summary. One cost to name: the aggregation now depends on which neighbours were drawn, so its output is a random quantity, and the model's training has to tolerate that noise."
+    },
+    {
+      "t": "p",
+      "md": "**The second problem: how much can a layer tell apart at all?** Suppose two vertices have neighbourhoods whose feature bags differ, but in a way the aggregator cannot see. Then a layer using that aggregator produces identical vectors for them, and no later layer can recover the difference, because later layers only ever see the vectors. This is why the *choice* of $\\mathrm{AGG}$ is not a cosmetic detail. GIN analyses the comparison against the Weisfeiler–Lehman test, a classical procedure for deciding whether two graphs are isomorphic: it proves that a sum aggregation followed by a learned transform can be as discriminating as that test, and that mean and max aggregations are strictly less discriminating than a sum, so there are neighbourhoods they provably cannot separate. The next section gives the concrete case."
+    },
+    {
+      "t": "table",
+      "head": ["Aggregator", "Value on bag $\\{1,1,1\\}$", "Value on bag $\\{1\\}$", "Can it separate them?"],
+      "rows": [
+        ["sum", "$1+1+1 = 3$", "$1$", "yes — different values"],
+        ["mean", "$(1+1+1)/3 = 1$", "$1/1 = 1$", "no — identical values"],
+        ["max", "$\\max(1,1,1) = 1$", "$\\max(1) = 1$", "no — identical values"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "State this precisely, because it is easy to overclaim. GIN's result is about the aggregator's ability to *distinguish bags*, under the assumption that features come from a bounded set. It does not say a sum-network is better on every task — mean aggregation discards degree, which can be a *benefit* when degree is noise, and sum aggregation makes features grow with degree, which needs care when degrees vary wildly. The claim is about representational power, not about which will score higher."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the two neighbourhoods a mean cannot separate.** Fix a vertex $c$ and suppose every feature is the scalar value $1$. In graph $A$, $c$ has three neighbours. In graph $B$, $c$ has one neighbour. Nothing else about the two situations differs in what the aggregator is shown."
+    },
+    {
+      "t": "list",
+      "items": [
+        "**Mean aggregator.** In graph $A$ the bag is $\\{1, 1, 1\\}$ and the mean is $3/3 = 1$. In graph $B$ the bag is $\\{1\\}$ and the mean is $1$. The aggregator returns the *same* vector for $c$ in both graphs, so any downstream layer receives identical inputs and must give identical outputs.",
+        "**Sum aggregator.** In graph $A$ the sum is $1+1+1 = 3$; in graph $B$ it is $1$. The two are different, so the aggregator *has* separated the cases, and the rest of the network has the opportunity to use the difference.",
+        "**Max aggregator.** Both bags have maximum $1$, so like the mean, the max cannot separate them."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "Be careful about what this example does and does not show. The two graphs differ in size, and any reader comparing the graphs *as wholes* notices that immediately. The point is narrower and it is the point that matters: the **aggregation at $c$** maps both neighbourhoods to one vector under a mean, so the layer at $c$ has lost the distinction before any later layer can help. Discriminative power has to be present at the first aggregation, because nothing downstream can add back information that was never carried. A parallel failure for max: bags $\\{1, 5\\}$ and $\\{1, 1, 5\\}$ both have maximum $5$, so a max aggregator cannot separate them either."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the sampling budget, in numbers.** A vertex sits in a graph where it and its neighbours all have degree $100$. Compare a two-hop update that reads the whole neighbourhood with one that samples a fan-out of two at each step."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Full neighbourhood, one hop: the vertex plus its $100$ neighbours is $1 + 100 = 101$ vertices to read.",
+          "why": "One hop already means touching every neighbour. This is the minimum for a method that reads the complete neighbourhood."
+        },
+        {
+          "md": "Full neighbourhood, two hops: $1 + 100 + 100 \\times 100 = 10{,}101$ vertices.",
+          "why": "Each of the $100$ first-hop neighbours brings its own $100$ neighbours. The growth is multiplicative, which is why depth and degree are jointly explosive for full-neighbourhood methods."
+        },
+        {
+          "md": "Sampled fan-out of $2$, two hops: $1 + 2 + 2 \\times 2 = 7$ vertices.",
+          "why": "The count is now a function of the fan-out you chose, not of the graph's degree. The same two-hop model costs the same seven vertices whether the graph is sparse or a hundred-deep. That fixed budget is what makes minibatch training on very large graphs possible, and it is what GraphSAGE's sampling contributes."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**What the two examples together establish.** Example 2 shows sampling's practical role: bound the computation so the method reaches vertices and graphs that a full-neighbourhood method cannot, at the price of a stochastic aggregate. Example 1 shows the expressiveness role the choice of aggregator plays: mean and max lose neighbourhood cardinality, sum preserves it, and GIN turns this observation into a theorem relating the sum-based layer to the Weisfeiler–Lehman test. Neither example demonstrates the training behaviour — GIN's theorem is about what *can* be represented, not about what gradient descent will *find*."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does it mean to say GraphSAGE is *inductive*, unlike the original GCN and GAT?",
+      "opts": [
+        {
+          "md": "It trains faster because it uses fewer neighbours",
+          "expl": "Sampling does reduce cost, and that is a real advantage, but it is not what *inductive* means. The term describes which vertices the trained model can be applied to, not how quickly training runs."
+        },
+        {
+          "md": "It learns a function from features and neighbourhoods, so it can produce features for vertices never seen during training",
+          "correct": true,
+          "expl": "Correct. GCN and GAT as originally posed embed a fixed, known vertex set — the test vertices are present while training, and an entirely new vertex is outside the trained object. GraphSAGE trains a *rule* that reads a vertex's features and a sample of its neighbourhood, and a rule applies to any input. This is what lets a model trained on yesterday's graph run on today's."
+        },
+        {
+          "md": "It removes the need for features on unseen vertices",
+          "expl": "The opposite. Inductive generalisation *relies* on features: a new vertex is handled by reading its feature vector and its sampled neighbourhood, so a vertex with no features at all is exactly the case that is hard."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A graph has every vertex of degree $100$. A two-hop update samples a fan-out of $2$ at each hop, including the starting vertex. How many vertices does the update touch in total?",
+      "answer": 7,
+      "tol": 0.01,
+      "hint": "Count the starting vertex, then what it samples, then what each of those samples in turn.",
+      "sol": "The starting vertex contributes $1$. It samples $2$ neighbours, so the first hop adds $2$. Each of those $2$ samples $2$ more, so the second hop adds $2 \\times 2 = 4$. Total $1 + 2 + 4 = 7$. For contrast, reading the *full* neighbourhood would touch $1 + 100 + 100 \\times 100 = 10{,}101$ vertices.",
+      "unit": "vertices"
+    },
+    {
+      "t": "multi",
+      "level": "apply",
+      "q": "Which of the following statements about the choice of aggregator are correct? (Select all that apply.)",
+      "opts": [
+        {
+          "md": "A mean aggregator maps the bags $\\{1,1,1\\}$ and $\\{1\\}$ to the same vector",
+          "correct": true,
+          "expl": "Correct. Both average to $1$, so the aggregator returns identical values and every downstream layer sees identical input. This is the concrete failure of mean aggregation's discriminative power."
+        },
+        {
+          "md": "Using a sum aggregator guarantees a higher test accuracy than using a mean aggregator",
+          "expl": "This overclaims. The result is about representational power — which distinctions are *possible* — not about which choice trains to better accuracy on a given dataset. Mean aggregation throwing away degree can be an advantage when degree is noise."
+        },
+        {
+          "md": "Discriminative power must be present at the first aggregation, because later layers only see the vector the first one produced",
+          "correct": true,
+          "expl": "Correct. If two neighbourhoods are merged into one vector at layer one, no later layer can split them again — later layers transform vectors, they do not re-read the graph."
+        },
+        {
+          "md": "A max aggregator separates $\\{1,5\\}$ from $\\{1,1,5\\}$",
+          "expl": "It does not: both have maximum $5$. Max keeps only the largest entry, so it forgets how many entries there were and what the smaller ones were."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You must serve predictions on a graph that gains new users every day, using a model trained yesterday. Which design pressure does this put on your architecture, and why?",
+      "opts": [
+        {
+          "md": "Press toward a transductive method, because the old graph is the training data",
+          "expl": "A transductive method embeds the vertex set it was trained on. Today's new users are outside that set, which is exactly the failure mode this deployment produces."
+        },
+        {
+          "md": "Press toward an inductive method that reads features, so a new user with features but no history can still be scored",
+          "correct": true,
+          "expl": "Correct. Inductive methods apply their learned function to any vertex with features, including one that never existed at training time. The cost is that everything now depends on features being available and meaningful for new vertices — an inductive model on a vertex with no features has little to work with."
+        },
+        {
+          "md": "Neither — retraining on the new graph makes the distinction irrelevant",
+          "expl": "Retraining is sometimes necessary, but it does not remove the distinction: if the model is transductive, you must retrain for every new vertex and cannot score one the instant it appears. The distinction is about how often you are forced to retrain."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the layers so far send information one hop per layer, so useful signal needs depth — and card 6 explains why depth is a liability in graph networks rather than an unalloyed gain."
+}

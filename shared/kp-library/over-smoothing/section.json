@@ -1,0 +1,7 @@
+{
+  "key": "over-smoothing",
+  "name": "Over-smoothing and over-squashing",
+  "title": "The two ways the smoothing paradigm fails",
+  "blurb": "The taught paper's introduction names two failures of the prior paradigm: over-smoothing, where stacking layers drives every vertex's representation to a common value, and feature compression (equated with over-squashing), where an expanding neighbourhood is crushed into a fixed-width vector. This section makes both phenomena precise and measurable — a number for the first, a counting bound for the second — because a later chapter checks the paper's evidence for them against exactly these predictions.",
+  "skip_hint": "If you can define over-smoothing and over-squashing, say why each is a property of the operation rather than of the data, and name which of the paper's two encoders answers which, skip this section."
+}

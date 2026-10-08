@@ -1,0 +1,7 @@
+{
+  "key": "reproducibility",
+  "name": "Hyperparameters and reproduction",
+  "title": "Hyperparameters and reproduction: what a method section owes you",
+  "blurb": "A method section is a recipe, and a recipe you cannot cook from is not a recipe. This section separates the three things people mean by \"reproduction\", lists the items an independent implementer needs before their result is even determined, and shows how to read a hyperparameter table as a description of the model rather than a report of a result. It is the vocabulary for judging what a paper's own tables do and do not let a reader rebuild.",
+  "skip_hint": "If you can say which parts of a pipeline a method section must pin down before an independent implementation is fully determined, skip this section."
+}

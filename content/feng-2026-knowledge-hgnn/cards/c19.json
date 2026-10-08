@@ -1,0 +1,8 @@
+{
+  "id": "19",
+  "kind": "include",
+  "library": "gnn-lineage",
+  "chapter": "pre",
+  "section": "2.1 Foundations",
+  "kicker": "Extension · Graph neural networks"
+}

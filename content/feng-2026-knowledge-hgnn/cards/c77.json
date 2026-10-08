@@ -1,0 +1,138 @@
+{
+  "id": "77",
+  "kind": "lab",
+  "chapter": "method",
+  "section": "5.18 Laboratory 1",
+  "kicker": "Laboratory 1 · Equation (1)",
+  "title": "Laboratory: run the smoothing layer yourself",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "This laboratory evaluates one application of the propagation operator from Equation (1) — $X \\leftarrow D_v^{-1/2} H D_e^{-1} H^{\\mathsf T} D_v^{-1/2} X$ — on a four-vertex hypergraph whose hyperedges you control. The weight matrix $W$ and the parameter matrix $\\Theta$ are set to the identity and the nonlinearity $\\sigma$ is omitted, so that the arithmetic of the propagation is visible without a learned transform obscuring it.",
+      "plain": "Slide the four values, press the button, and watch one layer of neighbourhood averaging happen — including what it does to the spread of the values."
+    },
+    {
+      "t": "p",
+      "md": "**What to look for while you play.** Three things, in this order. First, watch a single vertex's value after one step and check it against the walkthrough you read in Equation (1)'s card. Second, watch the **range** — the gap between the largest and smallest value — because that is the quantity that measures how much the layer has smoothed. Third, press the button repeatedly and watch the range shrink towards zero: that is over-smoothing, and you are causing it one application at a time."
+    },
+    {
+      "t": "callout",
+      "md": "**Two deliberate omissions, so you do not misread the numbers.** $W = I$ means every hyperedge is weighted equally — in a trained model these weights are learnable. $\\Theta = I$ and $\\sigma$ omitted means no learned mixing happens between feature channels; with the real $\\Theta$ the output is a learned linear combination, and with the sigmoid applied to values like these every entry would saturate to nearly $1$, erasing the differences you are about to watch."
+    }
+  ],
+  "example": [
+    {
+      "t": "html",
+      "html": "<div class=\"lab-panel\"><div class=\"lab-title\">Hypergraph smoothing sandbox &mdash; Equation (1)</div><div class=\"lab-hint\">Vertices v1&ndash;v4 with hyperedges e1={1,2}, e2={2,3}, e3={2,4} &mdash; a star with v2 at its centre. Optionally add e4={1,2,3}, which makes vertex 2 a hub in a group of three.</div><div class=\"slider-row\"><label for=\"lab1x0\">v1</label><input type=\"range\" id=\"lab1x0\" min=\"0\" max=\"40\" step=\"1\" value=\"10\"><output id=\"lab1o0\">10</output></div><div class=\"slider-row\"><label for=\"lab1x1\">v2</label><input type=\"range\" id=\"lab1x1\" min=\"0\" max=\"40\" step=\"1\" value=\"20\"><output id=\"lab1o1\">20</output></div><div class=\"slider-row\"><label for=\"lab1x2\">v3</label><input type=\"range\" id=\"lab1x2\" min=\"0\" max=\"40\" step=\"1\" value=\"30\"><output id=\"lab1o2\">30</output></div><div class=\"slider-row\"><label for=\"lab1x3\">v4</label><input type=\"range\" id=\"lab1x3\" min=\"0\" max=\"40\" step=\"1\" value=\"40\"><output id=\"lab1o3\">40</output></div><p><label><input type=\"checkbox\" id=\"lab1extra\"> add hyperedge e4 = {1,2,3}</label></p><button class=\"btn\" id=\"lab1go\">Apply one layer</button> <button class=\"btn-ghost btn\" id=\"lab1reset\">Reset</button><div class=\"lab-read\" id=\"lab1edges\"></div><div class=\"lab-read\" id=\"lab1bars\"></div><div class=\"lab-read\" id=\"lab1deg\"></div><div class=\"lab-read\" id=\"lab1range\"></div><div id=\"lab1state\" data-steps=\"0\" style=\"display:none\"></div></div>"
+    },
+    {
+      "t": "p",
+      "md": "**Task 1 — reproduce the card's walkthrough.** Leave all four sliders at their defaults and the extra hyperedge off, then press *Apply one layer* once."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Read the vertex degrees shown under the sliders: they should be (1, 3, 1, 1), because vertex 2 belongs to all three hyperedges and the others to one each.",
+          "why": "If the degrees do not match, something has been changed — check the checkbox first. Getting the degrees right before stepping is what makes the next number interpretable."
+        },
+        {
+          "md": "Read the four values after the step. They should be close to $10.774$, $33.094$, $20.774$, $25.774$ — matching the walkthrough in Equation (1)'s card to three decimals.",
+          "why": "This is the check that the arithmetic in the card was not a special case. If your numbers match, the card's five moves — damp, collect, average, distribute, damp — are the actual computation."
+        },
+        {
+          "md": "Read the range. It should have fallen from $30$ to about $22.3$.",
+          "why": "**This is the number to remember.** One layer contracts the spread by roughly a quarter. That single ratio is the whole of over-smoothing: apply the layer $k$ times and the range is roughly $30 \\times r^k$ for some $r < 1$."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Task 2 — cause over-smoothing.** Press *Apply one layer* five more times, watching the range after each press."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Record the range after steps 2, 3 and 4, and compute the ratio between consecutive ranges.",
+          "why": "The ratio should be roughly constant, which is what makes the contraction geometric rather than accidental. A constant ratio is the signature of a linear operator being raised to a power."
+        },
+        {
+          "md": "Keep pressing until the range is below about 1, then stop and look at the four values.",
+          "why": "They will all be close to the graph's weighted average. **The information has not been destroyed by an error — it has been averaged away by exactly the operation the method is built on.**"
+        },
+        {
+          "md": "Press *Reset* and try again with the slider values $10, 20, 30, 40$ replaced by $40, 30, 20, 10$ — the same multiset in a different arrangement. Compare eight steps of each.",
+          "why": "Both converge to the same constant, because the limit depends on the *weights* each vertex carries in the stationary distribution, not on the initial arrangement. Whenever a process forgets its input, the input cannot have been what the process was for."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Task 3 — give the hub a group to belong to.** Tick *add hyperedge e4 = {1,2,3}* and press *Apply one layer* from the defaults."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Check what changed before pressing: vertex degrees are now (2, 4, 2, 1) and hyperedge degrees are (2, 2, 2, 3).",
+          "why": "Adding one relation changed three vertices' degrees and added a relation of size three. Everything downstream of the incidence matrix is now different — which is the point of the exercise."
+        },
+        {
+          "md": "Press once and compare the output with the three-hyperedge case.",
+          "why": "The values differ in every coordinate. **A single hyperedge changed the entire layer's output**, which is what makes the construction of hyperedges — the $k$ of Chapter 2's discussion — a modelling decision rather than a preprocessing detail."
+        }
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "q": "With the default sliders and no extra hyperedge, which vertex is damped by $D_v^{-1/2}$ and by how much?",
+      "opts": [
+        {
+          "md": "All four equally, since the damping is applied to the whole matrix",
+          "expl": "The matrix $D_v^{-1/2}$ is diagonal, so it multiplies each row by that row's own factor. Entries with the same degree get the same factor; entries with different degrees do not."
+        },
+        {
+          "md": "Vertex 2 only, by a factor of $1/\\sqrt{3}$, because its degree is 3 while the others have degree 1",
+          "correct": true,
+          "expl": "Correct. Vertices 1, 3 and 4 have degree 1, so their factor is $1/\\sqrt{1} = 1$ — unchanged. Vertex 2's value is divided by $\\sqrt{3} = 1.732$, which is why 20 becomes 11.547 in the walkthrough."
+        },
+        {
+          "md": "Vertex 4, because it is the last in the path",
+          "expl": "Position in the path is irrelevant; only the degree enters the damping. Vertex 4 has degree 1, so it is not damped at all."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "q": "With e4 added, how many memberships does the hypergraph contain in total?",
+      "answer": 9,
+      "tol": 0.01,
+      "hint": "Add up the sizes of the four hyperedges.",
+      "sol": "The hyperedges are $\\{1,2\\}$, $\\{2,3\\}$, $\\{3,4\\}$ and $\\{1,2,3\\}$, of sizes 2, 2, 2 and 3, so the total is $2+2+2+3 = 9$. Equivalently, sum the vertex degrees: $2+4+2+1 = 9$. The two routes agreeing is the handshake identity from the graph-theory section, now on a live object.",
+      "unit": "memberships"
+    },
+    {
+      "t": "choice",
+      "q": "After enough presses of *Apply one layer*, what happens to four vertices that started with very different values?",
+      "opts": [
+        {
+          "md": "They keep their differences but shift downward",
+          "expl": "A constant offset would be a translation, which this operator does not perform. It averages, and averaging compresses differences."
+        },
+        {
+          "md": "They converge to a common value and the range goes to zero",
+          "correct": true,
+          "expl": "Correct. Each application replaces every value with a blend of related values, and repeated blending has a unique fixed point: the constant signal. This is over-smoothing, produced by the method's own layer rather than by any bug in it — and it is why the paper's introduction names it as the first failure of the prior paradigm."
+        },
+        {
+          "md": "They oscillate without settling",
+          "expl": "Oscillation requires the operator to have complex eigenvalues of modulus one. This one is symmetric and positive semi-definite with eigenvalues in $[0, 1]$, so repeated application converges rather than oscillating."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Laboratory 2, where you run the other half of the method — the rule encoder — and watch a tree ensemble's questions turn into a vector."
+}

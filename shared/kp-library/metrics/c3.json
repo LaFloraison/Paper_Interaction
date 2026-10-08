@@ -1,0 +1,184 @@
+{
+  "kind": "check",
+  "title": "Which metric to report, and the skip check",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Metric choice** is the decision of which single number to put in a results table, and it is fixed by two facts about the problem rather than by preference: whether the classes are balanced, and whether every kind of error costs the same. **Accuracy** is the share of examples labelled correctly, and it is the right report when the classes are balanced and all errors are equally costly. **Macro-F1** is the unweighted mean of the per-class F1 scores; because every class counts equally it is the right report when the classes are unbalanced or the rare classes matter. **Micro-F1** pools every class's counts before computing F1 and, for single-label classification, equals accuracy; it is the right report when the per-example count matters rather than the per-class balance.",
+      "plain": "Pick the metric by the shape of the data and by the cost of mistakes. Accuracy when the classes are balanced and every error is equally bad; macro-F1 when the classes are unbalanced or the rare ones matter; micro-F1 when you care about counting examples rather than classes."
+    },
+    {
+      "t": "table",
+      "head": ["Situation", "Report", "Because"],
+      "rows": [
+        ["Classes roughly balanced, all errors equally costly", "Accuracy", "It counts every example once, which is what you want when every example is worth the same"],
+        ["Classes unbalanced, or the rare classes matter", "Macro-F1", "It weights every class equally, so a rare class's failures cannot be hidden by a common class's successes"],
+        ["The per-example count is what matters", "Micro-F1", "It pools all examples before computing, so each example counts once; for single-label data this is accuracy"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The honest consequence of choosing badly.** Because accuracy lets a majority-class predictor score high, a paper can look strong by reporting accuracy on a skewed benchmark while beating nothing at all. The reported number is real; the claim it appears to support is not. The safeguard is mechanical: for every reported accuracy, ask what the majority-class and prior-guessing baselines score on the same split, and how many examples each class has."
+    },
+    {
+      "t": "p",
+      "md": "**What the taught paper reports, and how to read it.** The taught paper reports accuracy on its node-classification tasks. Accuracy is a fair summary only where the class distribution is close to uniform, so the reading depends on the dataset. On a benchmark with many classes, or with one dominant class, the same accuracy can be matched by predicting the majority label, and a high figure alone is then not evidence of skill. When you read the paper's tables, put each accuracy next to two things: the number of classes and the label distribution, and the baselines in the same table. If a dataset is known to be skewed, treat an accuracy column as a weak signal and look for a per-class figure; if the table reports accuracy only, no reader can tell from the table whether the rare classes were learned."
+    },
+    {
+      "t": "list",
+      "items": [
+        "Define accuracy and compute the two baselines it must beat: the majority class ($p_{\\max}$) and prior-guessing ($\\sum_i p_i^2$).",
+        "Build a confusion matrix and read a class's precision from its column and its recall from its row.",
+        "Compute F1 as the harmonic mean $2PR/(P+R)$ and say why the harmonic mean refuses to reward a model good at only one of the two.",
+        "Compute macro-F1 (unweighted mean of the per-class F1) and micro-F1 (pool the counts first), and explain why micro-F1 equals accuracy for single-label data.",
+        "State the decision rule: accuracy when balanced and errors equal, macro-F1 when unbalanced or rare classes matter, micro-F1 when the per-example count matters.",
+        "Say what choosing the wrong metric costs: a majority-class predictor can post a high accuracy, so an accuracy column on a skewed benchmark can make a weak model look strong."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The questions below are the check for the whole section. The bar is not a passing score — it is that you answered each one without stopping to reconstruct anything. If the decision rule or the macro-versus-micro gap gave you pause, cards 2 and 3 are short and worth the re-read."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a 95% score that has learned nothing.** A binary test set has $95$ negatives and $5$ positives. A model predicts *negative* for every example."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Accuracy: the model is right on all $95$ negatives and wrong on the $5$ positives, so accuracy $= 95/100 = 0.95$.",
+          "why": "This is the majority-class baseline exactly: the negative class is the majority at frequency $0.95$."
+        },
+        {
+          "md": "Positive class: $TP = 0$, $FN = 5$, and the model makes no positive predictions, so precision is undefined. Recall $= 0/5 = 0$ and F1 $= 0$.",
+          "why": "F1 is the harmonic mean, and a zero recall forces it to zero no matter what precision would have been. A class the model never touches scores nothing here."
+        },
+        {
+          "md": "Negative class: $TP = 95$, $FP = 5$ (the positives called negative), $FN = 0$. Precision $= 95/(95+5) = 0.95$, recall $= 95/95 = 1.0$, and F1 $= 2 \\times 0.95 \\times 1.0/(0.95 + 1.0) = 1.9/1.95 = 0.974$.",
+          "why": "The model's only errors are on the rare class, so the common class looks almost perfect — which is precisely the distortion accuracy inherits."
+        },
+        {
+          "md": "Macro-F1 is the mean of the two per-class values: $(0 + 0.974)/2 = 0.487$.",
+          "why": "Macro-F1 gives the five positives the same weight as the ninety-five negatives, so the total failure on the rare class halves the score."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "Accuracy $0.95$, macro-F1 $0.487$. The accuracy figure is nearly perfect; the per-class figure shows not a single positive was found. Choosing the metric is choosing which of those two facts the reader sees."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — a model that is informative but still weak on the rare class.** Same $95$ negatives and $5$ positives, but now the model calls $15$ examples positive: $4$ of the $5$ true positives and $11$ false alarms. So $TP = 4$, $FN = 1$, $FP = 11$ and $TN = 84$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Accuracy: correct predictions are $4 + 84 = 88$, so accuracy $= 88/100 = 0.88$.",
+          "why": "Lower than Example 1's 0.95, so by accuracy alone this model looks worse — the comparison is misleading, and the next steps show why."
+        },
+        {
+          "md": "Positive class: precision $= 4/(4+11) = 4/15 = 0.267$, recall $= 4/(4+1) = 4/5 = 0.80$, F1 $= 2 \\times 0.267 \\times 0.80/(0.267 + 0.80) = 0.40$.",
+          "why": "This model actually finds most positives (recall 0.80), unlike Example 1. But it raises many false alarms, so precision is low — the two directions disagree, and F1 records both."
+        },
+        {
+          "md": "Negative class: precision $= 84/(84+1) = 84/85 = 0.988$, recall $= 84/(84+11) = 84/95 = 0.884$, F1 $= 2 \\times 0.988 \\times 0.884/(0.988 + 0.884) = 0.933$.",
+          "why": "Precision divides by the negative column's total and recall by its row total — the same row-and-column rule as card 2, applied to the other class."
+        },
+        {
+          "md": "Macro-F1 $= (0.40 + 0.933)/2 = 0.667$.",
+          "why": "Example 1 scored 0.487 and this one 0.667, even though Example 1 had the higher accuracy (0.95 versus 0.88). Measured per class, the model that finds positives is clearly ahead."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Accuracy ranks the two models one way ($0.95$ before $0.88$); macro-F1 ranks them the other way ($0.487$ before $0.667$). Neither ranking is wrong — they answer different questions, and the decision rule is what tells you which question this problem is asking."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "When should macro-F1 be reported in place of accuracy?",
+      "opts": [
+        {
+          "md": "When the classes are unbalanced, or the rare classes matter",
+          "correct": true,
+          "expl": "Correct. Macro-F1 weights every class equally, so a rare class's failures cannot be hidden by a common class's successes — the exact failure mode of accuracy."
+        },
+        {
+          "md": "Whenever there are more than two classes",
+          "expl": "The number of classes alone does not decide. A balanced ten-class problem is summarised fairly by accuracy; it is the imbalance, or the cost of missing a rare class, that calls for macro-F1."
+        },
+        {
+          "md": "Whenever the model is a neural network",
+          "expl": "The architecture has nothing to do with metric choice. The shape of the label distribution and the cost of each kind of error are what decide it."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A five-class dataset has $1000$ test examples: $800$ of class 1 and $50$ each of the other four. What accuracy does a classifier that always predicts class 1 achieve?",
+      "answer": 0.8,
+      "tol": 0.005,
+      "hint": "A classifier that predicts one label for everything is right exactly on the examples carrying that label.",
+      "sol": "It is right on the 800 class-1 examples and wrong on the other 200, so accuracy = 800/1000 = 0.80. The prior-guessing baseline is 0.80² + 4 × 0.05² = 0.64 + 0.01 = 0.65. The 0.80 majority baseline is high enough that any accuracy reported near 0.80 on this dataset would be uninformative without a per-class figure.",
+      "unit": "accuracy"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A paper reports only accuracy on a twelve-class node-classification benchmark. The figure is high. What is the strongest conclusion you can draw?",
+      "opts": [
+        {
+          "md": "The model has learned the task well",
+          "expl": "This is the accuracy trap. Twelve classes with a dominant label can make a majority-class predictor score high, so a high number by itself is not evidence of learning."
+        },
+        {
+          "md": "Nothing can be said about the rare classes: without the label distribution and the baselines, the score may be no better than predicting the majority label",
+          "correct": true,
+          "expl": "Correct. Accuracy on an unbalanced benchmark is interpretable only next to the majority-class baseline and the class counts, neither of which the accuracy figure alone supplies."
+        },
+        {
+          "md": "The dataset must be balanced, since twelve-class benchmarks usually are",
+          "expl": "The paper did not say, and node-classification benchmarks are frequently skewed. Assuming balance to defend the accuracy figure is an assumption, not a reading."
+        }
+      ]
+    },
+    {
+      "t": "multi",
+      "level": "apply",
+      "q": "Which of these make a reported accuracy hard to interpret? Select all that apply.",
+      "opts": [
+        {
+          "md": "The label distribution is strongly unbalanced",
+          "correct": true,
+          "expl": "Correct. With a dominant class, a high accuracy can be reached without learning anything, so the distribution is the first thing to check."
+        },
+        {
+          "md": "No majority-class baseline is given",
+          "correct": true,
+          "expl": "Correct. Without the baseline you cannot tell whether the reported number beats a do-nothing classifier, which is the minimum a result must do."
+        },
+        {
+          "md": "The number of classes is not stated",
+          "correct": true,
+          "expl": "Correct. The number of classes sets what uniform guessing scores (1/K) and shapes how easy it is to inflate accuracy, so it changes what the figure means."
+        },
+        {
+          "md": "The model was trained with gradient descent",
+          "expl": "The optimiser is irrelevant to reading a score. Every model in these comparisons is trained some way; that has no bearing on how to interpret accuracy."
+        }
+      ]
+    }
+  ],
+  "close": "**You are ready to read the results table.** Every accuracy in the taught paper now resolves into two questions — how many classes there are, and what a majority-class predictor scores on the same split — and every per-class figure into whether it was averaged macro or micro. The four numbers of card 2 and the rule of card 3 are the whole of it."
+}

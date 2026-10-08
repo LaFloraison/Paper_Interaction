@@ -1,0 +1,7 @@
+{
+  "key": "linear-algebra",
+  "name": "Linear algebra",
+  "title": "Linear algebra: the four operations this paper's equations are made of",
+  "blurb": "Every equation in this paper is built from four operations — matrix multiplication, transpose, the element-wise Hadamard product, and concatenation. This section defines each from scratch, shows what it does to a concrete pair of vectors, and ends by showing why a matrix that sums over neighbours is exactly a piece of matrix multiplication. If you can read Equation (9) after this section and say what each symbol does, it has done its job.",
+  "skip_hint": "If you can say the difference between the Hadamard product and the dot product, and between concatenating two vectors and adding them, skip this section."
+}

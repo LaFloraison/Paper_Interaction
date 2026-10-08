@@ -1,0 +1,58 @@
+<!-- ============ c21 框架总览 ============ -->
+<section class="card" data-c="21" data-title-zh="精讲 · 两步框架总览" data-title-en="Deep-dive · The two-step framework">
+  <div class="card-inner">
+    <div class="card-kicker k-math"><span class="len">Method · the framework</span><span class="lz">方法篇 · 框架总览</span></div>
+    <h2><span class="lz">全论文只有一个配方：先备料，再加工</span><span class="len">The whole paper, one recipe: prep first, then process</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">老方法的流程是：把每本书的原始标签直接丢进抹平机，顺着读书会平均、分类。论文说：不行，机器会抹掉太多东西——<b>何不在进机器之前，先给每本书备两份料？</b></p>
+    <p class="len">The old pipeline: throw each book's raw label straight into the smoothing machine, average along clubs, classify. The paper says no — the machine erases too much. <b>Why not prep two sheets of ingredients per book before it enters the machine?</b></p>
+    <p class="lz"><b><span class="hl">论文的配方只有两步：第一步“备料”——把要用到的每种数据各自加工成一小串数字（这份数字就叫知识向量）；第二步“加工”——把几串数字合成一份，交给那台打分机器，让它顺着超图关系分类。</span></b></p>
+    <p class="len"><b><span class="hl">The paper's recipe has just two steps: step 1 "prep" — each kind of data gets processed on its own into a short string of numbers (that string is called a knowledge vector); step 2 "process" — the strings merge into one, which the scoring machine uses to classify along the hypergraph.</span></b></p>
+    <p class="lz">配方里的两样东西值得多说一句：<b>备料的机器</b>按"有几种数据"配置——喂几路数据，就放几台（论文叫它 encoder，编码器："把原始资料翻译成数字的机器"）；<b>加工</b>那一步内部又劈成两小段：先把几串数字合成一份（论文叫 fusion，融合："把几份成绩单订成一份"），再进打分机器打分。合成发生在第二步<b>内部</b>，不是独立的第三步。</p>
+    <p class="len">Two things in the recipe deserve a sentence each: the <b>prep machines</b> number one per data source — feed n data streams, install n machines (the paper calls them encoders: "translators from raw material into numbers"); and the <b>processing</b> step itself splits in two halves: first the strings merge into one (the paper calls it fusion: "stapling several report cards into one"), then the scoring machine runs. The merge happens <b>inside</b> step 2 — not as a separate third step.</p>
+    <span class="tex-display" data-tex="\begin{aligned} K_1, K_2, \cdots &= \varphi_1(D_1), \varphi_2(D_2), \cdots \quad \text{step 1}\\ Y &= \mathrm{HGNN}\big(\psi(K_1, K_2, \cdots),\; H\big) \quad \text{step 2} \end{aligned}"></span>
+    <p class="formula-note"><span class="lz">公式仅供对照，不必计算。逐符号对照白话：D<sub>i</sub> = 第 i 种数据（一堆原始资料）；φ<sub>i</sub> = 对应的备料机器（把 D<sub>i</sub> 翻译成数字）；K<sub>i</sub> = 翻译出的那串数字（成绩单）；ψ = 订成绩单的那步（融合）；H = 超图的结构表（谁和谁同组）；HGNN(·,H) = 打分机器（顺着超图反复平均后分类）；Y = 最终分类结果。</span><span class="len">The equation is for reference only — no need to compute. Symbol by plain word: D<sub>i</sub> = the i-th data source (raw material); φ<sub>i</sub> = its prep machine (translating D<sub>i</sub> into numbers); K<sub>i</sub> = the resulting string (a report card); ψ = the stapling step (fusion); H = the hypergraph's structure table (who groups with whom); HGNN(·, H) = the scoring machine (averages along the hypergraph, then classifies); Y = the final classification.</span></p>
+    <p class="lz">老配方和新配方的差别：老方法的打分机器前面只有"一层自己学出来的可调参数"（论文记作 Θ，一个希腊字母而已——第 22 卡会正式见到它），没有备料这一步。论文把备料显式地插到了机器前面——<b>机器没换，料换了。</b></p>
+    <p class="len">Old recipe vs new: the old scoring machine had only "one layer of its own trainable knobs" in front (the paper writes it Θ — just a Greek letter; met properly at card 22), with no prep step. The paper inserts prep explicitly before the machine — <b>same machine, better ingredients.</b></p>
+    <div class="callout warn">
+      <b><span class="lz">常见误解：</span><span class="len">Common misconception:</span></b>
+      <span class="lz">别以为论文发明了一台新机器——第二步的打分机器就是经典 HGNN（2019 年的老成果），论文没动它。全部新意都在"备料"这一步，以及料怎么接进机器。</span>
+      <span class="len">Do not think the paper invented a new machine — step 2's scorer is the classic HGNN (a 2019 result) left untouched. Every bit of novelty lives in the "prep" step and how its output plugs into the machine.</span>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>例 1（图书馆故事，卡内自足版）：</b>设定：一家图书馆要按主题给书分类；书有原始标签（特征），书还被编进各种读书会（结构）。<b>第一步：</b>会计数"这本书参加几个读书会" → 一串数字（一列人脉账）；老学究按借阅档案查"这本书踩中了哪几条规律" → 另一串数字（一列规则账）。<b>第二步：</b>把两列数字订成一份，塞进抹平机，机器顺着读书会关系给每本书打分分类。</p>
+    <p class="len"><b>Example 1 (the library story, self-contained):</b> setup: a library classifies books by topic; books have raw labels (features) and belong to reading clubs (structure). <b>Step 1:</b> the accountant counts "how many clubs does this book join" → a string of numbers (the membership ledger); the scholar checks the borrowing archive for "which rules does this book trigger" → another string (the rule ledger). <b>Step 2:</b> the two ledgers are stapled into one and handed to the smoothing machine, which scores and classifies each book along the club relations.</p>
+    <p class="lz"><b>例 2（论文喂了几路料——数字走查）：</b>论文实际只用两种数据：① 每本书的原始标签（论文符号 X）→ 一台备料机器（代号 TDR-Encoder，第 27 卡专讲）；② 读书会的编组表（论文符号 H）→ 另一台（代号 HOI-Encoder，第 24 卡专讲）。所以：2 路数据 → 2 台机器 → 2 串数字 → 合成 1 份 → 1 个分类结果。两个成品型号由此分家：只吃"规则账"的叫 RD-HGNN，两本账都吃的叫 DD-HGNN（第 34 卡给公式）。</p>
+    <p class="len"><b>Example 2 (how much data the paper feeds — a numeric walkthrough):</b> the paper uses exactly two sources: (1) each book's raw labels (paper's symbol X) → one prep machine (codenamed TDR-Encoder, card 27); (2) the club rosters (paper's symbol H) → another (codenamed HOI-Encoder, card 24). So: 2 streams → 2 machines → 2 strings → merged into 1 → 1 classification. The two final models split from here: rule ledger only is RD-HGNN; both ledgers is DD-HGNN (equations at card 34).</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">论文相对老方法新加的是哪一步？</span><span class="len">Which step does the paper add to the old method?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="打分的那台机器是经典 HGNN，论文原样使用——新意在它前面的备料。"><span class="lz">第二步的加工打分</span><span class="len">Step 2's processing and scoring</span></button>
+        <button class="opt" data-correct="1" data-expl="对！第一步备料（把数据翻成数字串）是老方法没有的；“合成几串数字”属于第二步内部的前半段。"><span class="lz">第一步的备料（把每路数据翻成数字串）</span><span class="len">Step 1's prep (translating each data stream into a number string)</span></button>
+        <button class="opt" data-expl="读书会（超图结构）两种方法都有——它是输入，不是新增步骤。"><span class="lz">读书会这张关系表</span><span class="len">The club relation table</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="2" data-tol="0.01" data-hint="备料机器的台数对着“有几种数据”——回看例 2 的走查。" data-sol="两种数据（原始标签 X、编组表 H）→ 两台备料机器。若只喂一种，就只剩一台——DD 与 RD 的分家正是“两本账 or 一本账”。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：本文实例化里装了几台备料机器（编码器）？</span><span class="len">Numeric: how many prep machines (encoders) does the paper's instantiation install?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：若图书馆明天又多了一种数据（比如每本书的读者评论），配方要改吗？</span><span class="len">Transfer: if the library gains one more data source tomorrow (say, reader comments per book), must the recipe change?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="配方不用推倒重来——备料机器是按“数据路数”开放的插槽。这正是论文自称“通用框架”的本钱：加料不改骨架。"><span class="lz">整套配方要重新设计</span><span class="len">The whole recipe must be redesigned</span></button>
+        <button class="opt" data-correct="1" data-expl="正确！再加一台备料机器产第三串数字、第二步多订一列——两步骨架原样不动。这就是“general framework”的含义。"><span class="lz">加一台备料机器，第二步多订一列即可，两步骨架不变</span><span class="len">Install one more prep machine and staple one more column — the two-step skeleton stays</span></button>
+        <button class="opt" data-expl="读书会表是第二步的“跑道”，不参与备料——多一种数据不需要动它。"><span class="lz">必须删掉读书会表才能加新料</span><span class="len">The club table must be dropped to add new data</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout">
+      <b><span class="lz">本文如何用它：</span><span class="len">How the paper uses it:</span></b>
+      <span class="lz">下一卡：第二步那台打分机器的正式公式（论文式 1）——你在第 9 卡沙盒里其实已经按过它的按钮了。</span>
+      <span class="len">Next card: the official equation of step 2's scoring machine (the paper's Eq. 1) — you have already pressed its button in card 9's sandbox.</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

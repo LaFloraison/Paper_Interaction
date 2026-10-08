@@ -1,0 +1,7 @@
+{
+  "key": "activation-gating",
+  "name": "Sigmoids and gating",
+  "title": "Sigmoids and gating: what a number in (0, 1) can and cannot do",
+  "blurb": "The taught paper uses the logistic sigmoid twice: its structural encoder ends in a sigmoid, and its structural gate behaves like a value in (0, 1). This section builds the sigmoid from zero — its formula, its range, and the way it saturates — then shows what happens when a quantity that can only lie strictly between 0 and 1 is used as a multiplier. That single fact makes the paper's word \"amplified\" a relative claim among vertices rather than an absolute increase, so reading the fusion honestly depends on this section.",
+  "skip_hint": "If you can state the range of the sigmoid, say why its gradient vanishes at the extremes, and explain why multiplying an entry by a value in (0, 1) can only shrink it, skip this section."
+}

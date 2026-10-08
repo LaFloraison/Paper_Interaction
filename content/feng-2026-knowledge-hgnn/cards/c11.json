@@ -1,0 +1,8 @@
+{
+  "id": "11",
+  "kind": "include",
+  "library": "hypergraph-family",
+  "chapter": "pre",
+  "section": "2.1 Foundations",
+  "kicker": "Extension · The hypergraph family"
+}

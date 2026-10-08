@@ -1,0 +1,97 @@
+{
+  "kind": "check",
+  "title": "Skip check: can you leave this section?",
+  "what": [
+    {
+      "t": "p",
+      "md": "This section taught five things. If you can do all five unaided, skip ahead — nothing later depends on a definition you already hold."
+    },
+    {
+      "t": "list",
+      "items": [
+        "State what a graph is and why it is stored as a matrix rather than a picture.",
+        "Say what the degree of a vertex is, and why the degrees of a graph sum to twice the number of edges.",
+        "Build the incidence matrix of a hypergraph, given the vertex list and the hyperedge list.",
+        "Read the two degrees off that matrix — row sums and column sums — and check one against the other.",
+        "Explain why convolution does not transfer to graphs without modification."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The questions below are the check. Two of the four correct is not the bar — the bar is that you did not have to think hard about any of them. If you hesitated on the incidence matrix, stay: card 3's matrix is Equation (3)'s raw material."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which quantity does the *column* sum of an incidence matrix give?",
+      "opts": [
+        {
+          "md": "The vertex degree — how many hyperedges contain a vertex",
+          "expl": "That is the row sum. Getting these two the wrong way round is the single most common error with this matrix, and it silently swaps Table I's two degree columns."
+        },
+        {
+          "md": "The edge degree — how many vertices a hyperedge contains",
+          "correct": true,
+          "expl": "Correct: the size of the relation. For a plain graph every column sum is 2, which is why Table I prints 2 for all four graph datasets."
+        },
+        {
+          "md": "The total number of memberships",
+          "expl": "That is the sum of all column sums, or equivalently of all row sums — the whole matrix, not one column."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A hypergraph has 50 vertices, 10 hyperedges, and 400 total memberships. What is its average edge degree?",
+      "answer": 40,
+      "tol": 0.01,
+      "hint": "Memberships divided by hyperedges — the column-sum direction.",
+      "sol": "$400 \\div 10 = 40$ vertices per hyperedge on average. For contrast, the average vertex degree would be $400 \\div 50 = 8$.",
+      "unit": "vertices per hyperedge"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why must every graph operator give the same answer regardless of how the vertices are ordered?",
+      "opts": [
+        {
+          "md": "Because the ordering is part of the data and must be respected",
+          "expl": "The ordering is an artefact of how the file happened to be written. No dataset comes with a meaningful numbering, and the paper's permutation-invariance lemma exists precisely because of that."
+        },
+        {
+          "md": "Because the ordering is arbitrary, so any answer depending on it is an artefact rather than a property of the graph",
+          "correct": true,
+          "expl": "Correct. The graph is the connections; the numbering is bookkeeping. This is the intuition behind the paper's column-exchange invariance proof, which shows its structural encoder satisfies exactly this requirement."
+        },
+        {
+          "md": "Because the Laplacian requires sorted indices",
+          "expl": "The Laplacian is defined for any ordering — its entries move with the labels, and its eigenvalues do not."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why does repeatedly averaging a signal over neighbours destroy information rather than spread it?",
+      "opts": [
+        {
+          "md": "Because averaging is not a valid operation on graphs",
+          "expl": "It is perfectly valid — and it is what makes GNNs work at all. The problem is applying it too many times, not applying it."
+        },
+        {
+          "md": "Because each round replaces every value with a blend of its neighbourhood, so differences shrink towards zero",
+          "correct": true,
+          "expl": "Correct. A few rounds propagate information usefully; many rounds make every vertex look like the graph average, leaving nothing to classify. The paper's Table VIII measures exactly this collapse in the baseline."
+        },
+        {
+          "md": "Because averaging loses the highest-frequency signal components",
+          "expl": "Closer to the spectral view of the phenomenon, and true as far as it goes — but the mechanism that matters for reading this paper is the direct one: values converge to the same number."
+        }
+      ]
+    }
+  ],
+  "close": "**You are ready for the paper's own objects.** The hypergraph pair follows, and it assumes everything in this section. If you skipped, you will meet the incidence matrix again in Equation (3) — come back then."
+}

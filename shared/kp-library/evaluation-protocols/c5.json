@@ -1,0 +1,137 @@
+{
+  "kind": "check",
+  "title": "Why the same model scores differently — and a skip check for this section",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Label leakage** is any route by which information about the label of a vertex in the scoring set reaches the model, or reaches the person choosing settings, before the final number is computed. The route may be direct — the label enters the loss (the quantity training minimises) — or indirect: a setting is chosen because it improved the score on the scoring set. In both cases the reported number is optimistically biased, because part of the scoring set has already been used to fit.",
+      "plain": "Label leakage is any path by which the answers you are graded on reach you, or reach the person choosing your settings, before the grading happens."
+    },
+    {
+      "t": "p",
+      "md": "**The question the section leaves open, answered by the mechanism.** Transductive and inductive are rules, not properties of a model. Change the rule and the same trained network, with the same weights, produces a different number — because the set of vertices being scored has changed. The extreme case is a model that memorises, and its behaviour exposes the mechanism cleanly: a model that has absorbed its training vertices looks perfect when those vertices are scored, and worthless when genuinely new ones arrive."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The indirect route is the one people miss.** Reaching into the scoring results to pick the best configuration, then reporting that configuration's score, is leakage exactly as surely as feeding the labels into the loss. The defence is procedural rather than statistical: build the split and freeze it before any tuning begins, and make every later choice on validation data or a training-fold average, never on the scoring set."
+    },
+    {
+      "t": "list",
+      "ordered": false,
+      "items": [
+        "State a protocol as three coordinates: the label regime, the scoring set, and whether the scored vertices were visible during training.",
+        "Identify a transductive protocol and say what it supports — a labelling of this graph — and what it does not — generalisation to an unseen graph.",
+        "Identify an inductive protocol, and explain why deployment requires it and why it costs accuracy.",
+        "Read a mixed or production score as a weighted average, and ask for its component scores and weights before believing the headline.",
+        "Recognise label leakage in both its forms: labels entering training, and results steering the choice of settings.",
+        "Explain why a memorising model can score at the top of one protocol and at chance under another."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The questions below are the check. The bar is not a passing score — it is that you answered each one without hesitating. If the arithmetic of the memoriser in the example gave you pause, stay: it is the cleanest statement of why the protocol, not the model, decides the number."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a model that only memorises.** Build a model with no learning at all: a lookup table. During training it stores, for each vertex, the label it was shown. Asked later about a vertex in its table, it returns the stored label. Asked about a vertex that is not in the table, it falls back to a fixed default — here class A. The training set has six vertices, two in each of three classes: v1 = A, v2 = A, v3 = B, v4 = B, v5 = C, v6 = C."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Score the model on the six vertices it trained on, with the labels hidden at scoring time. It consults its table and returns each stored label, so it is correct on all six: 6/6 = 100%.",
+          "why": "The labels were withheld at scoring and the model produced them anyway, because it had absorbed them during training. A protocol that scores training vertices with their labels hidden measures memory, not prediction."
+        },
+        {
+          "md": "Now score it on six genuinely new vertices, again two in each class. None of them is in the table, so the model answers A every time. It is right on the two A-vertices: 2/6 = 33.3%.",
+          "why": "Same model, same weights, different protocol. The drop is not a change in the model; it is a change in what is being asked."
+        },
+        {
+          "md": "The gap between the two numbers is 100 − 33.3 = 66.7 percentage points, and 33.3% is what a three-class guesser that always answers one class achieves, since 1/3 = 33.3%.",
+          "why": "That last equality is the diagnosis. A model scoring at chance on new vertices has learned nothing that transfers, however high its score was on the vertices it was trained on."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the same model, a hundred times larger.** Training set of 300 vertices, 100 in each of three classes; scoring set of 300 new vertices, again 100 per class."
+    },
+    {
+      "t": "calc",
+      "md": "on the 300 training vertices:            300 / 300 = 100%"
+    },
+    {
+      "t": "calc",
+      "md": "on the 300 new vertices, default A:     100 / 300 = 33.3%"
+    },
+    {
+      "t": "calc",
+      "md": "gap:                                     100 − 33.3 = 66.7 percentage points"
+    },
+    {
+      "t": "p",
+      "md": "In this construction the gap is identical to the small case, which is the point: the failure is structural, not a small-sample accident. Making the dataset larger does not repair a protocol that scores vertices the model already memorised. What changes the number is changing the protocol, not changing the size."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "The practical rule that follows: construct the split first, then let nothing about the scoring set influence training or tuning. If any part of the scoring set — its labels, or your knowledge of them — reaches either the model or the choice of settings, the reported number belongs to the family above, and no amount of scale changes that."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why can the same trained model score 100% under one protocol and about 33% under another?",
+      "opts": [
+        {
+          "md": "Because it is retrained between the two evaluations",
+          "expl": "No retraining happens. The weights are frozen; what changes is which vertices are scored and whether they were available during training."
+        },
+        {
+          "md": "Because the protocols score different vertices — ones the model stored during training, versus ones it has never seen",
+          "correct": true,
+          "expl": "Correct. A model that memorises looks perfect on the vertices it absorbed and falls to chance on new ones. The protocol decides which of those two situations is being measured."
+        },
+        {
+          "md": "Because the metric changed between the two evaluations",
+          "expl": "Holding the metric fixed is what makes the comparison meaningful. Accuracy is accuracy in both; the scored vertices and the visibility rule are what differ."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A model is correct on all 45 of the vertices it trained on, and on 15 of 45 new vertices drawn equally from three classes, where it always answers the same class. What is its score on the new vertices, in percent?",
+      "answer": 33.3,
+      "tol": 0.5,
+      "hint": "The new-vertex score is the second count expressed as a percentage; the first count is there to tempt you into averaging the two.",
+      "sol": "15 / 45 = 1 / 3 = 33.3%. The training-vertex score is 45 / 45 = 100%, so the gap is 100 − 33.3 = 66.7 percentage points. The model's constant answer is right on exactly one class out of three, which is why 1/3 reappears.",
+      "unit": "percent"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A team tunes settings by repeatedly checking the test set, keeps the setting with the best test score, and reports that score. What is the status of the reported number?",
+      "opts": [
+        {
+          "md": "It is a valid test score, because the test labels were never used in training",
+          "expl": "They were used — not in the loss, but in the choice of settings. A configuration selected for its test performance has been fitted to the test set, whatever route the information took."
+        },
+        {
+          "md": "It is optimistically biased: the setting was chosen to maximise a number computed on the scoring set",
+          "correct": true,
+          "expl": "Correct. Selecting the best of many settings on the scoring set reports a best-of-many, not an estimate of generalisation. The remedy is to tune on validation data and touch the scoring set once, at the end."
+        },
+        {
+          "md": "It is unbiased, because more tuning only improves the model",
+          "expl": "More tuning means more comparisons against the scoring set, which raises the maximum and therefore the optimism. The reported number climbs while real behaviour on unseen vertices need not improve at all."
+        }
+      ]
+    }
+  ],
+  "close": "**You are ready to read the protocols block of a results table.** Every number now carries three questions — what the model may learn from, what is scored, and whether the scored vertices were present during training — and a blended number carries a fourth: in what proportion."
+}

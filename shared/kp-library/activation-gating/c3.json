@@ -1,0 +1,186 @@
+{
+  "kind": "check",
+  "title": "What this implies for the taught paper's fusion — and the skip check",
+  "what": [
+    {
+      "t": "p",
+      "md": "This section taught two facts and then joined them. First, the logistic sigmoid is a function with range $(0,1)$, saturating at both ends so that its derivative vanishes far from the middle. Second, a number in $(0,1)$ used as a multiplier is a gate: it attenuates and can never amplify. The final step is to apply both to the taught paper's **fusion**, where the two facts meet."
+    },
+    {
+      "t": "h3",
+      "md": "Where the sigmoid appears in the paper"
+    },
+    {
+      "t": "p",
+      "md": "First, the two objects being combined. The paper keeps **two representations of each vertex**. One is a **rule-side embedding** $R$, learned from the logical rules that state how relations combine. The other is a **structural embedding** $X_s$, learned from the shape of the graph itself. The **fusion** is the step that joins these two representations into one. Nothing in this card depends on the details of how either is learned; what matters is that $X_s$ comes out of a sigmoid and $R$ does not."
+    },
+    {
+      "t": "p",
+      "md": "The paper's **structural encoder** ends in a sigmoid: its structural embedding, written $X_s$, is produced by applying $\\sigma$ entry by entry. Everything from the previous cards applies immediately. Each entry of $X_s$ lies strictly inside $(0,1)$ — never 0, never 1, for exactly the reason computed earlier ($\\sigma(6) = 0.997527$ is close to 1 but is not 1). This is a *provable* property of $X_s$, not a tendency: whatever the input graph, the encoder's output is trapped in the open interval."
+    },
+    {
+      "t": "p",
+      "md": "That embedding is then used as a **structural gate** in the paper's fusion. The fusion multiplies $X_s$ entry by entry into the rule-side embedding $R$, and then **concatenates** the product with the original $R$ (places the two vectors end to end, forming one longer vector). In symbols, the fused vector at a vertex is the concatenation of $X_s \\odot R$ and $R$ itself, where $\\odot$ is the entrywise product."
+    },
+    {
+      "t": "h3",
+      "md": "The consequence, stated honestly"
+    },
+    {
+      "t": "p",
+      "md": "Because every entry of $X_s$ is in $(0,1)$, the product $X_s \\odot R$ can only shrink the entries of $R$, exactly as in the gating card. The paper's own words describe the structural signal as \"amplified\", and this needs reading with care: the multiplication cannot make any entry of $R$ larger than it started. What it can do is change the *relative* size of entries across vertices — a vertex whose structural gate is near 1 keeps its rule-embedding entry nearly intact, while a vertex whose gate is near 0 has that entry driven towards zero. So a vertex can end up standing out more *compared with other vertices* even though every vertex's entries were individually reduced."
+    },
+    {
+      "t": "p",
+      "md": "Two facts keep this honest. First, the *ranking* among vertices can change, because the gates differ per vertex, so \"amplified\" is a statement about relative position, not absolute magnitude. Second, and more important, the original $R$ is **concatenated alongside** the gated product rather than replaced by it. The unscaled rule embedding is still present in the fused representation, so nothing is destroyed: the model sees both the gated view and the untouched view, and can use whichever the task needs. The gate contributes a *modulated* copy, not the only copy."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**The one sentence to keep:** the structural embedding is a sigmoid output, so it is a gate in $(0,1)$; multiplying by it can only shrink entries, which makes \"amplified\" a relative claim among vertices, and the concatenation of the unscaled original means no information is lost in the process."
+    },
+    {
+      "t": "h3",
+      "md": "The section, in five claims"
+    },
+    {
+      "t": "list",
+      "items": [
+        "The logistic sigmoid is $\\sigma(x) = 1/(1+e^{-x})$ with range the open interval $(0,1)$; neither endpoint is ever produced.",
+        "The sigmoid saturates: its derivative peaks at $0.25$ when $x = 0$ and falls towards 0 as $|x|$ grows, which is the vanishing-gradient problem in hidden layers.",
+        "Tanh and ReLU are the standard alternatives: $\\tanh$ has range $(-1,1)$ and still saturates; ReLU has range $[0,\\infty)$, does not saturate for positive inputs, but is flat (derivative 0) for negative ones.",
+        "A gate is a value used as a multiplier; a gate in $(0,1)$ attenuates and never amplifies, so the total magnitude of a vector can only shrink under it.",
+        "Attention weights are also in $(0,1)$ but must sum to 1, so attention redistributes a fixed total while an entrywise gate scales entries independently and shrinks the total (attention and its sum-to-one rule were defined in card 2)."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The questions below are the check. The bar is not a score — it is that you did not have to think hard about any of them. If the fusion paragraph still reads as a surprise rather than the obvious consequence of a gate in $(0,1)$, stay: the paper's fusion is explained in terms of exactly this, and the rest of the fusion cards assume it."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**One worked pass over the paper's fusion.** Take a rule-side embedding $R = (2, -3, 5)$ at a vertex, and let the structural gate at that same vertex be $X_s = (0.9, 0.2, 0.6)$ — three entries, each strictly inside $(0,1)$ as the encoder guarantees."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Multiply entry by entry: $0.9 \\times 2 = 1.8$, $0.2 \\times (-3) = -0.6$, $0.6 \\times 5 = 3.0$. So $X_s \\odot R = (1.8, -0.6, 3.0)$.",
+          "why": "Each multiplier is below 1, so each result is closer to zero than its original: $|2| \\to 1.8$, $|-3| \\to 0.6$, $|5| \\to 3.0$. No entry grew."
+        },
+        {
+          "md": "Concatenate the gated product with the original: the fused vector is $(1.8, -0.6, 3.0,\\; 2, -3, 5)$.",
+          "why": "The first three numbers are the gated view; the last three are the untouched rule embedding. The original is still in the representation, which is why the shrink-into-zero gate cannot erase the rule signal."
+        },
+        {
+          "md": "Compare two vertices with the same rule entry. Suppose vertex A has gate $0.9$ and vertex B has gate $0.1$, both on a rule value of $2$. Their gated entries are $1.8$ and $0.2$ — the ratio is $1.8 / 0.2 = 9$.",
+          "why": "This is the relative effect the paper's word \"amplified\" points at. Vertex A's structural signal leaves its rule entry nine times larger than B's, so A stands out relative to B — even though both entries were shrunk from the original 2."
+        }
+      ]
+    },
+    {
+      "t": "calc",
+      "md": "X_s ⊙ R = (0.9×2, 0.2×(−3), 0.6×5) = (1.8, −0.6, 3.0)"
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "What this pass does *not* show: it does not demonstrate the encoder producing those gate values (that is a property of the encoder's architecture, argued elsewhere), and it does not show a gate saturating near 0 suppressing a gradient during training. The example establishes one thing only — that the fusion's multiplication shrinks entries and that the concatenation preserves the original."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "The paper's structural embedding $X_s$ is a sigmoid output, so every entry is in $(0,1)$. What is the immediate effect of multiplying $X_s$ entry by entry into a rule embedding $R$?",
+      "opts": [
+        {
+          "md": "Each entry of $R$ can only shrink in magnitude; none can grow",
+          "correct": true,
+          "expl": "Correct. Multiplying by a value in (0,1) contracts: |g_i R_i| = g_i|R_i| ≤ |R_i|. The paper's phrase \"amplified\" therefore cannot mean that any entry of R became larger than it was — it must be a relative statement across vertices."
+        },
+        {
+          "md": "Entries of $R$ with a strong structural signal grow larger",
+          "expl": "This reads the gate as a booster, which a value in (0,1) can never be. A gate near 1 leaves an entry almost unchanged; it does not increase it. The intuition of \"strong signal means bigger number\" is exactly the trap here."
+        },
+        {
+          "md": "Nothing changes, because the sigmoid's entries are close to 1",
+          "expl": "Some entries can be close to 1, but the sigmoid never reaches 1, and other entries will be well below it — σ(−2) = 0.119 is a legitimate gate value. Assuming every gate is near 1 ignores the whole point of a learnable gate."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Two vertices carry the same rule-embedding entry of $4.0$. Their structural gates are $0.8$ and $0.4$. What is the ratio of the larger gated entry to the smaller?",
+      "answer": 2,
+      "tol": 0.01,
+      "hint": "Gate each entry first, then divide the larger result by the smaller.",
+      "sol": "Vertex A: 0.8 × 4.0 = 3.2. Vertex B: 0.4 × 4.0 = 1.6. The ratio is 3.2 / 1.6 = 2. Both gated entries are smaller than the original 4.0 — the two-fold difference is relative, not an absolute increase for A.",
+      "unit": "ratio"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The paper concatenates the gated product with the *original* $R$ rather than replacing $R$ with the product. Why does this matter?",
+      "opts": [
+        {
+          "md": "It restores the magnitudes the gate removed, undoing the shrinkage",
+          "expl": "Concatenation does not scale anything; it appends the untouched copy as extra entries. The gated entries are still shrunk — but the unscaled ones are now available to the model alongside them."
+        },
+        {
+          "md": "Because the gate can only shrink entries, the unscaled original is kept so that no rule information is lost",
+          "correct": true,
+          "expl": "Correct. Since a gate in (0,1) can drive an entry towards zero, using the product alone would risk discarding rule signal at any vertex whose structural gate is small. Concatenating the original guarantees that the full-strength rule embedding remains in the fused representation."
+        },
+        {
+          "md": "It is required because the gate and the rule embedding have different dimensions",
+          "expl": "Concatenation would be a natural way to join vectors of different lengths, but that is not the reason here — the gated product and the original have the same dimension, since the gate acts entry by entry on R."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which statement about the sigmoid is correct?",
+      "opts": [
+        {
+          "md": "Its range is $(0,1)$ and its derivative is largest at $x = 0$, where it equals 0.25",
+          "correct": true,
+          "expl": "Correct on both counts: the output never reaches 0 or 1, and σ'(0) = σ(0)(1−σ(0)) = 0.5 × 0.5 = 0.25, the peak of the derivative."
+        },
+        {
+          "md": "Its range is $[0,1]$ and its derivative is largest at $x = 0$",
+          "expl": "The derivative claim is right, but the range is open, not closed. σ(20) is about 0.999999998 and still not 1; treating the endpoints as attainable is the common error this section warned against."
+        },
+        {
+          "md": "Its range is $(0,1)$ and its derivative is largest at the extremes",
+          "expl": "The range is right, but the derivative is smallest at the extremes — that is what saturation means. The derivative peaks in the middle, at x = 0."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Attention weights and gate values both lie in $(0,1)$. Why is attention able to shift emphasis between the items it attends to (words or word-pieces) while an elementwise gate can only remove it?",
+      "opts": [
+        {
+          "md": "Attention weights sum to 1, so a larger share for one item is drawn from the others; gate values are independent, so nothing is redistributed",
+          "correct": true,
+          "expl": "Correct. The sum-to-one constraint links the weights: raising one lowers the rest. Independent gates have no such link, so each entry is scaled on its own and the total can only fall. This is the distinction the second card built."
+        },
+        {
+          "md": "Attention uses values above 1, so it can amplify",
+          "expl": "Attention weights stay inside (0,1). A weighted average with weights summing to 1 cannot exceed the largest input value, so attention does not amplify either — it reallocates."
+        },
+        {
+          "md": "There is no difference; both are entrywise products and behave identically",
+          "expl": "Both involve numbers in (0,1), but the operations differ: attention applies one weight per item and averages, while a gate applies one multiplier per entry. The sum-to-one rule is what gives attention its reallocating behaviour."
+        }
+      ]
+    }
+  ],
+  "close": "**You are ready for the paper's fusion.** The structural encoder ends in a sigmoid, so its output is a gate in $(0,1)$; the fusion multiplies that gate into the rule embedding and keeps the unscaled copy alongside. Every later claim about the fusion can now be checked against one question: does it only shrink, or has the author smuggled in an amplification that a value in $(0,1)$ cannot supply?"
+}

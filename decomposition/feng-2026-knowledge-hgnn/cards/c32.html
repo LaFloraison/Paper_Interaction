@@ -1,0 +1,54 @@
+<!-- ============ c32 公式(8) Xr ============ -->
+<section class="card" data-c="32" data-title-zh="公式 (8) · 多树拼接 X<sub>r</sub>" data-title-en="Eq. (8) · Cross-tree concatenation Xr">
+  <div class="card-inner">
+    <div class="card-kicker k-math"><span class="len">Equation 8 · the rule ledger bound into one sheet</span><span class="lz">公式 8 · 规则账订成一页</span></div>
+    <h2><span class="lz">式 (8)：把每棵树的得分列拼成一条账</span><span class="len">Eq. (8): binding the per-tree columns into one ledger</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">上一卡算出了每棵树自己的一列得分。树队有 K 棵，就有 K 列。式 (8) 的动作最朴素不过：<b>按树号顺序，把 K 列依次接起来</b>，成为一条长向量 X<sub>r</sub>——这是每个顶点最终的"规则知识账"。</p>
+    <p class="len">The last card produced one score column per tree; a K-tree team yields K columns. Eq. (8)'s move is the plainest: <b>in tree order, join the K columns end to end</b> into one long vector X<sub>r</sub> — each vertex's final "rule-knowledge ledger".</p>
+    <p class="lz"><b><span class="hl">拼接口诀：位数 = 各树提问点个数之和；顺序 = 第 1 棵树的整列、接第 2 棵树的整列……；每个顶点各有一条自己的长账（长度相同、内容各异）。</span></b></p>
+    <p class="len"><b><span class="hl">Concatenation in one line: length = sum of all trees' question counts; order = tree 1's whole column, then tree 2's …; every vertex owns one such long ledger (same length, different contents).</span></b></p>
+    <span class="tex-display" data-tex="X_r[v] = \Big[\, \varphi_r^{1}(x_v, T_1) \;\big\|\; \varphi_r^{2}(x_v, T_2) \;\big\|\; \cdots \;\big\|\; \varphi_r^{K}(x_v, T_K) \,\Big]^{\top}"></span>
+    <p class="formula-note"><span class="lz">逐符号：φ<sub>r</sub><sup>1</sup>…φ<sub>r</sub><sup>K</sup> = 上一卡每棵树的得分列；符号 ‖ 读作"拼接"——<b>把两列首尾相接、不加减不混合，像把两张答题卡订成一页</b>；K = 树队里树的棵数；x<sub>v</sub> = 顶点 v 的特征串；下标 [v] 表示"这条账归 v"。<b>整式一句话：K 列首尾相接 = 一条长账。</b></span><span class="len">Symbol by symbol: φ<sub>r</sub><sup>1</sup>…φ<sub>r</sub><sup>K</sup> = the per-tree columns from the last card; the symbol ‖ reads "concatenate" — <b>join two columns end to end, no adding, no blending, like binding two answer sheets into one</b>; K = the number of trees; x<sub>v</sub> = vertex v's features; the subscript [v] says "this ledger belongs to v". <b>The whole line in a breath: K columns end to end = one long ledger.</b></span></p>
+    <div class="callout warn">
+      <b><span class="lz">常见误解：</span><span class="len">Common misconception:</span></b>
+      <span class="lz">拼接不是相加，也不是取平均——<b>位数会变多（相加会变少、平均会不变），各列原封不动保留</b>。所以 X<sub>r</sub> 的长度随树队规模增长：更多树 = 更长的账，而不是被揉成一个数。</span>
+      <span class="len">Concatenation is neither addition nor averaging — <b>the length grows (addition would shrink it, averaging keeps it), and each column stays intact</b>. So X<sub>r</sub>'s length grows with the team: more trees = a longer ledger, never squashed into one number.</span>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>例 1（顶点甲拼账，跟着接）：</b>上一卡算好的两列：T₁ = [0, 0]（2 位）、T₂ = [1.125, 1.0, 0]（3 位）。按树号首尾相接：<b>X<sub>r</sub> = [0, 0, 1.125, 1.0, 0]</b>——共 2 + 3 = <b>5 位</b>。读账：第 1、2 格是 T₁ 的两个问题（都被解释，0）；第 3、4、5 格是 T₂ 的三个问题（前两条悬账，根上那条 1.125 最重）。每一格都能指名道姓地回溯到"哪棵树的哪个提问点"——账本的每一笔都查得到出处。</p>
+    <p class="len"><b>Example 1 (bind A's ledger, follow along):</b> the two columns from the last card: T₁ = [0, 0] (2 slots), T₂ = [1.125, 1.0, 0] (3 slots). In tree order, end to end: <b>X<sub>r</sub> = [0, 0, 1.125, 1.0, 0]</b> — 2 + 3 = <b>5 slots</b>. Reading: slots 1–2 are T₁'s questions (both explained, 0); slots 3–5 are T₂'s (two unsettled, the root one at 1.125 heaviest). Every slot traces back to "which tree's which question" — each entry auditable.</p>
+    <p class="lz"><b>例 2（顶点乙的账并排看）：</b>上一卡算好：T₁ = [1.125, 0]、T₂ = [0, 0, 0] → <b>X<sub>r</sub> = [1.125, 0, 0, 0, 0]</b>。两本账摆一起：甲 [0, 0, 1.125, 1.0, 0]、乙 [1.125, 0, 0, 0, 0]——同样的 5 格，一个"在 T₂ 上留了根级悬账"，一个"在 T₁ 上留了根级悬账"。<b>账本按人开页、每页 5 格；不同人、不同笔迹。</b></p>
+    <p class="len"><b>Example 2 (B's ledger side by side):</b> from the last card: T₁ = [1.125, 0], T₂ = [0, 0, 0] → <b>X<sub>r</sub> = [1.125, 0, 0, 0, 0]</b>. Two ledgers together: A [0, 0, 1.125, 1.0, 0], B [1.125, 0, 0, 0, 0] — same 5 slots; one leaves a root-level entry under T₂, the other under T₁. <b>One page per person, 5 slots each; different people, different handwriting.</b></p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">X<sub>r</sub> 的位数由什么决定？</span><span class="len">What determines X<sub>r</sub>'s number of slots?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="顶点数决定“有几个人开账”，不决定“每人几格”——位数是每人的页宽。"><span class="lz">顶点的个数</span><span class="len">The number of vertices</span></button>
+        <button class="opt" data-correct="1" data-expl="对！位数 = 各树提问点个数之和（K 列拼起来的总长）。顶点数决定开几页，提问点数决定每页几格。"><span class="lz">各树提问点个数之和（拼起来的总长）</span><span class="len">The sum of all trees' question counts (the joined length)</span></button>
+        <button class="opt" data-expl="树的数量只影响“拼几列”——若每棵树提问点数不同，光数树数不出位数（下一题就是你这个坑）。"><span class="lz">树队里树的棵数</span><span class="len">The number of trees in the team</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="7" data-tol="0.01" data-hint="页宽 = 各树提问点数逐个累加——把两棵树的格子数加起来。" data-sol="3 + 4 = 7 位。X<sub>r</sub> 是逐树拼接：树 1 占前 3 格、树 2 占后 4 格，加起来 7 格。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：树队两棵树，提问点分别 3 个、4 个。X<sub>r</sub> 共几位？</span><span class="len">Numeric: a two-tree team with 3 and 4 question nodes. How many slots does X<sub>r</sub> hold?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：若两棵树上出现同一条规则（都问"x₂ ≥ 2？"），式 (8) 会给它几格？为什么不去重？</span><span class="len">Transfer: if the same rule appears in both trees ("x₂ ≥ 2?" in each), how many slots does Eq. (8) give it — and why no dedup?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="去重会丢信息——同一句问题在不同树上“站的位置”不同（第 0 层 vs 第 2 层），位置分不同；砍掉一格就砍掉了那个层级的悬账记录。"><span class="lz">一列一格（去重），因为问题一样</span><span class="len">One slot (deduplicated) — it is the same question</span></button>
+        <button class="opt" data-correct="1" data-expl="对！两格。同一句问题在不同树里的层号不同 → 位置分不同 → 悬账分量也不同；拼接原封保留每条记录，账本才可审计。"><span class="lz">两列各一格，共两格——同问题在不同树的层号/位置分不同，记录不可合并</span><span class="len">Two slots, one per column — the same question sits at different layers/weights in different trees; records stay separate</span></button>
+        <button class="opt" data-expl="拼接不挑重复——它只做“首尾相接”，合并/去重是另一类操作，本公式里没有。"><span class="lz">看情况，若两树位置分相同则合并</span><span class="len">Depends — merge if the weights happen to match</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout good">
+      <b><span class="lz">至此，知识账建设完成：</span><span class="len">The rule ledger is now complete:</span></b>
+      <span class="lz">一个顶点走过 树队 → 内容登记 → 位置登记 → 逐位相乘 → 逐树拼接，得到 X<sub>r</sub>。它是"特征知识"的正式成品——下一组卡：结构账（X<sub>s</sub>）与这本规则账怎么融合成一份特征 Z。</span>
+      <span class="len">A vertex travels tree team → content desk → position desk → slot-wise multiply → tree-wise concatenation to produce X<sub>r</sub>. This is "feature knowledge" in final form — coming cards fuse it with the structural ledger X<sub>s</sub> into one feature set Z.</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

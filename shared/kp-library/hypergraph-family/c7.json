@@ -1,0 +1,110 @@
+{
+  "kind": "extension",
+  "title": "The hypergraph is a modelling decision, not a property of the dataset",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Two hypergraphs over the same underlying records are **equivalent as datasets but not as objects** if they differ in arity structure, in edge construction, in weighting, or in which records were treated as groups. Every downstream quantity — edge degrees, vertex degrees, what a network can learn — is a property of the hypergraph, not of the records it was built from.",
+      "plain": "The same data can honestly produce several different hypergraphs. Which one you get depends on decisions someone made, and every number in the paper describes the one that was chosen."
+    },
+    {
+      "t": "list",
+      "items": [
+        "**Are the groups native or constructed?** Native groups are read off records (conferences, receipts); constructed ones are manufactured from similarity, and their parameters are free.",
+        "**What counts as a group?** One paper, or one research lab, or one year at one venue — each is defensible and each gives different edge sizes.",
+        "**Is the object kept or expanded?** Keeping it preserves groups; clique expansion publishes 481,671 edges where the group used to be.",
+        "**Do you normalise?** Without degree normalisation, one 982-member relation dominates its 982 members' every result."
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**This paper's own position, stated plainly.** It keeps the hypergraph and handles it directly; it does not expand. Six of its ten datasets arrive as hypergraphs; the other four are plain graphs whose hyperedges it must construct. For those four it uses $k$-nearest neighbours, with $k$ in a small range chosen by judgement. Those are the paper's choices, and they are the terms on which its numbers should be read."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "The habit to carry away: whenever a results table comes from a dataset that had to be *built*, ask **what the building parameters were and whether they were varied.** A number produced under one untested parameter setting is a description, not a claim about the method. Chapter 7 puts exactly this question to this paper."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the same ten datasets, read as a column about provenance.** Table I's *Type* column marks four datasets as graphs and six as hypergraphs. That marking is about what the data **arrived as**, not about what the method consumes — after preprocessing, all ten are hypergraphs."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "For DBLP-Conf, CA-Cora and CC-Cora the relations are native: the paper reads groups off the data (co-authorship, co-citation, a shared venue) rather than inventing them from similarity.",
+          "why": "Nothing needed to be invented, so there is no $k$ to interrogate — but there is still the question of scope: a whole-conference hyperedge of 982 members is a very coarse relation."
+        },
+        {
+          "md": "For ModelNet40 and Heloc the relations are constructed from feature similarity, and here $k$ directly sets every hyperedge's size.",
+          "why": "This is the case where the artefact argument bites hardest. The hypergraph is what these rows of Table I *are* under one setting of one parameter."
+        },
+        {
+          "md": "For Cora, Github and the two Amazon datasets — marked as graphs — hyperedges must also be constructed before the paper's method can run.",
+          "why": "So the four \"graph\" rows are not a control group free of construction. **Every one of the ten rows passed through some preprocessing that the results inherit.** Notice that this is not a criticism of the paper; it is what reading an experimental table honestly requires."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "You now have what you need to read Table I the way its authors read it. When Chapter 6 walks that table, the *Type* column will not be a label to memorise but a statement about where each dataset's relations came from — and Chapter 7's critique of the untested $k$ will not be a surprise but a conclusion you reached yourself."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Table I labels four datasets as graphs. After preprocessing, what does the method actually consume?",
+      "opts": [
+        {
+          "md": "Graphs, and the method is adapted to handle them",
+          "expl": "The method is built on the incidence matrix and Equation (1). It needs relations, and a graph's relations are of arity 2 — usable, but they have to be expressed in hypergraph form like anything else."
+        },
+        {
+          "md": "Hypergraphs — hyperedges are constructed for them, since the method requires relations of the hypergraph form",
+          "correct": true,
+          "expl": "Correct. So the four \"graph\" rows are not construction-free: hyperedges were built for them, and whatever parameters governed that construction are inherited by every score in their rows."
+        },
+        {
+          "md": "Both, and the results are averaged",
+          "expl": "No such averaging occurs. Each dataset is processed once and reported once per method."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "For a dataset whose hyperedges are built by $k$-NN with $k = 5$, how many members does each hyperedge initially hold?",
+      "answer": 6,
+      "tol": 0.01,
+      "hint": "The vertex itself plus its neighbours.",
+      "sol": "$5 + 1 = 6$ initial members per hyperedge. Caveat worth noticing: with $k$-NN the hyperedges overlap heavily, so a vertex's *degree* — how many hyperedges it belongs to — is not fixed and generally exceeds 6. Edge size and vertex degree are again the two different counts.",
+      "unit": "members"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You are reviewing a paper that builds hyperedges with a fixed $k$ and reports results at that setting only. What is the most useful question to ask?",
+      "opts": [
+        {
+          "md": "Why was $k$ not learned as a parameter?",
+          "expl": "Reasonable in principle, but a large ask — $k$ changes the object being modelled, not a weight inside a fixed model, so it is not simply another trainable parameter."
+        },
+        {
+          "md": "How much do the conclusions move as $k$ varies?",
+          "correct": true,
+          "expl": "Correct, and it is answerable with a handful of reruns, which is what makes it the useful question. If the ranking of methods is stable across $k$, the construction is a detail; if the leader changes with $k$, the headline result is a property of the construction. Either answer is informative, which is the mark of a well-posed question."
+        },
+        {
+          "md": "Should the hypergraph have been expanded to a graph instead?",
+          "expl": "That is a different design question with its own trade-offs, and it does not address whether the reported result is robust to the choices actually made."
+        }
+      ]
+    }
+  ],
+  "close": "**Section complete.** Card 8 is the skip check. After it, the paper-specific card on this knowledge point explains how the *paper itself* uses hypergraphs — the incidence matrix, the ten datasets, and where Equation (3) comes from."
+}

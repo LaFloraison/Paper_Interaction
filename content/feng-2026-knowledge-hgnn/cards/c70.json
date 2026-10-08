@@ -1,0 +1,186 @@
+{
+  "id": "70",
+  "kind": "formula",
+  "chapter": "method",
+  "section": "5.11 Equation (6)",
+  "kicker": "5.11 · Equation (6)",
+  "title": "Equation (6): the rule position mapping, and how gentle it turns out to be",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Equation (6) defines the position mapping: $\\mu_p(o) = \\dfrac{\\alpha}{d(o) + \\beta}$, where $d(o)$ is the depth of node $o$ in its tree — the root having depth 0 — and $\\alpha, \\beta$ are hyperparameters. The mapping is decreasing in depth, so questions nearer a tree's root receive larger weights.",
+      "plain": "A question's importance is its height in the tree: the root is worth the most, and the deeper a question sits, the less it counts. Two numbers, α and β, control how fast that fall-off happens."
+    },
+    {
+      "t": "formula",
+      "tex": "\\mu_p(o) = \\frac{\\alpha}{d(o) + \\beta}",
+      "note": "A rectangular hyperbola in the depth. Because β is added to the depth before dividing, the curve's steepness is set by how large β is relative to the depths the tree actually reaches — and the paper's chosen range for β makes the curve far flatter than the formula's shape suggests at first glance.",
+      "gloss": [
+        {
+          "sym": "d(o)",
+          "md": "the depth of node $o$; the root is 0 and depth increases downwards"
+        },
+        {
+          "sym": "\\alpha",
+          "md": "a scale factor — it multiplies every weight, so it changes the overall magnitude but not the ratios between depths"
+        },
+        {
+          "sym": "\\beta",
+          "md": "a shift — it controls how quickly the weight decays with depth, and stops the expression from dividing by zero at the root"
+        },
+        {
+          "sym": "\\mu_p(o)",
+          "md": "the weight later multiplied into that node's content bit in Equation (7)"
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The paper does state where these values come from, and it is worth reading carefully.** Section V-A-4 says the coefficients are \"determined through grid search within the range $\\{6, 7, 8, 9, 10\\}$, and the optimal pair is selected according to validation performance\". So three facts are on the record: the search is a five-by-five grid, it is done on the validation split rather than the test split, and the selected pair differs by dataset. And Table IV does report the chosen pair for every dataset: the values it lists run across the whole range, from 6 to 10. So the procedure, the search space and the outcome are all on the record — which is better practice than many papers manage."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**And now the consequence, which is easy to miss and changes how you read the method.** With $\\beta \\ge 6$, the decay is slow. Take $\\alpha = \\beta = 6$, inside the searched range: the root weighs $1.000$ and a node at depth 7 weighs $6/13 = 0.462$ — **a factor of only $2.17$ across the entire tree.** My first pass at this card used $\\alpha = \\beta = 1$ and produced a factor of $8$; that is arithmetically correct for those values but lies outside the paper's range and badly overstates the effect. Within the range actually used, **the depth weighting is close to uniform**: a question seven levels deep still carries nearly half the weight of the root question."
+    },
+    {
+      "t": "p",
+      "md": "**What that does to the paper's stated motivation.** Section IV-B-2 motivates the weighting by arguing that boosted trees select task-relevant features early, so root questions matter more. The formula expresses that idea, but the chosen hyperparameters make it a *mild* preference rather than a strong one. That is not a defect — a gentle weighting may be exactly what validation selected — but it does mean the phrase \"positional importance\" should be read as a soft ordering, not as a hierarchy in which deep questions are negligible. The paper's own numbers put the two ends within a factor of about two."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the weight table, inside the paper's range.** Evaluate $\\mu_p$ at depths 0 through 6 under four of the twenty-five searchable pairs."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Depth $d$",
+        "$\\alpha=6,\\ \\beta=6$",
+        "$\\alpha=6,\\ \\beta=10$",
+        "$\\alpha=10,\\ \\beta=6$",
+        "$\\alpha=10,\\ \\beta=10$"
+      ],
+      "rows": [
+        [
+          "0 (root)",
+          "1.000",
+          "0.600",
+          "1.667",
+          "1.000"
+        ],
+        [
+          "1",
+          "0.857",
+          "0.545",
+          "1.429",
+          "0.909"
+        ],
+        [
+          "2",
+          "0.750",
+          "0.500",
+          "1.250",
+          "0.833"
+        ],
+        [
+          "3",
+          "0.667",
+          "0.462",
+          "1.111",
+          "0.769"
+        ],
+        [
+          "5",
+          "0.545",
+          "0.400",
+          "0.909",
+          "0.667"
+        ],
+        [
+          "7",
+          "0.462",
+          "0.353",
+          "0.769",
+          "0.588"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Compare the $\\alpha = 6$ columns at the root: $1.000$ versus $0.600$. Changing $\\beta$ from 6 to 10 lowers every weight, because the denominator grew.",
+          "why": "$\\beta$ shifts the curve down as well as flattening it. Reaching for a larger $\\beta$ makes deep questions matter *more relative to the root*, but it also makes every weight smaller in absolute terms."
+        },
+        {
+          "md": "Compare the $\\beta = 6$ columns row by row: every entry in the $\\alpha = 10$ column is exactly $10/6$ times the $\\alpha = 6$ entry.",
+          "why": "$\\alpha$ is a pure scale, as claimed. It cannot reorder the weights, so it cannot change which question dominates — only how large the whole rule contribution is compared with whatever else reaches the network."
+        },
+        {
+          "md": "Now measure the decay over a realistic tree. With $\\alpha = \\beta = 6$, the ratio of the root's weight to a depth-7 node's is $1.000/0.462 = 2.17$.",
+          "why": "This single ratio is the honest measure of how much the paper's mechanism actually does. Compare it with the ratio implied by the shape of the curve at small $\\beta$ — with $\\beta = 1$ it would be eightfold — and you can see that the searched range, not the functional form, is what determines the strength of the effect."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**The transferable lesson.** Whenever a formula's behaviour is controlled by a hyperparameter, the formula alone tells you nothing about how strong the effect is in practice — you have to look up the value. And when the paper reports a *range* rather than a value, the gentlest and harshest behaviours inside that range are both consistent with everything stated. That is a real limit on what the method section alone can establish, and it is the sort of gap Chapter 7 collects."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is the depth of a decision tree's root node, in this paper's convention?",
+      "opts": [
+        {
+          "md": "1",
+          "expl": "That is a common alternative convention, but the paper states explicitly that the root is assigned depth 0 and depth increases as the tree grows. Following the other convention would shift every weight."
+        },
+        {
+          "md": "0",
+          "correct": true,
+          "expl": "Correct. The root is at depth 0, so its weight is α/β — the largest in the tree. The paper is explicit about this, which matters because the weighting rests on the root being the most important question."
+        },
+        {
+          "md": "It depends on the number of trees",
+          "expl": "Depth is a property of a single tree, unrelated to how many trees the ensemble contains."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "With $\\alpha = 6$ and $\\beta = 6$, what is the weight of a node at depth 3? Give three decimals.",
+      "answer": 0.667,
+      "tol": 0.002,
+      "hint": "Substitute the depth into the denominator and divide.",
+      "sol": "$\\mu_p = 6/(3+6) = 6/9 = 0.667$. Compare with the root's weight of $6/6 = 1.000$: a depth-3 question counts for two-thirds of a root question. That ratio — two-thirds, not one-quarter — is what the paper's chosen range actually delivers, and it is much flatter than the formula's shape suggests when plotted at small $\\beta$.",
+      "unit": "weight"
+    },
+    {
+      "t": "choice",
+      "q": "Table IV reports α and β for every dataset, and the values span the whole searched range from 6 to 10. What does that tell you about the depth weighting?",
+      "opts": [
+        {
+          "md": "It is a fixed part of the method, the same for every dataset",
+          "expl": "The values differ by dataset — Cora uses α = 10, β = 6 while DBLP-Conf uses α = 9, β = 10 — so the weighting is tuned per dataset, not fixed."
+        },
+        {
+          "md": "It is tuned per dataset, and its strength therefore varies between datasets",
+          "correct": true,
+          "expl": "Correct. At β = 6 the root-to-depth ratio is about 2.2; at β = 10 it is about 1.9, and the absolute weights differ by a factor of up to 10/6 through α. So the mechanism is present everywhere but its strength is a per-dataset choice."
+        },
+        {
+          "md": "It has no effect, since all values are in a narrow numeric range",
+          "expl": "The numbers are close together but the mechanism is a ratio, not a difference. Within this range the root still outweighs a deep question by roughly a factor of two — small, but not nothing, and it is the only place the method encodes any notion of rule importance."
+        }
+      ],
+      "level": "transfer"
+    }
+  ],
+  "close": "**Next:** Equation (7), where the content bit and the position weight are multiplied together to form one tree's contribution."
+}

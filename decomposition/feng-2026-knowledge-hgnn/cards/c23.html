@@ -1,0 +1,58 @@
+<!-- ============ c23 图1 ============ -->
+<section class="card" data-c="23" data-title-zh="图 1 · 框架全景走查" data-title-en="Figure 1 · Framework walkthrough">
+  <div class="card-inner">
+    <div class="card-kicker k-fig"><span class="len">Figure 1 · the master blueprint</span><span class="lz">图 1 · 总装图</span></div>
+    <h2><span class="lz">图 1：整篇论文画在了一张图上</span><span class="len">Figure 1: the entire paper on one canvas</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz"><b><span class="hl">图 1 是一张"工厂平面图"：左边两个车间负责备料，中缝把两份料订在一起，右边拿订好的料顺着关系网打分。</span></b>它不证明某个数字，而是回答一个问题：<b>备料车间做出来的东西，是怎样一毫米不差地接进打分机器的？</b></p>
+    <p class="len"><b><span class="hl">Figure 1 is a factory floor plan: two workshops on the left prepare ingredients, the mid-seam staples them together, and the right side scores along the relational network.</span></b> It proves no number; it answers one question: <b>how do the prep workshops' products plug into the scoring machine without a millimeter of slack?</b></p>
+    <p class="lz">先补一个词的底：<b>超图 = 一种关系图，它的一条"边"可以同时连两个以上的点</b>（普通图的边只连两个）——所以它天然能表达"一群人共同做一件事"（读书会、同班、同一次团购）。图里那张彩色小图就是超图的样子。</p>
+    <p class="len">One word to ground first: <b>a hypergraph = a relation graph whose "edge" may join more than two vertices at once</b> (a plain graph's edge joins exactly two) — so it naturally expresses "a group doing one thing" (a reading club, a class, one bulk order). The little colorful drawing in the figure is such a hypergraph.</p>
+    <p class="lz">三块地界，一句话各说清它们是干什么的：<b>左车间（论文缩写 KE-Phase）</b>= 备料车间，两条并排的流水线各做一份料；<b>中缝（论文缩写 MDK-Fusion）</b>= 装订台，把两份料订成一份；<b>右车间（论文缩写 iHGNN）</b>= 加工车间，那台打分机器就在这里，顺着超图关系出分类结果。</p>
+    <p class="len">Three territories, one line each on what they do: <b>left workshop (paper's abbreviation KE-Phase)</b> = the prep floor, with two parallel lines each producing one sheet; <b>mid-seam (paper's abbreviation MDK-Fusion)</b> = the binding desk, stapling the two sheets into one; <b>right workshop (paper's abbreviation iHGNN)</b> = the processing floor, where the scoring machine sits and emits classifications along hypergraph relations.</p>
+    <p class="lz"><b>先记住这张图的一行文字版（图若显示不清，照这行读）：</b>彩色超图 → 0/1 编组表 → φ、Σ 两个小算子 → 绿色"结构料" ｜ 特征表 → 决策树 → 规则-特征映射 → 蓝色"规则料" ｜（两份料：先 ⊙ 相乘、再 ▷ 拼接）→ 紫色"知识特征" → HGNN → 三个预测色点。</p>
+    <p class="len"><b>One line of pure text to remember the figure by (if the image is unclear, read this):</b> colorful hypergraph → 0/1 roster table → two little operators φ, Σ → green "structure sheet" | feature table → decision tree → rule-feature map → blue "rule sheet" | (the two sheets: first ⊙ multiply, then ▷ concatenate) → purple "knowledge features" → HGNN → three prediction dots.</p>
+    <div class="figbox">
+      <img data-fig="fig1" alt="Figure 1 of the paper: Knowledge HGNN framework">
+      <div class="figcap"><span class="lz">论文图 1 原图（Feng et al., TPAMI 2026）。底部图例两个符号：⊙ 与 ▷。</span><span class="len">Original Figure 1 (Feng et al., TPAMI 2026). Bottom legend, two symbols: ⊙ and ▷.</span></div>
+    </div>
+    <div class="callout warn">
+      <b><span class="lz">常见误解：</span><span class="len">Common misconception:</span></b>
+      <span class="lz">左车间的两条流水线是<b>上下并排、同时开工</b>的两条支路（上面管结构、下面管规则），不是"先跑上面再跑下面"的一条串行线。图上它们上下并列，正是因为互不依赖。</span>
+      <span class="len">The two left-workshop lines are <b>stacked and run in parallel</b> (top handles structure, bottom handles rules), not one serial line "top first, bottom after". They sit side by side precisely because neither depends on the other.</span>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>走查 1（上支路，四格）：</b>① 左上角的彩色超图小图 = 原始数据的样子；② 它的 0/1 编组表（电脑能算的形式：每行一个点、每列一个组，属于就填 1）；③ 箭头进入 φ 与 Σ 两个符号——把这张表"按行加起来再折一下"的两个固定小算子（第 25 卡逐字讲，这里只需知道它们把表压成一串数字）；④ 产出绿色小方块，标签 Structure-Related Embedding（结构相关嵌入）。为什么这四格重要：它们保证"结构知识"被显式记下来，而不是像老方法那样在平均中丢失。</p>
+    <p class="len"><b>Walk 1 (upper branch, four boxes):</b> (1) the colorful hypergraph top-left = the raw data; (2) its 0/1 roster table (the computer-friendly form: one row per vertex, one column per group, a 1 marks membership); (3) the arrow enters two little operators φ and Σ — fixed procedures that "sum each row, then bend it" (word-for-word at card 25; here just know they squash the table into a string of numbers); (4) out comes the green sliver labeled Structure-Related Embedding. Why these four boxes matter: they guarantee structural knowledge gets written down explicitly, instead of vanishing into averaging like the old method.</p>
+    <p class="lz"><b>走查 2（下支路，四格）：</b>① 左下角的特征表（每个点一串描述它的数字）；② 一棵预训练好的决策树示意图——树上标着 d(o) = 1、2、3，那是"第几层问题"的编号（根在第一层）；③ 规则-特征映射的示意，旁边写着 μ<sub>p</sub>(o) = α/(d(o)+β)——位置越靠上层的问题，给的权重越大（第 30 卡逐符号讲）；④ 产出蓝色方块，标签 Task-Related Embedding（任务相关嵌入）。树右边那排 "⟌" 记号表示：每个提问点都会贡献一个数字位。</p>
+    <p class="len"><b>Walk 2 (lower branch, four boxes):</b> (1) the feature table lower-left (a string of numbers describing each vertex); (2) a pre-trained decision tree sketch — depths d(o) = 1, 2, 3 mark "which layer of questions" (root sits at layer one); (3) the rule-feature map sketch bearing μ<sub>p</sub>(o) = α/(d(o)+β) — shallower questions get heavier weights (disassembled at card 30); (4) out comes the blue block labeled Task-Related Embedding. The "⟌" marks at the tree's right signal: every question node contributes one number slot.</p>
+    <p class="lz"><b>走查 3（装订台与加工车间）：</b>两份料先过 <b>⊙</b>（读作"逐位相乘"：把绿色的一个数按位乘进蓝色的每个数里——像给整张成绩单统一打个折）；再与蓝色原稿一起过 <b>▷</b>（拼接：把打折版和原版并排订成一页）。产出的紫色"知识特征"进入右车间，沿超图反复平均后，输出预测色点。（第 33 卡的式 (9) 正是这两步的正式写法。）</p>
+    <p class="len"><b>Walk 3 (binding desk and processing floor):</b> the two sheets first pass <b>⊙</b> ("per-slot multiply": the green scalar multiplies into every blue number — like applying one discount factor to a whole report card); then join the blue original through <b>▷</b> (concatenation: the discounted version and the original are stapled side by side). The purple "knowledge features" enter the right workshop, average along the hypergraph, and emit prediction dots. (Eq. (9) at card 33 is the formal writing of exactly these two moves.)</p>
+    <p class="dim"><span class="lz">本卡未展示：图 1 不涉及训练过程与损失函数——图只画"前向"的数据流；训练在实验篇提及但不展开。</span><span class="len">Not shown here: Figure 1 omits training and loss functions — it draws the forward data flow only; training appears but is not expanded in the experiment part.</span></p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">图 1 里绿色与蓝色两份料各来自哪条支路？</span><span class="len">In Figure 1, which branch produces each of the green and blue sheets?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="颜色对不上：绿料从编组表来（结构），蓝料从特征表来（规则）——回看走查 1。"><span class="lz">绿来自特征表、蓝来自编组表</span><span class="len">Green from the feature table, blue from the roster table</span></button>
+        <button class="opt" data-correct="1" data-expl="对！绿色来自左上（编组表，即结构知识）；蓝色来自左下（特征表，即规则知识）。两条支路并行。"><span class="lz">绿来自左上（编组表→结构知识）；蓝来自左下（特征表→规则知识）</span><span class="len">Green from upper-left (roster table → structural); blue from lower-left (feature table → rule knowledge)</span></button>
+        <button class="opt" data-expl="图上是上下两条并列支路、同时开工——不是先后的同一条线（回看误解框）。"><span class="lz">只有一条支路，蓝在上、绿在下</span><span class="len">One branch only, blue above green</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="2" data-tol="0.01" data-hint="回到图的最底下一行图例，从左到右数一数。" data-sol="图例从左到右：① ⊙（Expanded Hadamard Production，逐位相乘）；② ▷（Matrix Concatenation，矩阵拼接）。所以拼接排第 2。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：按图 1 底部图例从左到右数，"拼接"（Matrix Concatenation）排第几个？</span><span class="len">Numeric: counting Figure 1's bottom legend left to right, which position is Matrix Concatenation?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：把左车间整个拿掉，右车间还剩什么？</span><span class="len">Transfer: strip away the entire left workshop — what remains for the right one?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="右车间里没有“特征表”方块——特征是左车间的输入。拿掉左边，打分机器就没料可下锅了。"><span class="lz">还剩一份现成的紫色特征</span><span class="len">A ready-made purple feature set remains</span></button>
+        <button class="opt" data-correct="1" data-expl="正确！紫色“知识特征”随左车间消失，HGNN 只能直接吃原始特征表——这正是老式 HGNN 的处境（第 22 卡那台机器）。论文的增量全在左车间。"><span class="lz">只剩超图 + 打分机器——它得直接吃原始特征，回到老式 HGNN</span><span class="len">Only the hypergraph plus the scoring machine — it eats raw features, i.e. a stock HGNN</span></button>
+        <button class="opt" data-expl="预测色点是右车间的输出，位置不会因左边消失而改变——变的是它的质量。"><span class="lz">连预测色点也一起消失</span><span class="len">The prediction dots vanish too</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

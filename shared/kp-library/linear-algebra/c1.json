@@ -1,0 +1,104 @@
+{
+  "kind": "extension",
+  "title": "Matrix multiplication: summing over a shared index",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "For an $m \\times n$ matrix $A$ and an $n \\times p$ matrix $B$, the product $AB$ is the $m \\times p$ matrix whose $(i,j)$ entry is $\\sum_{k=1}^{n} A_{ik} B_{kj}$. The inner dimensions must agree: the number of columns of $A$ must equal the number of rows of $B$, and the shape of the result is (rows of $A$) $\\times$ (columns of $B$).",
+      "plain": "Multiplying matrices is repeated multiply-and-add along a shared index. The inner dimensions have to match because that shared index has to exist, and the answer takes the outer shapes."
+    },
+    {
+      "t": "p",
+      "md": "**Why this definition and not some other one.** Matrix multiplication is defined so that it *composes* operations: if $A$ transforms a vector one way and $B$ another, then $BA$ does both. That is the whole justification, and it is why the shape rule is not arbitrary but forced by the meaning."
+    },
+    {
+      "t": "p",
+      "md": "**The shape rule, stated once.** Write the shapes side by side and cancel the middle: $(m \\times \\mathbf{n})(\\mathbf{n} \\times p) \\to m \\times p$. If the middle two numbers differ, the product does not exist. When you meet an equation with several matrices multiplied together, checking the shapes is the fastest way to see whether you have understood it — and the fastest way to catch your own misreading of which side a matrix multiplies from."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — one entry, by hand.** Take $A = \\begin{pmatrix} 2 & 1 \\\\ 0 & 3 \\end{pmatrix}$ and $B = \\begin{pmatrix} 1 & 4 \\\\ 5 & 2 \\end{pmatrix}$. The $(1,2)$ entry of $AB$ pairs row 1 of $A$ with column 2 of $B$:"
+    },
+    {
+      "t": "calc",
+      "md": "$(AB)_{12} = 2 \\times 4 + 1 \\times 2 = 8 + 2 = 10$"
+    },
+    {
+      "t": "p",
+      "md": "Note the shape: $(2 \\times 2)(2 \\times 2) \\to 2 \\times 2$, so the product is defined. Note also that $(AB)_{12}$ is *not* $(BA)_{12}$ — compute it and you get $1 \\times 1 + 4 \\times 3 = 13$. **Matrix multiplication does not commute**, which is why the order of factors in a paper's equations carries meaning."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — a matrix times a vector is a sum over a shared index, and this is the case that matters.** Let $H$ be the incidence matrix of the four-person graph (rows 1–4, columns $e_1,e_2,e_3$) and $x = (10, 20, 30, 40)$ a value on the vertices. Compute $H^{\\mathsf T} x$:"
+    },
+    {
+      "t": "formula",
+      "tex": "H^{\\mathsf T} x = \\begin{pmatrix} 1 & 1 & 0 & 0 \\\\ 0 & 1 & 1 & 0 \\\\ 0 & 1 & 0 & 1 \\end{pmatrix} \\begin{pmatrix} 10 \\\\ 20 \\\\ 30 \\\\ 40 \\end{pmatrix} = \\begin{pmatrix} 10+20 \\\\ 20+30 \\\\ 20+40 \\end{pmatrix} = \\begin{pmatrix} 30 \\\\ 50 \\\\ 60 \\end{pmatrix}",
+      "note": "Read entry 1 of the answer: $10 + 20 = 30$, the sum of $x$ over the two members of $e_1$. **The transpose of the incidence matrix, applied to a signal, sums that signal over each hyperedge.** That single sentence is the engine of every neighbourhood-aggregation method in this subject.",
+      "gloss": [
+        { "sym": "H^{\\mathsf T}", "md": "the incidence matrix with rows and columns exchanged (see the next card)" },
+        { "sym": "x", "md": "a value attached to each vertex — a feature, a score, anything" }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Read the arithmetic rather than the notation: multiplying by $H^{\\mathsf T}$ did nothing more than **add up $x$ over the members of each relation**. Every \"aggregate over neighbours\" step in this paper, and in every graph neural network, is a matrix like this one hiding in plain sight."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "When is the product $AB$ of two matrices defined?",
+      "opts": [
+        {
+          "md": "Always — any two matrices can be multiplied",
+          "expl": "Then the operation could not compose transformations, and the shape rule would have no meaning. Try multiplying a $2 \\times 3$ by a $2 \\times 3$: the shared index does not exist."
+        },
+        {
+          "md": "When the number of columns of $A$ equals the number of rows of $B$",
+          "correct": true,
+          "expl": "Correct — that is the index the sum runs over. The result then has as many rows as $A$ and as many columns as $B$."
+        },
+        {
+          "md": "When $A$ and $B$ have the same shape",
+          "expl": "That condition is for the *element-wise* product (card 3), not the matrix product. Conflating the two is the most common error in reading equations like this paper's Equation (9)."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Using the two matrices in Example 1, what is the $(2,1)$ entry of $AB$?",
+      "answer": 15,
+      "tol": 0.01,
+      "hint": "Pair row 2 of $A$ with column 1 of $B$, multiply entry-wise and add.",
+      "sol": "Row 2 of $A$ is $(0, 3)$; column 1 of $B$ is $(1, 5)$. So $(AB)_{21} = 0 \\times 1 + 3 \\times 5 = 15$. If you got 3 you added instead of multiplying.",
+      "unit": "entry value"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "In the worked example, what did multiplying the signal $x$ by $H^{\\mathsf T}$ actually compute?",
+      "opts": [
+        {
+          "md": "Each hyperedge's total of the values on its members",
+          "correct": true,
+          "expl": "Correct: $30$, $50$ and $60$ are the sums over $e_1$, $e_2$ and $e_3$. Recognising this turns the paper's aggregation steps into arithmetic you can do by hand — which is exactly why this site can walk you through Equation (1) numerically."
+        },
+        {
+          "md": "Each vertex's number of hyperedges",
+          "expl": "That would be the row sums of $H$, which need no multiplication by a signal. Here the answer depends on the values in $x$, so it cannot be a property of the structure alone."
+        },
+        {
+          "md": "The average of all four values",
+          "expl": "The four values do get combined, but only within each relation — and no division by a count happens, so nothing is being averaged."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the paper's Equation (1) is four of these products in a row, with two normalising factors attached. Having seen that one product is a sum over members, you can read that equation as a sequence of sums rather than as a block of symbols."
+}

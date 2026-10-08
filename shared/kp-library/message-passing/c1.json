@@ -1,0 +1,173 @@
+{
+  "kind": "extension",
+  "title": "The recipe: message passing in four moves",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Message passing** is the update rule shared by almost every graph network. Each vertex replaces its feature vector by a learned function of two things: the vertex's own current feature vector, and a symmetric aggregation of its neighbours' current feature vectors. \"Symmetric\" means the aggregation returns the same value for every ordering of the neighbours; a vertex's neighbours carry no order, so only symmetric operations can consume them. One application of the rule is one layer.",
+      "plain": "For every vertex: collect its neighbours' feature vectors, squash that unordered bag into one summary, transform the summary with a learned matrix, mix in the vertex's own feature vector, and apply a nonlinearity. That is one layer of message passing."
+    },
+    {
+      "t": "p",
+      "md": "**Why one recipe covers a whole field.** A graph network has to turn a vertex together with its neighbourhood into a new feature vector for that vertex, and you would expect many unrelated ways to do so. Almost all published architectures are instead the same four moves with different choices inside them. Written out, the moves are:"
+    },
+    {
+      "t": "list",
+      "ordered": true,
+      "items": [
+        "**Collect.** Read the feature vector of every neighbour of $v$. The neighbours form the set $\\mathcal{N}(v)$ — a set, so there is no first element and no last.",
+        "**Aggregate.** Combine that bag of vectors into one vector with a symmetric function: the same output for every ordering of the bag.",
+        "**Transform.** Multiply the aggregated vector by a learned matrix $W_{\\mathrm{msg}}$, and the vertex's own feature vector by a second learned matrix $W_{\\mathrm{self}}$. \"Learned\" means the entries are trained by gradient descent, as any weight in a neural network is.",
+        "**Combine and squash.** Add the two transformed vectors and push the sum through a nonlinearity $\\sigma$ — a function applied entry by entry, with the ReLU $\\sigma(z) = \\max(0, z)$ the common choice."
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Why move 2 must be symmetric.** A vertex's neighbours come with no canonical order. The dataset stores an edge list, and the order in which the neighbours of $v$ happen to appear in that list is an artefact of how the file was written — relabel the vertices and the order changes while the graph does not. If the aggregation read the neighbours positionally (\"the first neighbour\", \"the second neighbour\"), two copies of the same graph written differently would produce different answers, and a trained model would be fitting the file format rather than the graph. Card 2 makes this failure concrete with numbers."
+    },
+    {
+      "t": "p",
+      "md": "**Why the other moves are there.** The self-feature term exists because without it a vertex's own state is overwritten by its neighbourhood at every layer, and a vertex in a dense region would lose all trace of itself. The learned matrices exist because the shape of a useful summary is not known in advance; the layer learns which directions in feature space matter. The nonlinearity exists because a composition of linear maps is itself a linear map: drop $\\sigma$ and a hundred layers collapse algebraically into a single matrix, so depth would buy nothing."
+    },
+    {
+      "t": "formula",
+      "tex": "h_v^{(l+1)} = \\sigma\\left( W_{\\mathrm{self}}\\, h_v^{(l)} + W_{\\mathrm{msg}}\\, \\mathrm{AGG}_{u \\in \\mathcal{N}(v)}\\left( h_u^{(l)} \\right) \\right)",
+      "note": "Read it from the inside out: $\\mathrm{AGG}$ collects and squashes the neighbours, $W_{\\mathrm{msg}}$ transforms that summary, $W_{\\mathrm{self}} h_v$ adds the vertex's own feature, and $\\sigma$ squashes the result. Every architecture differs only in which function fills $\\mathrm{AGG}$ and how the two matrices are built.",
+      "gloss": [
+        { "sym": "h_v^{(l)}", "md": "vertex $v$'s feature vector *before* this layer. The superscript ${}^{(l)}$ is the layer index; ${}^{(0)}$ is the raw input feature." },
+        { "sym": "h_u^{(l)}", "md": "the feature vector of a neighbour $u$ of $v$, at the same stage of the computation" },
+        { "sym": "\\mathcal{N}(v)", "md": "the *set* of $v$'s neighbours — a set, with no order, which is why the next symbol must be symmetric" },
+        { "sym": "\\mathrm{AGG}", "md": "a symmetric operation applied to the bag of neighbour vectors: a sum, a mean, or a componentwise maximum. Each of these returns the same vector for every ordering of the bag." },
+        { "sym": "W_{\\mathrm{msg}}", "md": "the learned matrix applied to the aggregated neighbour summary. One such matrix, shared by every vertex in the graph." },
+        { "sym": "W_{\\mathrm{self}}", "md": "the learned matrix applied to the vertex's own feature — the *self-connection*. It keeps the vertex's state from being washed out by its neighbourhood." },
+        { "sym": "\\sigma", "md": "a nonlinearity applied entry by entry (a ReLU is the common choice). Without it, stacked layers collapse into one linear map and depth buys nothing." },
+        { "sym": "h_v^{(l+1)}", "md": "the vertex's new feature vector, which the next layer will read exactly as this layer read $h_v^{(l)}$" }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**A common misreading.** It is tempting to hear $W_{\\mathrm{msg}}$ as a weight *per neighbour*, so that each neighbour receives its own learned number. It is not. There is one matrix $W_{\\mathrm{msg}}$, shared by every vertex in the graph, and the formula applies it to the aggregated summary. The same shared matrix could be applied to each neighbour *before* aggregation without breaking symmetry, because it is the same matrix for all of them; giving different neighbours *different* weights by position cannot, and that broken variant is exactly card 2's failure."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**The claim to take away.** GCN, GAT, GraphSAGE and GIN are not four unrelated inventions. Each is this one template with a different answer to \"what is $\\mathrm{AGG}$, and what weights does it use?\" Read a new graph or hypergraph architecture by finding those four slots."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — one vertex, three legitimate aggregations.** Vertex $v$ has self-feature $3$ and three neighbours with features $4$, $6$ and $11$. Take $W_{\\mathrm{msg}} = 0.4$, $W_{\\mathrm{self}} = 0.5$, and $\\sigma$ the ReLU $\\max(0, z)$. The neighbours form the bag $\\{4, 6, 11\\}$, and the aggregator is the only part that changes between the three runs."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Collect the bag and sum it: $4 + 6 + 11 = 21$.",
+          "why": "Sum is symmetric. Write the same bag as $\\{11, 4, 6\\}$ and the sum is still $21$ — the order in which the file lists the neighbours never enters the computation."
+        },
+        {
+          "md": "Keep the same bag and change only the aggregator. Mean: $21 / 3 = 7$. Max: $\\max(4, 6, 11) = 11$.",
+          "why": "All three aggregators are symmetric, and they differ in what they keep. The sum grows with the number of neighbours, so it carries the neighbourhood size. The mean divides by that count and forgets it. The max keeps the single largest contribution and drops the other two."
+        },
+        {
+          "md": "Push each through the rest of the recipe: multiply by $W_{\\mathrm{msg}} = 0.4$, add the self term $W_{\\mathrm{self}} \\times 3 = 0.5 \\times 3 = 1.5$, then apply ReLU.",
+          "why": "Only the aggregation changed, yet three different outputs emerge. The self term and the ReLU are identical in all three runs, so the whole difference comes from move 2."
+        }
+      ]
+    },
+    {
+      "t": "table",
+      "head": ["Aggregation", "Bag summary", "$\\times 0.4$", "$+ 1.5$ (self term)", "Output after ReLU"],
+      "rows": [
+        ["sum", "$4 + 6 + 11 = 21$", "$8.4$", "$8.4 + 1.5 = 9.9$", "$9.9$"],
+        ["mean", "$21 / 3 = 7$", "$2.8$", "$2.8 + 1.5 = 4.3$", "$4.3$"],
+        ["max", "$\\max(4, 6, 11) = 11$", "$4.4$", "$4.4 + 1.5 = 5.9$", "$5.9$"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**All three are legitimate.** None of sum, mean and max is *the* correct aggregation; they are three modelling choices, and each of the three is a valid message-passing layer. The choice decides what the layer can notice. The sum can notice that a vertex has many neighbours of a given feature; the mean and the max cannot. Card 2 puts a number on that difference."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — every vertex of a small graph.** The path graph $1 - 2 - 3$ carries initial features $h_1 = 1$, $h_2 = 2$, $h_3 = 4$. Use sum aggregation over each vertex's neighbours, $W_{\\mathrm{msg}} = 0.5$, $W_{\\mathrm{self}} = 0.5$, and ReLU. Both matrices are shared across all three vertices, which is what makes the layer one layer rather than three."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Vertex 1. Its only neighbour is vertex 2, so the bag is $\\{2\\}$ and the sum is $2$. Then $0.5 \\times 2 = 1$ from the neighbours, plus $0.5 \\times 1 = 0.5$ from the vertex itself, giving $1.5$.",
+          "why": "An endpoint has degree 1, so its aggregated term is one neighbour's feature. The self term still contributes, so the output is not purely the neighbour's value."
+        },
+        {
+          "md": "Vertex 2. Its neighbours are 1 and 3, so the bag is $\\{1, 4\\}$ and the sum is $5$. Then $0.5 \\times 5 = 2.5$ plus $0.5 \\times 2 = 1$, giving $3.5$.",
+          "why": "Degree 2, so the sum collects two contributions and the aggregated term is larger than for vertex 1. A higher-degree vertex reads more of the graph into its summary."
+        },
+        {
+          "md": "Vertex 3. Its only neighbour is vertex 2, so the sum is $2$; $0.5 \\times 2 = 1$ plus the self term $0.5 \\times 4 = 2$, giving $3$.",
+          "why": "Vertex 3 has the same neighbour sum as vertex 1, but a larger self-feature, so it lands higher. The self term is what lets two vertices with identical neighbourhoods still come out different."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "This example uses one layer, one scalar per matrix, and one feature per vertex. It does not show multi-dimensional feature vectors, and it does not stack two layers — stacking is what card 3 measures. Both omissions keep the arithmetic checkable by eye."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Of the four moves, which one is what makes the rule applicable to a graph at all, rather than to a fixed-length table of inputs?",
+      "opts": [
+        {
+          "md": "The nonlinearity sigma",
+          "expl": "The nonlinearity is what makes *stacking* layers useful, by stopping the composition collapsing to one linear map. It has nothing to do with graphs — a network on grids and a network on text both use one."
+        },
+        {
+          "md": "The symmetric aggregation over the neighbour set",
+          "correct": true,
+          "expl": "Correct. The neighbour set has no order, so only a symmetric operation can consume it. Replace the aggregation with a position-weighted read and, as card 2 shows, the layer's output starts depending on how the file was written."
+        },
+        {
+          "md": "The learned matrices",
+          "expl": "The matrices decide which directions in feature space matter, which is a question of representational power. They do not address the fact that the neighbours arrive with no order."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A vertex has self-feature $2$ and neighbours with features $3$ and $7$. Use **mean** aggregation, $W_{\\mathrm{msg}} = 0.5$, $W_{\\mathrm{self}} = 0.5$, and ReLU. What is the vertex's new feature?",
+      "answer": 3.5,
+      "tol": 0.01,
+      "hint": "Aggregate first — average the two neighbour features — then apply both matrices and add, and only then the ReLU.",
+      "sol": "The neighbour bag is {3, 7}, so its mean is (3 + 7) / 2 = 5. Multiply by W_msg: 0.5 × 5 = 2.5. The self term is W_self × 2 = 0.5 × 2 = 1. Their sum is 2.5 + 1 = 3.5, and max(0, 3.5) = 3.5. A frequent slip is to average the self-feature in with the neighbours; the self term enters through its own matrix, not through the aggregator.",
+      "unit": "new feature"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "An architecture defines a vertex's neighbour summary as a learned weighted sum where the weight depends on *which position the neighbour occupies* in the sorted neighbour list. What is the consequence?",
+      "opts": [
+        {
+          "md": "Nothing — the weights are still learned from data",
+          "expl": "Learning the weights fixes their values but not what they depend on. A weight attached to a position still changes when the position changes, so the output still depends on the listing order."
+        },
+        {
+          "md": "The layer becomes order-dependent: relabelling the vertices changes the output",
+          "correct": true,
+          "expl": "Correct. Attaching weights to positions ties the output to the arbitrary ordering, so two labelings of the same graph give two answers. This is precisely the failure card 2 works out numerically, and the reason move 2 exists."
+        },
+        {
+          "md": "The layer becomes more expressive, so it is strictly better",
+          "expl": "It can express more order-sensitive functions — but the order it reads is an artefact of the file, not a property of the graph, so the extra expressiveness buys nothing and costs correctness."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** card 2 takes move 2 — the symmetric aggregation — and shows, with numbers, exactly what goes wrong when a layer forgets it."
+}

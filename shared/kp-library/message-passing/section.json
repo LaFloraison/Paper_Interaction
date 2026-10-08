@@ -1,0 +1,7 @@
+{
+  "key": "message-passing",
+  "name": "Message passing",
+  "title": "Message passing: the one recipe behind almost every graph network",
+  "blurb": "This section writes down the message-passing template — collect the neighbours, aggregate them symmetrically, transform with a learned matrix, mix in the vertex's own feature, apply a nonlinearity — that nearly every graph and hypergraph network instantiates. It then shows why the aggregation must ignore ordering, and what over-smoothing does to a deep network. The paper leans on both: its own layer is a message-passing rule, and the first failure mode its introduction cites is over-smoothing.",
+  "skip_hint": "If you can write the message-passing update from memory, say why the aggregation must be a symmetric function, and explain why stacking too many layers smooths the features away, skip this section."
+}

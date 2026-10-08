@@ -1,0 +1,162 @@
+{
+  "kind": "extension",
+  "title": "Why combine models at all",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "An **ensemble** is a collection of models whose outputs are combined into one prediction, most often by averaging for regression, $F(x) = \\frac{1}{M}\\sum_{m=1}^{M} f_m(x)$, or by majority vote for classification. The individual models are called **base learners**; when each one is only slightly better than a trivial guess, it is called a **weak learner**.",
+      "plain": "Instead of trusting one model, you train several and combine their answers. The combined answer is usually better than any single member of the team."
+    },
+    {
+      "t": "p",
+      "md": "**The problem a single model cannot escape.** Every model family has a fixed *capacity* — a ceiling on how complicated a function it can represent, and a matching floor on how much it must simplify. A **decision stump**, a tree that makes exactly one split, can only output one of two values. It cannot say \"low, then medium, then high\"; it can only say \"below the line\" or \"above the line\". Give one stump a curved target and it fails in a fixed, predictable way. Give it a very deep tree instead and it can draw any staircase it likes — including a staircase that traces the noise in your particular training set rather than the pattern underneath. One model, one impossible trade-off."
+    },
+    {
+      "t": "p",
+      "md": "The escape is not a cleverer single model. It is to train *many* mediocre models and combine them. The reason this works is error cancellation, and the arithmetic is worth seeing because it explains everything that follows."
+    },
+    {
+      "t": "p",
+      "md": "**Errors that are independent cancel.** Suppose each of $M$ models produces the true value plus a random error, and each error has variance $\\sigma^2$. When you average the $M$ predictions, the errors are averaged too. Variances of independent quantities add, and averaging divides by $M$ twice over, which leaves one factor of $M$:"
+    },
+    {
+      "t": "formula",
+      "tex": "\\mathrm{Var}\\!\\left(\\frac{1}{M}\\sum_{m=1}^{M} f_m\\right) = \\frac{\\sigma^2}{M}",
+      "note": "Averaging $M$ models with independent errors divides the error variance by $M$. The spread of the team is the spread of one member divided by $\\sqrt{M}$ — with $M = 100$ that is a tenth of the noise.",
+      "gloss": [
+        {
+          "sym": "M",
+          "md": "the number of models in the ensemble"
+        },
+        {
+          "sym": "f_m",
+          "md": "the prediction of the $m$-th model"
+        },
+        {
+          "sym": "\\sigma^2",
+          "md": "the error variance of a single model — how far one model's answer typically lands from the truth"
+        },
+        {
+          "sym": "\\mathrm{Var}",
+          "md": "variance — the average squared distance of a quantity from its mean; a measure of spread, so smaller is better"
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Diversity is the whole game.** The formula above assumed the errors are independent — that whenever one model is too high, another is too low. Real models trained on the same problem rarely agree to disagree so conveniently. If every model makes the same mistake, averaging does nothing: the common error survives untouched. The degree to which errors move together is measured by the **correlation** $\\rho$ (rho), a number between $-1$ and $1$ where $0$ means independent and $1$ means perfectly in lockstep. With correlation $\\rho$ the variance of the average becomes"
+    },
+    {
+      "t": "formula",
+      "tex": "\\mathrm{Var} = \\rho\\,\\sigma^2 + \\frac{1-\\rho}{M}\\,\\sigma^2",
+      "note": "Only the second term shrinks as you add models. The first term, $\\rho\\sigma^2$, is nailed down: however many models you stack, the variance can never fall below $\\rho\\sigma^2$. **Diversity is what makes an ensemble worth building, and correlation is what limits it.**",
+      "gloss": [
+        {
+          "sym": "\\rho",
+          "md": "the correlation between two models' errors — $0$ means independent mistakes, $1$ means identical mistakes"
+        },
+        {
+          "sym": "\\rho\\sigma^2",
+          "md": "the irreducible floor on ensemble variance; no amount of averaging can push below it"
+        },
+        {
+          "sym": "\\frac{1-\\rho}{M}\\sigma^2",
+          "md": "the reducible part — the portion of error that averaging can cancel"
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Two ways to manufacture diversity.** Since diversity is the whole game, the next question is where to get it. There are exactly two families, and the rest of this section is their contrast. The first trains each model on a *different sample* of the data, so that each sees a slightly different world; the models are independent and can be built at the same time. This is **bagging**, and its most famous member is the **random forest**. The second trains models *in sequence*, each one fitted to the mistakes the ensemble is still making; the models are deliberately coupled, because each one exists to repair the last. This is **boosting**, and its most widely used member is **gradient boosting** — the family the paper's model belongs to."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Common misconception.** \"More models is always better.\" It is not. Adding a model whose errors are identical to the ones you already have ($\\rho = 1$) changes nothing — the floor $\\rho\\sigma^2$ is already the whole variance. Fifty copies of the same tree are one tree; fifty trees that disagree are an ensemble."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — four independent models.** Take $M = 4$ models, each with error variance $\\sigma^2 = 1$. Because the errors are independent, $\\rho = 0$, and the correlated formula collapses to the first one. The variance of the averaged prediction is $1/4 = 0.25$, so the typical error — the standard deviation — is $\\sqrt{0.25} = 0.5$. The team is half as noisy as one member."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Write the variance: $\\mathrm{Var} = \\rho\\sigma^2 + \\frac{1-\\rho}{M}\\sigma^2 = 0 \\cdot 1 + \\frac{1-0}{4}\\cdot 1$.",
+          "why": "Start from the general formula. Setting $\\rho = 0$ is the assumption \"the models err independently\", which is exactly what we are testing the value of."
+        },
+        {
+          "md": "The floor term $\\rho\\sigma^2$ is $0$; the reducible term is $\\frac{1}{4}\\cdot 1 = 0.25$. So $\\mathrm{Var} = 0.25$.",
+          "why": "With independent errors there is no floor at all — every bit of error is reducible. This is the best case, and it never quite happens in practice."
+        },
+        {
+          "md": "The standard deviation is $\\sqrt{0.25} = 0.5$, against $\\sqrt{1} = 1$ for a single model: a factor-of-two reduction from four models.",
+          "why": "The $\\sqrt{M}$ growth is the reason ensembles give diminishing returns. Going from 1 to 4 models halves the noise; going from 4 to 16 (four times the models) halves it again."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — four models that agree too much.** Now suppose the four models share a common weakness, so their errors are correlated with $\\rho = 0.5$. The formula of Example 1 gives $0.5\\cdot 1 + \\frac{1-0.5}{4}\\cdot 1 = 0.5 + 0.125 = 0.625$. The team is *worse* than four independent models would be ($0.625$ against $0.25$), and most of the error is now irreducible: however far $M$ grows, the first term $\\rho\\sigma^2 = 0.5$ stays put, so the variance can never drop below $0.5$ — twice the independent case's final value of $0.25$, which was itself only reached because the independent case has no floor."
+    },
+    {
+      "t": "calc",
+      "md": "Side by side, at $M = 4$: independent ($\\rho = 0$) gives $0.25$; mildly correlated ($\\rho = 0.5$) gives $0.625$. Push $M$ to $10$ independent models and the variance falls to $0.1$, but push the correlated ones to $10$ and it only reaches $0.55$ — barely below the correlated case at $M = 4$. **The correlation, not the count, is what caps the gain.** Every trick in the next two cards — bootstrap resampling and per-split feature randomisation — exists to push $\\rho$ down."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What single quantity decides whether adding models to an ensemble will actually help?",
+      "opts": [
+        {
+          "md": "How many models the ensemble already contains",
+          "expl": "The count sets how much of the *reducible* error you have cancelled, but if there is nothing reducible left it does not matter. Four perfectly correlated models are no better than one."
+        },
+        {
+          "md": "How correlated the models' errors are",
+          "correct": true,
+          "expl": "Correct. The irreducible floor is rho·sigma^2: high correlation means most of the error is shared and survives every round of averaging. Reducing rho is the entire purpose of resampling and feature randomisation."
+        },
+        {
+          "md": "How large each individual model is",
+          "expl": "Individual size affects each model's own bias, not the cancellation mechanism. A team of enormous, identical models is still one model's worth of error."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Six models each have error variance $\\sigma^2 = 1$ and their errors are independent. What is the variance of their averaged prediction?",
+      "answer": 0.1667,
+      "tol": 0.005,
+      "hint": "Set the correlation to zero in the variance formula, then divide by the number of models.",
+      "sol": "With rho = 0 the formula reduces to sigma^2/M = 1/6 ≈ 0.1667. Note the standard deviation is sqrt(0.1667) ≈ 0.408, not 1/6 ≈ 0.167 — averaging cancels variance in proportion to M but the error you actually see falls only as 1/sqrt(M).",
+      "unit": "variance"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You have two options: double the number of trees from 50 to 100, or change the training procedure so the trees' errors become less correlated. Which offers the larger gain?",
+      "opts": [
+        {
+          "md": "Doubling the count, because it halves the variance",
+          "expl": "It halves only the reducible part. If the trees are highly correlated, that part is already small, so halving it barely moves the total."
+        },
+        {
+          "md": "Lowering the correlation, because the floor term $\\rho\\sigma^2$ is not reduced by adding models at all",
+          "correct": true,
+          "expl": "Correct. Adding models only shrinks the (1-rho)/M · sigma^2 term; once M is large this term is already near zero and the whole variance is the floor. Reducing rho lowers the floor itself. This is exactly why random forests randomise features and boosting builds trees in sequence — both change correlation rather than count."
+        },
+        {
+          "md": "Neither matters; only the individual tree's accuracy counts",
+          "expl": "Individual accuracy sets sigma^2, which is one input. But two ensembles with the same per-tree accuracy can behave very differently depending on how their errors line up."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the two routes to diversity named here — resample the data, or correct the mistakes — become bagging and boosting in the next two cards, and the correlation floor becomes the reason random forests randomise features."
+}

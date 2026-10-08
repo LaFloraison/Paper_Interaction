@@ -1,0 +1,202 @@
+{
+  "kind": "extension",
+  "title": "What makes an ablation valid",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **valid ablation** is one whose two arms differ in a single factor and in no others, and whose reported effect is judged against the experiment's own run-to-run variation rather than against zero. \"Everything else unchanged\" is not a slogan; it is a list of quantities that must be identical across the arms: the data, the split, the training budget, the tuning procedure, the number of runs, and the evaluation protocol.",
+      "plain": "A trustworthy ablation keeps every knob except one fixed, then asks whether the change is bigger than the wobble you get by rerunning the very same experiment."
+    },
+    {
+      "t": "p",
+      "md": "**Why the controls carry the whole weight.** The ablation's claim is \"this difference is due to that component\". That claim is only as strong as its weakest shared control. A single mismatched setting makes the difference unassignable — and the mismatch is usually invisible in the paper's headline table, so a reader has to know what to look for."
+    },
+    {
+      "t": "list",
+      "items": [
+        "**Data and splits.** Same dataset version, same training/test partition, same preprocessing, same seed for the split.",
+        "**Budget.** Same number of passes over the training data, same stopping rule, same maximum training time.",
+        "**Tuning.** The same search procedure over the same grid for both arms. If the component brings hyperparameters of its own, those are the values allowed to differ — but each arm must get the same tuning budget, or one arm is quietly favoured.",
+        "**Runs.** The same number of independent runs per arm, each with its own seed. Five to ten is the usual range, and the reason is not decoration: you cannot judge an effect without an estimate of the wobble.",
+        "**Evaluation.** Same metric, same averaging over runs, same test set."
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Compare the effect against the wobble, not against zero.** Train the same configuration twice with two seeds and the score moves. That movement is the experiment's own noise floor, and it is the yardstick. An effect smaller than the noise floor is not evidence of anything, even though it is not zero: a rise of 0.3 points in a setup whose runs scatter by a point is a rise you would have seen from the seed alone."
+    },
+    {
+      "t": "p",
+      "md": "**Switching a component off is not the same as retraining without it.** In one design you take the fully trained model, disable the component, and re-evaluate; the other weights stay exactly as they were. In the other design you build the model without the component and train it from scratch. The first isolates the component's contribution *given the rest of the trained model*. The second lets the rest of the model adapt to the component's absence, which is the more honest question about the design, and also the design in which a single mismatched setting can contaminate the answer. Papers usually mean the second. Which one was done has to be stated, because the two can disagree."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Two readings people get wrong.** First: \"the ablation lowered the score, so the module matters.\" A lowering inside the noise band is fully consistent with the module doing nothing. Second: \"we retrained from scratch without it, so the ablation is clean.\" Retraining does not make it clean — holding the *other settings* fixed does. If the retrained arm also used a different budget or a different search, the cleanliness is gone."
+    }
+  ],
+  "example": [
+    {
+      "t": "h3",
+      "md": "Example 1 — a 0.4-point gain against a 0.9-point spread"
+    },
+    {
+      "t": "p",
+      "md": "A paper claims that component C helps. Both arms are run five times, with five seeds, and everything except C is identical."
+    },
+    {
+      "t": "table",
+      "head": ["Run (seed)", "Without C", "With C"],
+      "rows": [
+        ["1", "71.8", "73.0"],
+        ["2", "72.6", "72.2"],
+        ["3", "73.0", "74.6"],
+        ["4", "73.4", "73.4"],
+        ["5", "74.2", "73.8"]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Mean without C: (71.8 + 72.6 + 73.0 + 73.4 + 74.2) / 5 = 365.0 / 5 = 73.0.",
+          "why": "The mean is the arm's headline number, and it is the only quantity the two arms get compared on."
+        },
+        {
+          "md": "Mean with C: (73.0 + 72.2 + 74.6 + 73.4 + 73.8) / 5 = 367.0 / 5 = 73.4.",
+          "why": "Same five-run recipe, one component different."
+        },
+        {
+          "md": "Effect: 73.4 - 73.0 = 0.4 points.",
+          "why": "This is the number the paper would print. On its own it looks like a gain."
+        },
+        {
+          "md": "Spread: within each arm, a run sits about 0.9 points from that arm's own mean — the standard deviation is 0.89 on both sides.",
+          "why": "This is the wobble, measured from the arm's own five runs rather than asserted from anywhere else."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "The effect (0.4) is smaller than half the wobble (0.9). Two arms whose true performance is identical would produce a difference of 0.4 fairly often. At this point nothing has been demonstrated."
+    },
+    {
+      "t": "h3",
+      "md": "Example 2 — turning the spread into an interval"
+    },
+    {
+      "t": "p",
+      "md": "Two means are being compared, so the noise that matters is the standard error of their difference, not the spread of one run."
+    },
+    {
+      "t": "formula",
+      "tex": "\\mathrm{SE}_{\\mathrm{diff}} = \\sqrt{\\frac{s^2}{n} + \\frac{s^2}{n}} = s\\sqrt{\\frac{2}{n}}",
+      "note": "The standard error of a difference between two independent means, when both arms have $n$ runs with the same spread $s$. It is the square root of the sum of the two arms' variances; the square root is why the two arms' errors do not add directly.",
+      "gloss": [
+        { "sym": "s", "md": "the run-to-run spread (standard deviation) inside one arm" },
+        { "sym": "n", "md": "the number of runs (seeds) in one arm" },
+        { "sym": "\\mathrm{SE}_{\\mathrm{diff}}", "md": "the typical size of the difference you would see between two arms that are actually identical" }
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Standard error of one arm's mean: 0.89 / √5 = 0.89 / 2.24 = 0.40 points.",
+          "why": "Dividing the run-to-run spread by the square root of the number of runs gives the typical distance between an arm's mean and its true value."
+        },
+        {
+          "md": "Standard error of the difference: 0.40 × √2 = 0.40 × 1.41 = 0.57 points.",
+          "why": "Each independent arm carries its own error, and the errors combine in quadrature — hence the factor √2."
+        },
+        {
+          "md": "Effect as a multiple of the noise: 0.4 / 0.57 ≈ 0.7 standard errors.",
+          "why": "A common convention: an effect below about 2 standard errors is not treated as established."
+        },
+        {
+          "md": "Rough 95% interval: effect ± 2 standard errors = 0.4 ± 1.13, that is from -0.73 to 1.53 points.",
+          "why": "The interval is the effect's uncertainty. Its job is to list the true effects the data are compatible with."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "The interval runs from a loss of 0.73 to a gain of 1.53, so it contains zero. The experiment cannot tell \"C helps by 0.4\" apart from \"C does nothing\". A formal two-sample interval with eight degrees of freedom gives about -0.90 to 1.70 — the same conclusion. Pairing the arms by seed does not rescue it either: the per-run differences are 1.2, -0.4, 1.6, 0.0, -0.4, whose mean is 0.4 and whose standard error is 0.42, so the paired effect is about 0.95 standard errors — still inside the noise."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "An effect is said to be \"inside the noise\" when…",
+      "opts": [
+        {
+          "md": "It is exactly zero",
+          "expl": "Zero is one special case. An effect can be clearly nonzero and still inside the noise — the test is against the size of the run-to-run spread, not against zero."
+        },
+        {
+          "md": "It is smaller than the run-to-run variation of the same experiment repeated",
+          "correct": true,
+          "expl": "Correct. Repeated runs of one configuration define the noise floor, and any effect below that floor could have come from the seed alone."
+        },
+        {
+          "md": "The paper does not report a p-value",
+          "expl": "A missing p-value is a reporting gap, not the definition. Means and spreads, if reported, are enough to judge the effect yourself."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Two arms of five runs each show a difference of 0.6 points, and the standard error of that difference is 0.4 points. What is the lower end of the rough 95% interval, effect minus 2 standard errors?",
+      "answer": -0.2,
+      "tol": 0.05,
+      "hint": "Lower end = effect − 2 × standard error.",
+      "sol": "0.6 − 2 × 0.4 = 0.6 − 0.8 = -0.2. The interval runs from -0.2 to 1.4, so it contains zero and the effect is not distinguishable from no effect.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A reviewer re-runs your ablation with new seeds, and the sign of a small delta flips from +0.3 to -0.2. What does this tell you?",
+      "opts": [
+        {
+          "md": "The component is harmful",
+          "expl": "One flip is not evidence of harm. A delta that changes sign when the seed changes is the signature of noise, not of a negative effect."
+        },
+        {
+          "md": "The delta is within the run-to-run noise, so the component has not been shown to do anything",
+          "correct": true,
+          "expl": "Correct. A sign flip is the clearest symptom of an effect smaller than the spread. The honest report is that the ablation is inconclusive, not that the component is bad."
+        },
+        {
+          "md": "The reviewer must have changed something else",
+          "expl": "Possible, but not the first hypothesis. Re-running with fresh seeds is exactly the test that exposes a small effect as noise."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Four teams remove the same module. Which removal is a valid ablation?",
+      "opts": [
+        {
+          "md": "They remove it and also cut the training budget, so both arms finish in the same wall-clock time",
+          "expl": "This trades a control for convenience. Wall-clock time is not the controlled quantity; the training budget is, and it now differs between the arms."
+        },
+        {
+          "md": "They remove it while the data split, the training budget, the tuning procedure and the number of seeds stay identical",
+          "correct": true,
+          "expl": "Correct. Every quantity other than the component is shared, so the resulting difference can be attributed to the component."
+        },
+        {
+          "md": "They remove it and re-tune every hyperparameter from scratch, only in the ablated arm",
+          "expl": "The ablated arm now gets a different tuning procedure, so it may be advantaged or disadvantaged by an unknown amount. The comparison no longer isolates the module."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** with the controls and the noise in place, the remaining skill is reading a whole ablation table at once — its rows, its columns, and the pattern of differences. The next card does that and closes the section."
+}

@@ -1,0 +1,213 @@
+{
+  "kind": "extension",
+  "title": "Confusion, precision, recall and F1",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Given a classifier and a labelled test set, the **confusion matrix** is a table whose rows are the true classes and whose columns are the predicted classes; the entry in row $i$, column $j$ counts the examples whose true class is $i$ and whose predicted class is $j$. For one chosen class $k$, write $TP$ (true positives) for its examples predicted as $k$, $FP$ (false positives) for examples of other classes predicted as $k$, and $FN$ (false negatives) for examples of class $k$ predicted as something else. Then the **precision** of class $k$ is $TP/(TP+FP)$, its **recall** is $TP/(TP+FN)$, and its **F1** is the harmonic mean of the two, $2\\,PR/(P+R)$.",
+      "plain": "Precision asks: of the examples the model labelled class k, how many really were class k? Recall asks: of the examples that really were class k, how many did the model find? F1 is a single number that is large only when both are large."
+    },
+    {
+      "t": "p",
+      "md": "**Why one accuracy number is not enough.** Accuracy collapses the matrix to a single count: it says how many predictions were right, not where the wrong ones went. A model can reach a given accuracy by making its errors on one class, on another, or spread evenly, and those are different failures. The confusion matrix keeps the detail; precision, recall and F1 are three ways of summarising one class's row and column of it."
+    },
+    {
+      "t": "table",
+      "head": ["Quantity", "Formula", "The question it answers"],
+      "rows": [
+        ["Accuracy", "correct / total", "Of all examples, how many did the model get right?"],
+        ["Precision (class k)", "$TP/(TP+FP)$", "When the model says class k, how often is it right?"],
+        ["Recall (class k)", "$TP/(TP+FN)$", "When the truth is class k, how often does the model catch it?"],
+        ["F1 (class k)", "$2PR/(P+R)$", "Is the model good at both of the above at once?"]
+      ]
+    },
+    {
+      "t": "formula",
+      "tex": "\\text{Precision}_k = \\frac{TP_k}{TP_k + FP_k}",
+      "note": "Precision divides by the number of times the model *claimed* class $k$ — everything the model put in that column. It drops whenever the model over-predicts a class.",
+      "gloss": [
+        { "sym": "TP_k", "md": "examples that truly are class $k$ and were predicted as class $k$ — the hits" },
+        { "sym": "FP_k", "md": "examples of some other class predicted as class $k$ — the false alarms" },
+        { "sym": "\\text{Precision}_k", "md": "the share of the model's class-$k$ predictions that turned out correct" }
+      ]
+    },
+    {
+      "t": "formula",
+      "tex": "\\text{Recall}_k = \\frac{TP_k}{TP_k + FN_k}",
+      "note": "Recall divides by the number of examples that *truly* are class $k$ — the whole row. It drops whenever the model misses instances of a class.",
+      "gloss": [
+        { "sym": "TP_k", "md": "the same hits as in precision" },
+        { "sym": "FN_k", "md": "examples that truly are class $k$ but were predicted as something else — the misses" },
+        { "sym": "\\text{Recall}_k", "md": "the share of the true class-$k$ examples the model found" }
+      ]
+    },
+    {
+      "t": "formula",
+      "tex": "\\text{F1}_k = \\frac{2\\,P_k R_k}{P_k + R_k}",
+      "note": "F1 is the **harmonic mean** of precision and recall, not their ordinary average. The harmonic mean is small whenever either term is small: precision $1.0$ with recall $0.0$ gives F1 $= 0$, whereas the ordinary average would give $0.5$. That is the whole reason F1 is used — it refuses to reward a model that is good at only one of the two.",
+      "gloss": [
+        { "sym": "P_k", "md": "precision of class $k$, as above" },
+        { "sym": "R_k", "md": "recall of class $k$, as above" },
+        { "sym": "\\text{F1}_k", "md": "one number that is large only when both precision and recall are large" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Macro-averaging versus micro-averaging.** A confusion matrix with $K$ classes gives $K$ precisions, $K$ recalls and $K$ F1 values. To report one number you average, and there are two standard ways. **Macro-averaging** takes the plain, unweighted mean of the per-class values: every class counts equally, so a class with $10$ examples weighs as much as one with $1000$. **Micro-averaging** pools the counts first — add up all $TP$, all $FP$ and all $FN$ across the classes, then compute one precision and one recall from those totals. In single-label classification, where each example belongs to exactly one class, the pooled $TP$ is the number of correct predictions and both pooled denominators are the number of examples, so micro-precision, micro-recall and micro-F1 all equal the accuracy. Macro and micro therefore agree only when the classes are balanced; on skewed data macro-F1 sits below accuracy."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Two misconceptions.** First, F1 is not a better accuracy. It ignores true negatives altogether — examples the model correctly leaves out of a class contribute to nothing — and its harmonic mean weights precision and recall equally, which is a choice rather than a law. F1 is the right instrument for a single class, often a rare one; it is the wrong instrument for an overall score on balanced data. Second, \"the F1 of a multi-class model\" is not a defined quantity: without saying macro or micro, the number could be either, and the two disagree by as much as the class imbalance."
+    },
+    {
+      "t": "p",
+      "md": "**When these break.** Precision is undefined for a class the model never predicts, because its denominator is zero; recall is undefined for a class that does not appear in the test set. Implementations return zero or a warning, and either way the value is a convention rather than a measurement. F1 is meaningful only for a single class or as an average with a stated rule, and it says nothing about the classes a model correctly ignores, so it cannot stand in for accuracy when false positives on the negative class matter."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — two classes, one matrix.** A test set has $40$ cats and $60$ dogs. Of the $40$ cats the model calls $35$ cats and $5$ dogs; of the $60$ dogs it calls $15$ cats and $45$ dogs. Rows are truth, columns are prediction:"
+    },
+    {
+      "t": "table",
+      "head": ["", "predicted Cat", "predicted Dog", "true total"],
+      "rows": [
+        ["true Cat", "35", "5", "40"],
+        ["true Dog", "15", "45", "60"],
+        ["pred total", "50", "50", "100"]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Accuracy is the sum of the diagonal divided by the total: $35 + 45 = 80$, so accuracy $= 80/100 = 0.80$.",
+          "why": "The diagonal holds the correct predictions. Off-diagonal entries are errors, and accuracy ignores which off-diagonal they sit on."
+        },
+        {
+          "md": "For Cat, $TP = 35$, $FP = 15$ (dogs called cats) and $FN = 5$ (cats called dogs). Precision $= 35/(35+15) = 35/50 = 0.70$; recall $= 35/(35+5) = 35/40 = 0.875$.",
+          "why": "Precision divides by the column total — everything predicted Cat. Recall divides by the row total — everything truly Cat. Swapping row and column is the most common error with this matrix."
+        },
+        {
+          "md": "Cat F1 $= 2 \\times 0.70 \\times 0.875/(0.70 + 0.875) = 1.225/1.575 = 0.778$. For Dog, precision $= 45/50 = 0.90$, recall $= 45/60 = 0.75$ and F1 $= 0.818$. Macro-F1 $= (0.778 + 0.818)/2 = 0.798$.",
+          "why": "Macro-F1 is the plain mean of the two per-class values. With classes of a similar size it stays close to accuracy ($0.80$ here) — the second example shows what happens when they are not."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — three classes of unequal size.** Same layout, three classes A, B and C, with rows true and columns predicted:"
+    },
+    {
+      "t": "table",
+      "head": ["", "pred A", "pred B", "pred C", "true total"],
+      "rows": [
+        ["true A", "50", "8", "2", "60"],
+        ["true B", "10", "15", "5", "30"],
+        ["true C", "2", "3", "5", "10"],
+        ["pred total", "62", "26", "12", "100"]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Accuracy is the diagonal over the total: $50 + 15 + 5 = 70$, so accuracy $= 70/100 = 0.70$.",
+          "why": "The three classes have $60$, $30$ and $10$ examples — unequal, which is what makes the next steps differ from each other."
+        },
+        {
+          "md": "Per-class precision and recall. A: precision $50/62 = 0.806$, recall $50/60 = 0.833$. B: precision $15/26 = 0.577$, recall $15/30 = 0.500$. C: precision $5/12 = 0.417$, recall $5/10 = 0.500$.",
+          "why": "Every precision divides by that class's column total ($62$, $26$, $12$); every recall divides by its row total ($60$, $30$, $10$). The rare class C has the lowest precision because a handful of its column's entries come from other classes."
+        },
+        {
+          "md": "Per-class F1: A $= 2 \\times 0.806 \\times 0.833/(0.806 + 0.833) = 0.8197$; B $= 2 \\times 0.577 \\times 0.500/(0.577 + 0.500) = 0.5357$; C $= 2 \\times 0.417 \\times 0.500/(0.417 + 0.500) = 0.4545$.",
+          "why": "The harmonic mean punishes the weaker of the two numbers, which is why class C's F1 ($0.4545$) sits well below its recall ($0.500$)."
+        },
+        {
+          "md": "Macro-F1 is their unweighted mean: $(0.8197 + 0.5357 + 0.4545)/3 = 1.8099/3 = 0.603$. Micro-F1 pools the counts first: pooled $TP = 70$, pooled $FP$ and pooled $FN$ each total $30$ over $100$ examples, so micro-precision $=$ micro-recall $= 70/100 = 0.700$, and micro-F1 $= 0.700$ — the accuracy again.",
+          "why": "The two averaging rules disagree here: macro-F1 is $0.603$, micro-F1 is $0.700$, a gap of about 9.7 points. Macro counts the small class C as heavily as the large class A, so it falls; micro lets the large class dominate, so it reproduces accuracy."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "One model, one test set, and four numbers: accuracy $0.700$, macro-F1 $0.603$, micro-F1 $0.700$, and a rare-class F1 of $0.4545$. Which of these is *the* score is exactly the question card 3 settles."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "For a single class, what does recall measure?",
+      "opts": [
+        {
+          "md": "The share of the examples that truly belong to that class which the model managed to find",
+          "correct": true,
+          "expl": "Correct. Recall divides the class's true positives by the whole true row — every example that really is that class. It drops when the model misses instances of the class."
+        },
+        {
+          "md": "The share of the model's predictions of that class which turned out to be correct",
+          "expl": "That is precision. It divides by the column — everything the model claimed to be that class. Choosing precision where recall was meant is the row-versus-column confusion again."
+        },
+        {
+          "md": "The share of all test examples the model labelled correctly",
+          "expl": "That is accuracy, which counts every class together rather than looking at one class's row."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A three-class confusion matrix has rows (true) and columns (predicted): true X gives [40, 5, 5], true Y gives [4, 20, 6], true Z gives [1, 4, 15]. What is the recall of class Z?",
+      "answer": 0.75,
+      "tol": 0.005,
+      "hint": "Recall of a class divides the examples it predicted correctly by the total number of examples that truly belong to it — the row, not the column.",
+      "sol": "Class Z's row totals to 1 + 4 + 15 = 20, of which 15 are predicted correctly. Recall = 15/20 = 0.75. For contrast, precision for Z would divide by the column total, 5 + 6 + 15 = 26, giving 15/26 ≈ 0.577 — a different number from the same row and column.",
+      "unit": "recall"
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "A model never predicts class D, although class D is present in the test set. What are class D's precision and recall?",
+      "opts": [
+        {
+          "md": "Precision is 0 and recall is 0",
+          "expl": "Recall is indeed 0 — none of the true class-D examples were found. But precision is not 0; it is a fraction with a zero denominator, because the model made no class-D predictions at all."
+        },
+        {
+          "md": "Precision is undefined and recall is 0",
+          "correct": true,
+          "expl": "Correct. Precision = TP/(TP+FP) becomes 0/0 when the model never predicts the class, so it is undefined rather than zero. Recall = TP/(TP+FN) = 0/(true count), which is genuinely 0. Libraries return a convention (often 0) and warn, which is why a zero here should be read as \"no measurement\"."
+        },
+        {
+          "md": "Both are undefined",
+          "expl": "Recall has a non-zero denominator — the number of true class-D examples — so it is well defined and equals 0. Only precision has the 0/0 problem."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The same model, on the same test set, reports micro-F1 $0.70$ and macro-F1 $0.60$. What does the gap tell you?",
+      "opts": [
+        {
+          "md": "The model performs unevenly across classes: it does better on the larger classes, which dominate micro-F1, than on the smaller ones, which macro-F1 weighs equally heavily",
+          "correct": true,
+          "expl": "Correct. Micro-F1 pools the examples, so frequent classes drive it; macro-F1 weights each class equally, so rare classes pull it down. A gap this size means the rare classes are where the errors sit."
+        },
+        {
+          "md": "The two numbers describe different models, so they cannot be compared",
+          "expl": "Both numbers were computed on the same model and the same test set. They differ because of the averaging rule, not because of a change in the model."
+        },
+        {
+          "md": "Macro-F1 is always lower than micro-F1, so the gap is expected and carries no information",
+          "expl": "The two coincide when the classes are balanced, and on some datasets macro-F1 comes out higher. The direction of the gap is not automatic; here it reflects a real difference in per-class performance."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** precision, recall and the two F1s give a per-class and a per-example view of the same confusion matrix. Card 3 turns these into a decision rule for which number to report — and closes the section with its skip check."
+}

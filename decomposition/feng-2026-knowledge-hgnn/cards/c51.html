@@ -1,0 +1,39 @@
+<!-- ============ c51 总结 ============ -->
+<section class="card" data-c="51" data-title-zh="总结 · 知识地图与数字索引" data-title-en="Summary · knowledge map and number index">
+  <div class="card-inner">
+    <div class="card-kicker" style="color:#155e75;background:#ecfeff">Summary</div>
+    <h2><span class="lz">整篇论文，折叠成一页</span><span class="len">The whole paper, folded onto one page</span></h2>
+    <h3><span class="lz">① 流水线（一口气读完）</span><span class="len">(1) The pipeline in one breath</span></h3>
+    <p class="lz">超图（点 + 超边）→ 两本账并行开账：<b>HOI</b> 数"参加几条超边"（式 3）／<b>TDR</b> 把 GBDT 树队的提问点收成规则账，逐条算"位置分 × 内容分"（式 4–8）→ <b>MDK-Fusion</b>：先 ⊙ 逐位相乘、再 ‖ 拼接成 Z（式 9）→ <b>HGNN</b> 顺着超图平均后分类（式 1）→ 两种装料方式得两个型号：RD（只喂规则账）、DD（喂 Z）（式 10）。</p>
+    <p class="len">Hypergraph (vertices + hyperedges) → two ledgers opened in parallel: <b>HOI</b> counts memberships (Eq. 3) / <b>TDR</b> harvests GBDT question nodes into a rule ledger scoring "position × content" per rule (Eqs. 4–8) → <b>MDK-Fusion</b>: ⊙ multiply, then ‖ concatenate into Z (Eq. 9) → <b>HGNN</b> averages along the hypergraph, then classifies (Eq. 1) → two loading plans, two models: RD (rule ledger only), DD (the fused Z) (Eq. 10).</p>
+    <h3><span class="lz">② 关键数字索引（全部经本站复算）</span><span class="len">(2) Number index (every one recomputed here)</span></h3>
+    <table class="symtab">
+      <tr><th><span class="lz">数字</span><span class="len">Number</span></th><th><span class="lz">含义</span><span class="len">Meaning</span></th><th><span class="lz">出处卡</span><span class="len">Card</span></th></tr>
+      <tr><td>7.30</td><td><span class="lz">Cora 直推行 RD − HGNN（摘要"7.3%"的出处；表 V 同对比为 6.83）</span><span class="len">Cora transductive RD − HGNN (source of the abstract's "7.3%"; Table V's same gap is 6.83)</span></td><td>41–42</td></tr>
+      <tr><td>1.7 / 1.5</td><td><span class="lz">表 V 平均排名 RD / DD（正文写的 1.9/1.7 与其表不符）</span><span class="len">Table V average ranks RD / DD (the text's 1.9/1.7 contradicts its own table)</span></td><td>41、48</td></tr>
+      <tr><td>43.19 / 34.00 / 26.53</td><td><span class="lz">2→8 层落差：HGNN / RD / DD——过平滑的三行账单</span><span class="len">2→8 layer drops: HGNN / RD / DD — over-smoothing's three-line bill</span></td><td>45</td></tr>
+      <tr><td>0.5 / 0.8808 / 0.9820 / 0.9975</td><td><span class="lz">HOI 存档：参加 0 / 2 / 4（或 2 条 w=2）/ 3（w=2）条超边的 σ 值</span><span class="len">HOI archive: σ values for 0 / 2 / 4 / 3 memberships</span></td><td>24–25</td></tr>
+      <tr><td>1.125 / 1.0 / 0.9</td><td><span class="lz">α=9、β=8 时第 0/1/2 层的位置权重</span><span class="len">Position weights at layers 0/1/2 for α=9, β=8</span></td><td>30</td></tr>
+      <tr><td>5.86</td><td><span class="lz">DD 对 GBDT 的平均增益（可复算）；摘要同句的 2.28 无出处</span><span class="len">DD-versus-GBDT average gain (reproducible); the same sentence's 2.28 has no source</span></td><td>41、48</td></tr>
+      <tr><td>39.9%</td><td><span class="lz">Cora 归纳测试实占（表 III；正文称 20%）</span><span class="len">Cora's actual inductive share (Table III; the text claims 20%)</span></td><td>39、48</td></tr>
+      <tr><td>75.77 vs 75.28</td><td><span class="lz">表 VII 的 DD 峰值（50 棵）vs 正文称的 150 棵值</span><span class="len">Table VII's DD peak (50 trees) versus the text's claimed 150-tree value</span></td><td>44、48</td></tr>
+      <tr><td>+1.09 ～ +8.35</td><td><span class="lz">表 IX 十八个 Δ 的范围——插账后没有一个底座变差</span><span class="len">Table IX's 18 Δ values — no backbone worsens with the ledgers</span></td><td>46</td></tr>
+      <tr><td>+0.31 ～ +4.01</td><td><span class="lz">表 X 的 Δ_GCN 范围——连普通 GNN 都受益</span><span class="len">Table X's Δ_GCN range — even plain GNNs profit</span></td><td>47</td></tr>
+    </table>
+    <h3><span class="lz">③ 你已登记入册的六个知识点</span><span class="len">(3) Six knowledge points now on the registry</span></h3>
+    <p class="lz">本篇新增：<b>超图</b>（kp-hypergraph）、<b>决策树</b>（kp-decision-tree）、<b>GBDT</b>（kp-gbdt）、<b>置换不变性</b>（kp-permutation-invariance）、<b>过平滑</b>（kp-over-smoothing）、<b>直推/归纳设定</b>（kp-transductive-inductive）。它们已写入全项目登记表 `shared/knowledge-registry.md`——下一篇论文再遇到时，本站只放"快速回顾 + 跳转链接"，不再重讲。</p>
+    <p class="len">Newly registered: <b>hypergraph</b> (kp-hypergraph), <b>decision tree</b> (kp-decision-tree), <b>GBDT</b> (kp-gbdt), <b>permutation invariance</b> (kp-permutation-invariance), <b>over-smoothing</b> (kp-over-smoothing), <b>transductive/inductive</b> (kp-transductive-inductive). All entered into the project registry `shared/knowledge-registry.md` — future papers link back instead of re-teaching.</p>
+    <h3><span class="lz">④ 带走这三句</span><span class="len">(4) Three sentences worth carrying out</span></h3>
+    <div class="goal"><div class="goal-no">1</div><div><span class="lz"><b>知识的形状决定它的用法。</b>结构知识是"计数"（一个数），规则知识是"对错清单"（一排数）——两种形状的账，合订时需要 ⊙ 这样的"渗入"而非简单拼接。</span><span class="len"><b>Knowledge's shape dictates its use.</b> Structural knowledge is a count (one number); rule knowledge is a checklist (a row) — fusing differently shaped ledgers needs ⊙-style seepage, not mere pasting.</span></div></div>
+    <div class="goal"><div class="goal-no">2</div><div><span class="lz"><b>抗丢信息的办法是"另开一页"。</b>平均会抹平、蒸馏会压小、归一化会改写——论文的对策从不是"更小心地平均"，而是把易丢的东西单独存档：HOI 存结构、TDR 存规则。这个思路可以搬去任何"会丢东西的流水线"。</span><span class="len"><b>The antidote to information loss is a separate page.</b> Averaging flattens, distillation squeezes, normalization rewrites — and the paper never fights it with "more careful averaging" but by archiving what would be lost: HOI for structure, TDR for rules. The idea transplants to any lossy pipeline.</span></div></div>
+    <div class="goal"><div class="goal-no">3</div><div><span class="lz"><b>数字都要问口径。</b>同一篇论文里，"Cora 提升"可以是 7.30 也可以是 6.83，"平均排名"可以是 1.7 也可以是 1.9——本站复核出的十笔账，每一笔都是口径与验算的课。</span><span class="len"><b>Every number has a convention.</b> Within one paper, "gain on Cora" is 7.30 or 6.83 and "average rank" is 1.7 or 1.9 — our ten ledger entries are ten lessons in conventions and verification.</span></div></div>
+    <div class="callout">
+      <b><span class="lz">继续走：</span><span class="len">Keep going:</span></b>
+      <span class="lz">① 回大厅（`index.html`）看全项目知识点目录，或重读任意卡；② 每张卡右上角的 ✚ 可插入你自己的笔记卡；③ 下一篇论文放进 `Paper/` 后说"继续拆"即可。本站与《Game-Focused End-to-End Learning》那篇共享知识点登记——两篇都读过的话，你已经握着"从博弈论到超图学习"的一小片地图。</span>
+      <span class="len">(1) Back to the hall (`index.html`) for the full registry, or re-read any card; (2) the ✚ on every card inserts your own notes; (3) drop the next paper into `Paper/` and say "continue". This site shares its registry with the Game-Focused End-to-End Learning paper — read both and you hold a small map from game theory to hypergraph learning.</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>
+
+<!-- NEXT-CARD -->

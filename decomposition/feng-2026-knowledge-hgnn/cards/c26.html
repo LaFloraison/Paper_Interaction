@@ -1,0 +1,70 @@
+<!-- ============ c26 证明步进 · 列置换不变 ============ -->
+<section class="card" data-c="26" data-title-zh="步进证明 · 列置换不变" data-title-en="Step-by-step proof · Column-exchange invariance">
+  <div class="card-inner">
+    <div class="card-kicker k-math"><span class="len">Proof walkthrough · why the ledger is order-blind</span><span class="lz">证明走查 · 账本为何不挑顺序</span></div>
+    <h2><span class="lz">证明：换一个登记顺序，账本一字不变</span><span class="len">Proof: re-register in any order, the ledger stands identical</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">上一卡的会计有一个隐忧：编组表里，哪条超边算"第 1 列"纯看你怎么登记——如果换一种登记顺序，账本跟着变，那模型就是在偷读一条假信息（第 16 卡讲过：顺序不存在于数据里）。</p>
+    <p class="len">The last card's accountant carries a worry: in the roster table, which hyperedge counts as "column 1" is pure bookkeeping — if re-registering changed the ledger, the model would be peeking at fake information (card 16: order does not exist in the data).</p>
+    <p class="lz"><b><span class="hl">论文要证明的性质：把编组表的任意两列对调（"列交换"），式 (3) 算出的每个顶点的存档必须一个数都不动。</span></b>下个步进器把这句证明拆成 4 步走完——你只管点"下一步"，不需要任何计算。</p>
+    <p class="len"><b><span class="hl">The property to prove: swapping any two columns of the roster table ("column exchange") must leave every vertex's Eq. (3) archive bit-for-bit unchanged.</span></b> The stepper below walks that proof in 4 steps — just press "Next step"; no arithmetic needed.</p>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>例 1（证明步进器）：</b>证明的全部家当只有两块地基——① "<b>加法不挑顺序</b>"（第 14 卡：3+1+2 与 2+3+1 同为 6）；② "<b>ρ 是逐顶点的小函数</b>"（第 25 卡：它每次只吃一个数）。把这两块接起来，性质就不用算也算出来了。</p>
+    <p class="len"><b>Example 1 (the proof stepper):</b> the entire proof rests on two stones — (1) "<b>addition ignores order</b>" (card 14: 3+1+2 and 2+3+1 both give 6); (2) "<b>ρ is a vertex-wise function</b>" (card 25: it eats one number at a time). Join the stones and the property follows without any computation.</p>
+    <div class="lab-panel">
+      <div class="lab-title"><span class="lz">证明步进器 · 四步走完</span><span class="len">Proof stepper · four steps</span></div>
+      <div class="lab-hint"><span class="lz">每一步都只用到上面两块地基——跟着读即可。</span><span class="len">Every step draws only on the two stones above — read along.</span></div>
+      <div class="stepper" id="pf1">
+        <div class="step" data-n="1">
+          <p class="lz"><b>第 1 步 · 规定"怎么换"。</b>设 π 表示"把第 a 列和第 b 列对调"这个动作。换完之后的表记作 π(H)。注意：我们只换列的<b>位置</b>，不动任何 0/1 的值——像把两张卡片换一下抽屉。</p>
+          <p class="len"><b>Step 1 · define the swap.</b> Let π denote "exchange columns a and b". The re-arranged table is written π(H). Note: only column <b>positions</b> move; no 0/1 value changes — two card-index cards swapped between drawers.</p>
+        </div>
+        <div class="step" data-n="2">
+          <p class="lz"><b>第 2 步 · 看某个顶点 v 的行和。</b>沿 v 那一行把 0/1 加起来：原表里顺序是"第 1 列的值 + 第 2 列的值 + …"；换列后只是<b>同样的几个数换了个相加顺序</b>。地基①说：加法不挑顺序——和相等。</p>
+          <p class="len"><b>Step 2 · look at some vertex v's row sum.</b> Add the 0/1s along v's row: the original order reads "column-1 value + column-2 value + …"; after swapping, <b>the same numbers simply add in a different order</b>. Stone (1): addition ignores order — equal sums.</p>
+        </div>
+        <div class="step" data-n="3">
+          <p class="lz"><b>第 3 步 · 对每一行都成立。</b>第 2 步对 v 说的话，对 v1、v2、v3……每一行都同样成立（没有哪一行搞特殊）。所以：<b>换列前后，所有顶点的"参加条数"逐一相等。</b>论文的原文就一句：∑<sub>e∈E</sub> π(H)[v, π(e)] = ∑<sub>e∈E</sub> H[v, e]，说的正是这件事。</p>
+          <p class="len"><b>Step 3 · every row behaves the same.</b> What step 2 said for v holds identically for v1, v2, v3 … (no row is special). Therefore: <b>before and after the swap, every vertex's "membership count" matches one-for-one.</b> The paper's line — ∑<sub>e∈E</sub> π(H)[v, π(e)] = ∑<sub>e∈E</sub> H[v, e] — says exactly this.</p>
+        </div>
+        <div class="step" data-n="4">
+          <p class="lz"><b>第 4 步 · 压一压，仍然一样。</b>最后一步把和塞进 ρ。地基②说：ρ 是逐顶点的——它只看收到的那个数，对"这个数来自第几列"毫无概念。既然第 3 步保证了每个顶点收到的数一模一样，压出来的存档自然一模一样。<b>证毕：列怎么换，X<sub>s</sub> 一个字不变。</b></p>
+          <p class="len"><b>Step 4 · squash, still identical.</b> Finally feed the sum into ρ. Stone (2): ρ is vertex-wise — it sees only the number received, with no idea "which column it came from". Step 3 guarantees each vertex receives the same number; the squashed archive is therefore identical too. <b>QED: however columns swap, X<sub>s</sub> does not budge.</b></p>
+        </div>
+        <button class="step-btn btn"><span class="lz">下一步 →</span><span class="len">Next step →</span></button>
+      </div>
+    </div>
+    <p class="lz"><b>例 2（数字验证 + 反例对照）：</b>拿一张 3 顶点 2 列的编组表：v1 = [1,0]、v2 = [1,0]、v3 = [0,1]。行和 = 1、1、1。<b>对调两列后</b>：v1 = [0,1]、v2 = [0,1]、v3 = [1,0]，行和仍是 1、1、1 ✓——账本纹丝不动。再看一个"会翻车"的输出作对照：如果有人让模型输出"第 1 列的列和"，原表得 1+1+0 = 2，换列后得 0+0+1 = 1——<b>2 ≠ 1，证明这种输出违反了不变性</b>（对照第 15 卡的迁移题）。</p>
+    <p class="len"><b>Example 2 (numeric check + a counter-example):</b> take a 3-vertex, 2-column roster: v1 = [1,0], v2 = [1,0], v3 = [0,1]. Row sums = 1, 1, 1. <b>After swapping the two columns</b>: v1 = [0,1], v2 = [0,1], v3 = [1,0], row sums still 1, 1, 1 ✓ — the ledger does not budge. Now a "crashes-and-burns" output for contrast: if a model output "the sum of column 1", the original gives 1+1+0 = 2 and the swapped gives 0+0+1 = 1 — <b>2 ≠ 1, so that output violates invariance</b> (cf. card 15's transfer question).</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">这个证明靠的两块"地基"是？</span><span class="len">The two "foundation stones" of this proof are?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="ρ 可没有“转置”能力——转置只是第 2 步里“换相加顺序”的另一种说法，形式不是地基。"><span class="lz">转置与矩阵乘法</span><span class="len">Transposes and matrix multiplication</span></button>
+        <button class="opt" data-correct="1" data-expl="对！① 加法不挑顺序（换列 = 换相加顺序）；② ρ 逐顶点、只吃一个数（与列无关）。两块一接，性质成立。"><span class="lz">① 加法不挑顺序；② ρ 逐顶点、只吃一个数</span><span class="len">(1) Addition ignores order; (2) ρ acts vertex-wise on a single number</span></button>
+        <button class="opt" data-expl="超边权重在本文全填 1，且证明根本不碰它——用不上的东西不会是地基。"><span class="lz">超边权重与激活函数</span><span class="len">Edge weights and the activation</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="2" data-tol="0.01" data-hint="行和只数每一行里的 1——先把 v1 换列后的新行写出来，再数。" data-sol="v1 原行 [1,1,0]，和 = 2；把第 1、3 两列对调后 v1 的新行是 [0,1,1]，和仍是 0+1+1 = 2。换列只挪位置、不改行和——与例 2 同一道理。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：3 顶点 3 列的编组表：v1 行 = [1,1,0]、v2 行 = [0,1,1]、v3 行 = [1,0,1]。把第 1、3 两列对调后，v1 的参加条数是多少？</span><span class="len">Numeric: a 3-vertex, 3-column roster: v1 = [1,1,0], v2 = [0,1,1], v3 = [1,0,1]. After swapping columns 1 and 3, how many hyperedges does v1 join?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：下面哪个"输出"会破坏列交换不变性？</span><span class="len">Transfer: which "output" would break column-exchange invariance?</span></p>
+      <div class="opts">
+        <button class="opt" data-correct="1" data-expl="对！“第 2 列的总人数”依赖列的编号——换列后指的就成了另一群人了。判据一句话：输出里出现了“第几列”，就会翻车。"><span class="lz">"第 2 列里一共有多少人"</span><span class="len">"How many people are inside column 2"</span></button>
+        <button class="opt" data-expl="全体行和的总和与列序无关——加法世界里顺序早已蒸发。"><span class="lz">"所有顶点的参加条数之和"</span><span class="len">"The total of all vertices' membership counts"</span></button>
+        <button class="opt" data-expl="每个顶点自己的行和正是不变性保证不变的东西——它是标准答案，不是反例。"><span class="lz">"每个顶点自己的参加条数"</span><span class="len">"Each vertex's own membership count"</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout good">
+      <b><span class="lz">你刚刚证明了论文的一个命题：</span><span class="len">You have just proved one of the paper's propositions:</span></b>
+      <span class="lz">HOI-Encoder 的 φ 是列置换不变的（论文 IV-B-1 末尾的小证明）——从此"登记顺序"这条假信息被彻底堵死，账本只认真数据。</span>
+      <span class="len">The HOI-Encoder's φ is column-permutation invariant (the little proof at the end of paper §IV-B-1) — bookkeeping order is sealed off for good; the ledger honors only real data.</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

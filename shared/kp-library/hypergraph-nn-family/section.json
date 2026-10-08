@@ -1,0 +1,7 @@
+{
+  "key": "hypergraph-nn-family",
+  "name": "Hypergraph neural networks",
+  "title": "Hypergraph neural networks: the family the paper's backbone belongs to",
+  "blurb": "A hypergraph is only useful to a learner once something can run a neural network on it. This section builds the standard hypergraph network layer from its incidence-matrix form, then walks the family that grew around it — HGNN, HyperGCN, DHGNN, UniGNN, AllSet and HGNN+ — and states the one limitation all of them share: structure decides how vertex features are smoothed, and nothing else enters the layer. That gap is what the paper under study answers by adding a stage in front of the layer while leaving the layer itself unchanged.",
+  "skip_hint": "If you can write the hypergraph convolution in matrix form and say exactly what the standard layer cannot do, skip this section."
+}

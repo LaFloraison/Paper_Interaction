@@ -1,0 +1,48 @@
+<!-- ============ c44 Table VII 树数 ============ -->
+<section class="card" data-c="44" data-title-zh="表 VII · 树的数量消融" data-title-en="Table VII · how many trees?">
+  <div class="card-inner">
+    <div class="card-kicker k-fig"><span class="len">Table VII · mining deeper or wider?</span><span class="lz">表 VII · 矿挖多深才够</span></div>
+    <h2><span class="lz">表 VII：规则矿挖多少棵树最好</span><span class="len">Table VII: how many trees to mine</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz"><b><span class="hl">表 VII 只变一个量：树队的棵数（5、10、50、100、150、200），看它如何影响 GBDT 基线与本文两个型号的准确率——回答"规则账该多长"。</span></b>数据集固定为 CC-Cora（消融实验的常驻考场），六行 × 三列，加粗标每行最优。</p>
+    <p class="len"><b><span class="hl">Table VII varies one quantity only: the number of trees (5, 10, 50, 100, 150, 200), tracking its effect on the GBDT baseline and the two models — answering "how long should the rule ledger be".</span></b> The dataset is CC-Cora (the ablation's standing venue); six rows × three columns, bold marks each row's best.</p>
+    <p class="lz">读它之前回想两条既有知识：树越多 = 提问点越多 = 规则账越长（第 32 卡的 Cr）；而"树太多会过拟合"在第 10、12 卡都埋过伏笔——这张表就是把伏笔挖出来验收。</p>
+    <p class="len">Two prior lessons to recall: more trees = more question nodes = a longer rule ledger (card 32's Cr); and "too many trees overfit" was seeded back in cards 10 and 12 — this table excavates those seeds.</p>
+    <div class="figbox">
+      <img data-fig="tab7" alt="Table VII of the paper: ablation on the number of decision trees">
+      <div class="figcap"><span class="lz">论文表 VII 原图（Feng et al., TPAMI 2026）。左列 #Decision Tree 从 5 到 200。</span><span class="len">Original Table VII (Feng et al., TPAMI 2026). The #Decision Tree column runs 5 to 200.</span></div>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>走查 1（RD 列，先升后崩）：</b>逐行 72.97 → 74.33 → <b>75.70</b>（50 棵）→ 75.31 → 74.44 → 71.49（200 棵）。两步走读：① 5 → 50 棵，+2.73——规则矿越挖越富，规则账从短变长，知识越来越全；② 50 → 200 棵，−4.21——开始"接力过头"（第 12 卡的坑）：后面的树在纠缠训练集的巧合，规则账里掺进了噪声规则。<b>峰值在 50 棵——与正文一致。</b></p>
+    <p class="len"><b>Walk 1 (the RD column: up, then off the cliff):</b> row by row 72.97 → 74.33 → <b>75.70</b> (50 trees) → 75.31 → 74.44 → 71.49 (200 trees). Two moves: (1) 5 → 50, +2.73 — a richer mine yields a fuller ledger; (2) 50 → 200, −4.21 — the relay runs too long (card 12's pit): later trees chase training-set coincidences, and noise rules enter the ledger. <b>The peak sits at 50 — matching the text.</b></p>
+    <p class="lz"><b>走查 2（DD 列 + 一处正文与表格的出入）：</b>DD 逐行 73.46 → 74.98 → <b>75.77</b>（50 棵）→ 74.98 → 75.28 → 75.13（200 棵）。两个结论：① 黑线六个数的起落很小（最大与最小差多少，下一题请你亲手量）——两路知识互补确实"稳"，一路差时另一路托底，这与你刚读过的 (b)(c) 两图完全同调；② <b>这里有一处不一致</b>：正文说"DD 的性能持续上升、在 150 棵达到峰值"——表里 DD 的峰值其实在 <b>50 棵（75.77）</b>，150 棵是 75.28，低于 50 棵。同一段还说"RD 在 200 棵跌 5 个点"，实际跌幅是 4.21（≈4.2 个点）。<b>两处小出入，读表时以表格为准</b>（第 48 批判卡汇总）。</p>
+    <p class="len"><b>Walk 2 (the DD column + one text-table mismatch):</b> DD row by row 73.46 → 74.98 → <b>75.77</b> (50 trees) → 74.98 → 75.28 → 75.13 (200). Two findings: (1) the black line's six values barely move (how far apart max and min sit, the next quiz asks you to measure) — two complementary streams genuinely steady things, one covering while the other slips, in tune with panels (b)(c) you just read; (2) <b>one inconsistency</b>: the text says "DD keeps improving, peaking at 150 trees" — the table's DD peak is in fact at <b>50 trees (75.77)</b>, with 150 at 75.28, below it. The same passage also says "RD drops 5 points at 200 trees", while the actual fall is 4.21 (≈4.2). <b>Two small gaps; trust the table when reading</b> (card 48 gathers them).</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">树数为什么会"先好、后差"？</span><span class="len">Why do more trees first help, then hurt?</span></p>
+      <div class="opts">
+        <button class="opt" data-correct="1" data-expl="对！前半段：树越多、规则账越长，覆盖的任务规律越全（5→50 棵 +2.73）；后半段：接力纠错误进了训练集的巧合，规则账里掺进噪声规则（50→200 棵 −4.21）——正是第 10/12 卡埋下的“过拟合”伏笔。"><span class="lz">少树时规则账太短、知识不全；太多时后续树开始背训练集的巧合，账里掺噪声</span><span class="len">Too few trees means a short ledger missing knowledge; too many means later trees memorize training quirks and pollute the ledger</span></button>
+        <button class="opt" data-expl="计算时间当然会涨——但表 VII 量的是准确率，下降的原因在“知识质量”，不在速度。"><span class="lz">因为树太多导致训练变慢，模型来不及收敛</span><span class="len">Too many trees slow training, so the model never converges</span></button>
+        <button class="opt" data-expl="反了——树数不改变单个提问点的深度（那是“最大深度”管的，表 IV 另一列）；它只改变账的“长度”。"><span class="lz">因为树的深度随数量自动变浅</span><span class="len">Because depth shrinks automatically as count grows</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="2.31" data-tol="0.03" data-hint="找 DD-HGNN 那一列的六个数字：最大值与最小值相减。" data-sol="最大值 75.77（50 棵）− 最小值 73.46（5 棵）= 2.31——整条 DD 曲线只摆了 2.31 个点，而 RD 同表摆动了 75.70 − 71.49 = 4.21。稳不稳，一比便知。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：表 VII 里 DD-HGNN 列的极差（最大减最小）是多少？</span><span class="len">Numeric: what is the range (max minus min) of Table VII's DD-HGNN column?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：生产环境里该把树数设大还是设小？给出你的判断依据。</span><span class="len">Transfer: in production, should the tree count be large or small? Give your reasoning.</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="反了——表 VII 的教训正是“过大反而崩”，而且这是全表的共同结论（RD 跌 4.2、DD 也不再涨）。"><span class="lz">越大越好：知识越多越保险</span><span class="len">Bigger is safer — more knowledge</span></button>
+        <button class="opt" data-correct="1" data-expl="正确！依据是表 VII 的形状而非某个数字：曲线先升后平/降，选在中段偏前（本文的 50 上下）既能覆盖规律、又躲开后段的过拟合；DD 曲线最平，说明“双路”对树数的容错更大。上线时用验证集画出你自己的这条曲线再定点。"><span class="lz">选在“先升后平”的拐点区（如 50 上下）：覆盖规律又避开过拟合；DD 更平说明双路容错更大——用验证集自查曲线再定</span><span class="len">Pick the up-then-flat elbow (around 50): full coverage, no overfit; DD's flatness means dual-stream tolerates more — draw your own curve on validation data</span></button>
+        <button class="opt" data-expl="这与表里的证据相反——前段（5→50）准确率明显上升，说明“挖一点”是不够的。"><span class="lz">越小越好，几棵就够</span><span class="len">Smaller is better; a handful suffices</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>
+
+<!-- NEXT-CARD -->

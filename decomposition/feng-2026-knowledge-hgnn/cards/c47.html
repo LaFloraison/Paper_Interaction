@@ -1,0 +1,53 @@
+<!-- ============ c47 Table X KE-GNN ============ -->
+<section class="card" data-c="47" data-title-zh="表 X · 跨界：知识账插到普通 GNN 上" data-title-en="Table X · crossing over: the ledgers on plain GNNs">
+  <div class="card-inner">
+    <div class="card-kicker k-fig"><span class="len">Table X · the ledgers leave home</span><span class="lz">表 X · 知识账出门远征</span></div>
+    <h2><span class="lz">表 X：不用超图机器，知识账照样起作用</span><span class="len">Table X: the ledgers work without hypergraph machines</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">表 IX 把知识账插给六种超图机器；表 X 做得更绝：<b>把打分机器换成"普通 GNN"</b>（只有两两边、不处理超边的图神经网络），看知识账还能不能涨分。两个新混血型号由此登场：<b>RD-GNN = 知识账 + 普通 GNN</b>、<b>DD-GNN = 融合账 + 普通 GNN</b>（字母 G 从 HGNN 退成 GNN）。</p>
+    <p class="len">Table IX plugged the ledgers into six hypergraph machines; Table X goes further: <b>swap the scoring machine for a plain GNN</b> (pairwise edges only, no hyperedges) and see whether the ledgers still pay. Two hybrids debut: <b>RD-GNN = rule ledger + plain GNN</b>, <b>DD-GNN = fused ledger + plain GNN</b> (the H drops out of HGNN).</p>
+    <p class="lz"><b><span class="hl">表 X 的行同时装着四代方法：纯特征（MLP、GBDT）→ 纯结构（GCN、HGNN）→ 知识账混血（RD-GNN、DD-GNN）→ 知识账原生（RD-HGNN、DD-HGNN）；最后一行的 Δ_GCN = 两个混血型号里较好者 − GCN。</span></b>读它等于看一部"演进史"的快照。</p>
+    <p class="len"><b><span class="hl">Table X's rows hold four generations at once: feature-only (MLP, GBDT) → structure-only (GCN, HGNN) → ledger hybrids (RD-GNN, DD-GNN) → ledger natives (RD-HGNN, DD-HGNN); the last row's Δ_GCN = the better hybrid minus GCN.</span></b> Reading it is a snapshot of one evolution.</p>
+    <div class="figbox">
+      <img data-fig="tab10" alt="Table X of the paper: results compared with KE-GNN">
+      <div class="figcap"><span class="lz">论文表 X 原图（Feng et al., TPAMI 2026）。六个超图数据集（转导设定），八行方法按"演进代际"排列。</span><span class="len">Original Table X (Feng et al., TPAMI 2026). Six hypergraph datasets (transductive), eight method rows in evolutionary order.</span></div>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>走查 1（竖读 CA-Cora 列，看"代际阶梯"）：</b>MLP 68.55 → GBDT 71.69（特征派）；GCN 75.23 → HGNN 75.67（结构派）；<b>RD-GNN 77.64、DD-GNN 77.49（混血）</b>；RD-HGNN 79.36、<b>DD-HGNN 79.75</b>（原生）。阶梯是三级的：结构派比纯特征高 3–4 点；混血再高约 2 点；原生再高约 2 点。<b>关键读点：即便把超图机器降级成普通 GNN（混血两行），成绩也明显高于纯结构派</b>——知识账的贡献不依赖"超图"这个载体。</p>
+    <p class="len"><b>Walk 1 (read CA-Cora's column down the generational ladder):</b> MLP 68.55 → GBDT 71.69 (feature camp); GCN 75.23 → HGNN 75.67 (structure camp); <b>RD-GNN 77.64, DD-GNN 77.49 (hybrids)</b>; RD-HGNN 79.36, <b>DD-HGNN 79.75</b> (natives). Three risers: structure camp +3–4 over features; hybrids +2 more; natives +2 more. <b>The key read: even with the hypergraph machine downgraded to a plain GNN (the two hybrid rows), scores clearly beat the structure camp</b> — the ledgers do not depend on the hypergraph carrier.</p>
+    <p class="lz"><b>走查 2（Δ_GCN 行逐格验算）：</b>六格 Δ_GCN = +2.41 / +4.01 / +1.53 / +0.99 / +0.31 / +3.55。抽两格亲手验：CA-Cora：77.64（RD-GNN，两混血中的较好者）− 75.23（GCN）= <b>2.41 ✓</b>；Heloc：71.74（RD-GNN）− 68.19 = <b>3.55 ✓</b>。六格全正——<b>在普通 GNN 上，知识账带来的增益依然无一例外为正</b>；其中 ModelNet40 的 +0.31 最小（该数据集本来就被 GCN 做到 97.78，天花板效应），DBLP-Conf 的 +4.01 最大。</p>
+    <p class="len"><b>Walk 2 (verify the Δ_GCN row cell by cell):</b> six cells +2.41 / +4.01 / +1.53 / +0.99 / +0.31 / +3.55. Hand-check two: CA-Cora: 77.64 (RD-GNN, better of the two hybrids) − 75.23 (GCN) = <b>2.41 ✓</b>; Heloc: 71.74 (RD-GNN) − 68.19 = <b>3.55 ✓</b>. All six positive — <b>on plain GNNs the ledger gain again never turns negative</b>; the smallest is ModelNet40's +0.31 (that dataset is already at 97.78 under GCN — a ceiling effect) and the largest DBLP-Conf's +4.01.</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">表 X 与表 IX 相比，多证明了什么？</span><span class="len">What does Table X prove beyond Table IX?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="更快不是这两张表的主题——它们量的是准确率；表 X 的新意是"载体"：超图机器换成普通 GNN，账照样管用。"><span class="lz">证明了知识账能让模型训练更快</span><span class="len">That the ledgers speed up training</span></button>
+        <button class="opt" data-correct="1" data-expl="对！表 IX 说"插到任何超图机器上都有用"；表 X 更狠——把载体从超图网络降级成普通图网络（只有两两边），账依然涨分。说明增益来自"知识"本身，连超图这个前提都不要。"><span class="lz">载体可以再降一级：连超图机器都不用（换成普通 GNN），账依然涨分——增益来自"知识"本身</span><span class="len">The carrier can drop another notch: even without a hypergraph machine (plain GNN), the ledgers still pay — the gain is the knowledge itself</span></button>
+        <button class="opt" data-expl="六个数据集是重叠的——表 X 用的是超图数据、只是把机器换成 GNN；新意不在数据。"><span class="lz">证明了知识账在更多新数据集上也有效</span><span class="len">That the ledgers work on more new datasets</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="2.71" data-tol="0.03" data-hint="找 ModelNet40 那一列：DD-GNN 与 GBDT 相减（DD-GNN 在前）。" data-sol="98.02 − 95.31 = 2.71——混血型号比最强的纯特征基线高 2.71 个点。注意这一列 GBDT 只有 95.31，而 GCN 高达 97.78：这份数据的结构信息本来就强，所以账本的增益空间也小（Δ_GCN 只有 +0.31）。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：表 X 的 ModelNet40 列里，DD-GNN 比 GBDT 高多少个百分点（两位小数）？</span><span class="len">Numeric: in Table X's ModelNet40 column, by how many points (two decimals) does DD-GNN beat GBDT?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：一个项目的图结构是现成的普通图（没有超边），团队想借这篇论文的思路提升成绩。路线怎么走？</span><span class="len">Transfer: a project already has plain-graph structure (no hyperedges) and wants this paper's benefit. Which route?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="论文恰好提供了这条路（表 X：先用 KNN 之类把普通图/特征扩成超边）——但它是可选方案，不是唯一路线：表 X 说明连超图都不用也能涨。"><span class="lz">必须先把普通图改造成超图，否则知识账无效</span><span class="len">Must convert the graph into a hypergraph first or the ledgers do nothing</span></button>
+        <button class="opt" data-correct="1" data-expl="正确！表 X 的两行混血（RD-GNN/DD-GNN）就是为这个场景准备的：保留现有普通 GNN 结构，只在前面加一段知识嵌入工序——六格 Δ 全正（+0.31 到 +4.01）证明这条路走得通。若要更上一层，再考虑把结构升级成超边（本站在第 37 卡的 Table I 走查里讲过：Heloc/ModelNet40 正是这样现建超边的）。"><span class="lz">沿用现有普通 GNN，前置一段知识嵌入即可（即 RD-GNN/DD-GNN 路线，六格增益全正）；想更进一步再把结构升级成超边</span><span class="len">Keep the plain GNN, prepend knowledge embedding (the RD-GNN/DD-GNN route; all six gains positive); upgrade structure to hyperedges later if desired</span></button>
+        <button class="opt" data-expl="换方法族是大动作，而表 X 恰在劝你不必：不换机器、只加一道"备料"工序就能涨。"><span class="lz">换掉现有 GNN，改用本文的 RD-HGNN</span><span class="len">Replace the GNN and adopt RD-HGNN wholesale</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout good">
+      <b><span class="lz">实验篇的展品全部读完：</span><span class="len">Every exhibit is now read:</span></b>
+      <span class="lz">十三件展品（3 图 + 10 表）你已逐件走过。下一站是收尾三卡：批判（第 48-49 卡，含我们复核出的全部实据）、终测（第 50 卡）、总结地图（第 51 卡）。</span>
+      <span class="len">All thirteen exhibits (3 figures + 10 tables) walked. Next: the closing trio — critique (cards 48–49, carrying every finding from our own audit), the final quiz (card 50), and the summary map (card 51).</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>
+
+<!-- NEXT-CARD -->

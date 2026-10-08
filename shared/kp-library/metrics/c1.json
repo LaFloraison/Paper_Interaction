@@ -1,0 +1,148 @@
+{
+  "kind": "extension",
+  "title": "Accuracy, and the baseline it must beat",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Accuracy** is the fraction of examples a classifier labels correctly: the number of correct predictions divided by the total number of predictions. If $n$ examples are classified and $c$ of them receive their true label, accuracy is $c/n$, a number between $0$ and $1$ (usually reported as a percentage). Every example contributes to the count exactly once, so every example is worth the same.",
+      "plain": "Accuracy is the share of examples the model got right — correct answers divided by all answers, and nothing more. It counts every example once, no matter which class that example belongs to."
+    },
+    {
+      "t": "p",
+      "md": "**Why a bare accuracy is not a result.** A figure like \"91% correct\" sounds like a verdict, but it is only interpretable next to the score of a classifier that has learned nothing. If a model that ignores its input entirely already reaches 91% on this test set, then 91% is the floor, not an achievement. The first job in reading any accuracy is to compute the baseline it has to beat."
+    },
+    {
+      "t": "p",
+      "md": "**Baseline 1 — always predict the majority class.** Count the labels in the test set and predict the most frequent one for every example. Its accuracy is exactly the frequency of that class, written $p_{\\max}$. A model that reaches this score has demonstrated that it can count labels, and nothing else."
+    },
+    {
+      "t": "p",
+      "md": "**Baseline 2 — predict at random, matching the class frequencies.** Draw a label for each example with probability equal to how often that class occurs. These frequencies are the *class priors* $p_i$. The chance of being right on any single example is $\\sum_i p_i^2$ — square each prior, then add — and averaging over examples gives the same value. If instead you draw all $K$ classes with equal probability, the expected accuracy is $1/K$."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "A reported accuracy is uninterpretable until both baselines are on the table. Thirty percent looks weak on a ten-class benchmark where uniform guessing already scores 10%, and looks strong on a benchmark where a majority-class predictor scores 29%. The number is the same; the baselines are what differ."
+    },
+    {
+      "t": "p",
+      "md": "**When accuracy fails.** Accuracy fails in one specific situation: when the classes are unbalanced *and* the rare classes are the ones that matter. Because every example contributes equally to the count, a model that never predicts a rare class loses only the few rare examples, and the penalty is small. If 95% of a test set belongs to one class, predicting that class for everything scores 95% while being useless. Accuracy remains the right summary when the classes are roughly balanced and every kind of error costs the same."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The misconception to kill now.** The common belief is that a higher accuracy means a better model. It does not. Two models can report the same accuracy while one has learned nothing and the other has learned almost everything — card 1's second example builds exactly that pair. The accuracy number alone cannot tell them apart; only the baseline and a per-class view can."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a skewed three-class set.** A test set of $100$ examples contains $90$ of class A, $5$ of class B and $5$ of class C. The priors are $p_A = 0.90$, $p_B = 0.05$, $p_C = 0.05$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Always predict A. This classifier is right on the $90$ examples of class A and wrong on the $10$ others, so its accuracy is $90/100 = 0.90$.",
+          "why": "This is the majority-class baseline. It equals $p_A$, the frequency of the most common class, and needs no computation beyond counting."
+        },
+        {
+          "md": "Predict at random with the priors. On each example the chance of being right is $p_A^2 + p_B^2 + p_C^2 = 0.90^2 + 0.05^2 + 0.05^2 = 0.81 + 0.0025 + 0.0025 = 0.815$.",
+          "why": "Squaring each prior and summing asks: what is the chance a random draw lands on the true class? Because class A is so common, even a random predictor scores well here."
+        },
+        {
+          "md": "Guessing uniformly among the three classes gives $1/3 \\approx 0.333$.",
+          "why": "Uniform guessing ignores the priors, so on a skewed set it scores far below prior-guessing. The two random baselines are different numbers; quoting the wrong one changes the story."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "On this set a do-nothing classifier scores $0.90$. A model reporting $0.88$ would be strictly worse than counting labels — yet $0.88$ reported on its own looks like a good score. The baseline is what turns the number into information."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — ten classes, 1000 examples.** This is the shape the paper's benchmarks can take. Class A has $550$ examples; the other nine classes have $50$ each. Then $n = 550 + 9 \\times 50 = 1000$, the number of classes is $K = 10$, and the priors are $p_A = 0.55$ with $p_i = 0.05$ for each of the nine others."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Majority-class baseline. Predicting A always is right on $550$ of the $1000$ examples, so accuracy is $550/1000 = 0.55$.",
+          "why": "The majority baseline equals $p_{\\max} = 0.55$. Any model must clear this before its accuracy means anything."
+        },
+        {
+          "md": "Prior-guessing baseline. $0.55^2 + 9 \\times 0.05^2 = 0.3025 + 9 \\times 0.0025 = 0.3025 + 0.0225 = 0.325$. Uniform guessing would give $1/10 = 0.10$.",
+          "why": "The nine minority terms are each tiny, but they add up; the dominant term is the squared majority share. Guessing with priors beats uniform guessing precisely because the priors are skewed."
+        },
+        {
+          "md": "Now take a model that is genuinely informative. Suppose it classifies all nine minority classes perfectly — $9 \\times 50 = 450$ correct — but gets only $100$ of the $550$ majority examples right. Its total correct is $450 + 100 = 550$, so its accuracy is $550/1000 = 0.55$: identical to the do-nothing baseline.",
+          "why": "The arithmetic is the point. A model that has learned nine of the ten classes lands on exactly the same accuracy as one that learned none of them."
+        },
+        {
+          "md": "The two models are not the same. The trivial model has recall $0$ on every minority class. The informative model has recall $1.0$ on all nine minorities and $100/550 = 0.182$ on the majority — it misses most of the common class. Averaging recall over the ten classes gives the *balanced accuracy*: $0.10$ for the trivial model against $(9 \\times 1.0 + 0.182)/10 = 0.918$ for the informative one.",
+          "why": "Averaging per-class recall weighs every class the same, so the nine rare classes count as much as the common one. Accuracy refuses to do that, which is exactly why it cannot separate these two models."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Same accuracy, $0.55$ for both; balanced accuracy $0.10$ versus $0.918$. A single accuracy figure cannot distinguish a model that learned nothing from one that learned nine of the ten classes. Closing that gap is what card 2's per-class metrics are for."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does an accuracy figure need a baseline before it can be interpreted?",
+      "opts": [
+        {
+          "md": "Because the same accuracy can be reached by a classifier that ignores its input, so the number only means something relative to what doing nothing scores",
+          "correct": true,
+          "expl": "Correct. Accuracy measures correctness, not skill. If predicting one fixed label already reaches the reported figure, the model has shown no evidence of learning — the baseline is what converts the number into a claim."
+        },
+        {
+          "md": "Because accuracy is not a probability and therefore has no units",
+          "expl": "Accuracy is a proportion between 0 and 1 and is perfectly well defined. Scale and units are not the issue; the missing comparison point is."
+        },
+        {
+          "md": "Because test sets are usually too small to trust",
+          "expl": "Sample size affects how precisely the score is estimated, but even an enormous test set leaves the same question open: how does this number compare with what a trivial classifier scores on the same split?"
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A five-class dataset has $1000$ test examples: $700$ of class 1 and $100$ each of the other four. What accuracy does a classifier that always predicts class 1 achieve?",
+      "answer": 0.7,
+      "tol": 0.005,
+      "hint": "This classifier predicts one label for every example, so its accuracy is the share of test examples carrying that label.",
+      "sol": "Predicting class 1 for everything is right exactly on the 700 class-1 examples and wrong on the other 300, so accuracy = 700/1000 = 0.70. For context, the prior-guessing baseline would be 0.70² + 4 × 0.10² = 0.49 + 0.04 = 0.53, and uniform guessing would be 1/5 = 0.20. The 0.70 baseline is the one to beat.",
+      "unit": "accuracy"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A model reports $92\\%$ accuracy on a test set in which $92\\%$ of examples belong to one class. What is the most defensible reading?",
+      "opts": [
+        {
+          "md": "The model is strong, because 92% is high",
+          "expl": "This is the accuracy trap. The label distribution alone predicts exactly this score, so the number carries no evidence of learning."
+        },
+        {
+          "md": "The score is fully explained by the majority-class baseline, so it is no evidence that the model learned anything",
+          "correct": true,
+          "expl": "Correct. A classifier that predicts the dominant class for everything scores 92% on this test set. When a reported accuracy equals the majority-class baseline, the model has demonstrated nothing about the task."
+        },
+        {
+          "md": "The model must be overfitting",
+          "expl": "Overfitting is a gap between performance on seen and unseen data, and it needs a training-versus-validation comparison to detect. Matching the baseline is a statement about the label distribution, not about the fit."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** accuracy is one number, and its two baselines are enough to reveal the trap but not to fix it. Card 2 replaces the single number with a per-class view — precision, recall and F1 — which is what separates the two models of Example 2."
+}

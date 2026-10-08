@@ -1,0 +1,117 @@
+{
+  "kind": "extension",
+  "title": "The Hadamard product: multiply entry by entry",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "For two matrices of identical shape, the Hadamard product $A \\odot B$ is the matrix of the same shape with entries $(A \\odot B)_{ij} = A_{ij} B_{ij}$. It is defined only when the two operands have the same shape, and it never changes that shape.",
+      "plain": "Line the two tables up and multiply the numbers that sit in the same position. Nothing gets added, and nothing changes shape."
+    },
+    {
+      "t": "p",
+      "md": "**Three products, three different things.** This is where notation in this subject trips people up, so fix all three now. The **matrix product** $AB$ sums over a shared index and changes shape. The **dot product** $a \\cdot b = \\sum_i a_i b_i$ collapses two vectors into a single number. The **Hadamard product** $A \\odot B$ combines two arrays position by position and keeps the shape. All three appear in this paper, and only one of them is element-wise."
+    },
+    {
+      "t": "p",
+      "md": "**Why anyone wants an element-wise product: it is a switch.** If one operand is a matrix of 0s and 1s, then $A \\odot B$ keeps exactly those entries of $B$ where $A$ has a 1 and zeroes out the rest. A 0 in one operand turns the corresponding entry of the other off. That is precisely the role $\\odot$ plays in the paper's Equation (9), where one of the two matrices carries a 0/1 signal about the data."
+    },
+    {
+      "t": "callout",
+      "md": "Memorise this one contrast, because it is the difference between understanding Equation (9) and skimming it: **$\\odot$ keeps a table of the same size; the dot product gives you a single number.** If a formula's shape puzzle only balances with the Hadamard product, you know the operation is a filter, not a reduction."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the same two vectors, three products.** Take $a = (2, 0, 3)$ and $b = (1, 4, 2)$."
+    },
+    {
+      "t": "table",
+      "head": ["Operation", "Written", "Result", "Shape"],
+      "rows": [
+        ["Hadamard product", "$a \\odot b$", "$(2 \\times 1,\\; 0 \\times 4,\\; 3 \\times 2) = (2, 0, 6)$", "3 — unchanged"],
+        ["Dot product", "$a \\cdot b$", "$2 \\times 1 + 0 \\times 4 + 3 \\times 2 = 8$", "1 — collapsed"],
+        ["Element-wise sum", "$a + b$", "$(3, 4, 5)$", "3 — unchanged"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "Look at the first entry of the Hadamard product against the dot product. The Hadamard product produced $2$, the dot product produced $8$. Same inputs, completely different meanings: one pairs things position by position, the other mixes every position into one number."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Now make the second operand a switch. Let $s = (1, 0, 1)$ and compute $s \\odot a$.",
+          "why": "This is the shape the paper uses: a 0/1 matrix multiplied element-wise into a feature matrix."
+        },
+        {
+          "md": "Position 1: $1 \\times 2 = 2$. Position 2: $0 \\times 0 = 0$. Position 3: $1 \\times 3 = 3$. Result: $(2, 0, 3)$.",
+          "why": "Positions 1 and 3 passed through unchanged because $s$ held 1 there; position 2 was zeroed. **The switch selects; it does not scale or mix.**"
+        },
+        {
+          "md": "Change the switch to $s' = (1, 1, 0)$ and recompute: $(2, 0, 0)$.",
+          "why": "Now position 3 is off instead. Compare the two results: which entries survive is decided entirely by the second operand, which is why a formula written with $\\odot$ can be read as \"keep this part, discard that part\"."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "One consequence is easy to miss when you read a paper quickly: because $\\odot$ zeroes entries, **information can be lost on purpose.** In Equation (9) this is the mechanism by which one kind of knowledge can suppress another. When you evaluate the model critically in Chapter 7, the question \"which knowledge survives the gate, and when?\" is a question about this product."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which property distinguishes the Hadamard product from the ordinary matrix product?",
+      "opts": [
+        {
+          "md": "It requires the two operands to have identical shapes and preserves that shape",
+          "correct": true,
+          "expl": "Correct. The matrix product needs only the inner dimensions to agree and produces a differently shaped result; the Hadamard product needs both shapes to match exactly and changes nothing about the shape."
+        },
+        {
+          "md": "It works only on vectors, not matrices",
+          "expl": "It works on any two arrays of the same shape — including the full matrices this paper multiplies element-wise in Equation (9)."
+        },
+        {
+          "md": "It always produces a single number",
+          "expl": "That is the dot product. The Hadamard product of two length-3 vectors is a length-3 vector, not a scalar — the difference matters here because the paper's fusion keeps the dimension and then concatenates."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "With $a = (2,0,3)$ and $b = (1,4,2)$, what is the second entry of $a \\odot b$?",
+      "answer": 0,
+      "tol": 0.001,
+      "hint": "Position 2 only. Do not add anything across positions.",
+      "sol": "$a_2 \\times b_2 = 0 \\times 4 = 0$. Answering 4 gives the value of $b$ alone; answering 8 gives the dot product. Position-by-position means nothing from another index is allowed to contribute.",
+      "unit": "entry value"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why is an element-wise product a natural way to let one source of information *gate* another?",
+      "opts": [
+        {
+          "md": "Because it is cheaper to compute than a matrix product",
+          "expl": "It is cheaper, but that is not why it is used. Efficiency would not explain why the paper's fusion changes meaning when the gate changes."
+        },
+        {
+          "md": "Because a zero in the gate zeroes the corresponding entry of the other operand, so the gate decides which entries pass",
+          "correct": true,
+          "expl": "Correct — and the choice of *which* entries get zeroed is where the learning happens. This is why the paper's fusion is more than concatenation: concatenation merely places the two kinds of knowledge side by side, whereas a gate lets one actively suppress the other."
+        },
+        {
+          "md": "Because it keeps the total magnitude of the features constant",
+          "expl": "It does no normalisation at all. Multiplying by a gate that is mostly zero shrinks the vector considerably."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** $\\odot$ is the first half of Equation (9), where one knowledge matrix gates the other. The second half is concatenation — the subject of card 4 — and the difference between the two is the difference between *combining* and *selecting*."
+}

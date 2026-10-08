@@ -1,0 +1,138 @@
+{
+  "kind": "extension",
+  "title": "What a method section owes the reader",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A method section is **complete for reproduction** when it specifies every choice an independent implementer must fix before their result is determined. Six groups of choices matter: the architecture and the shape of every tensor it transforms; every **hyperparameter** (a value set before training rather than learned during it) together with the rule that produced it; the search space and budget, if any settings were searched; the data split protocol and the **seeds** (the integers that fix the random state); the preprocessing, including the procedure that built any constructed structure such as a graph or an invented feature; and the computing environment, at least in outline.",
+      "plain": "For someone to rebuild your method they need the six things that decide the answer: the model's shape, every knob and how you picked it, how hard you searched, how you split the data and fixed randomness, what you did to the inputs beforehand, and roughly what machine you ran on."
+    },
+    {
+      "t": "p",
+      "md": "**Why a checklist rather than a general plea for detail.** Omissions are silent: a missing item does not announce itself, and the implementer fills the gap with their own choice without noticing that they have. The result is a rebuild that is not the paper's method, and a disagreement that cannot be traced to its cause. Naming the six items turns a vague failure into a specific one, and a specific one can be fixed."
+    },
+    {
+      "t": "table",
+      "head": ["Item", "What it must state", "What breaks if it is missing"],
+      "rows": [
+        ["Architecture and shapes", "Number of layers, hidden widths, and the input and output dimensions of every tensor the method transforms", "The parameter count is unknown, so the model's size — and any comparison against a baseline at a matched size — cannot be judged"],
+        ["Every hyperparameter and how it was chosen", "Learning rate, batch size, dropout, weight decay, optimiser, early-stopping rule, and the rule that produced each value", "A default cannot be told from a tuned value, so the share of the result attributable to the method rather than to the search is unknown"],
+        ["Search space and budget", "Which settings were searched, over what range, how many trials, and on which data the trials were scored", "A number produced by a long search is not comparable to one produced by a short search; without the budget the reported value has no scale"],
+        ["Split protocol and seeds", "How train, validation and test were formed; the seeds used; whether the same splits were given to every method", "If one method saw a friendlier split, the comparison measures the split rather than the method"],
+        ["Preprocessing and constructed structure", "Every transform applied to inputs, and the procedure that built any graph or feature the authors invented", "A transform can leak test information into training; an undescribed construction cannot be rebuilt at all"],
+        ["Computing environment", "Hardware, library versions, numerical precision", "Independent attempts fail for reasons unrelated to the method, and a rerun cannot distinguish a real effect from an environment difference"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The misconception that costs the most.** A method section that names every hyperparameter *feels* complete, because hyperparameters are what people check first. The items that most often decide whether a result survives independent work are the ones that are not numbers at all: the split protocol, the preprocessing, and the search budget. A paper can list twenty hyperparameters to five decimal places and still be unrebuildable."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — one missing line, unusable method.** A method learns on a graph it builds from the data. The authors state that they construct a nearest-neighbour graph. The method section does not say how many neighbours each node takes, which distance produces the neighbour ranking, or whether the graph is rebuilt inside each cross-validation fold or fixed once for all folds."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "An implementer supplies a neighbour count. A graph with few neighbours is sparse; one with many is dense, and the message-passing step behaves differently on each. The reported number now belongs to a graph the paper never described.",
+          "why": "The neighbour count changes which nodes exchange information, so it changes the model's input rather than only its training."
+        },
+        {
+          "md": "The implementer also supplies a distance. Two reasonable choices can rank neighbours differently for the same nodes, giving a different graph again.",
+          "why": "The construction of the structure is part of the method; leaving it implicit hands the definition of the data to the implementer."
+        },
+        {
+          "md": "Finally the implementer guesses whether the graph is fixed once or rebuilt per fold. If the graph was built once over all data and then reused inside folds, information from validation examples has already shaped the graph.",
+          "why": "This is the same leakage mechanism as Example 2 of the previous card, reached through a constructed structure rather than a standardisation step."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "Three unstated choices, each individually small, and the rebuild is no longer the paper's method. None of the three is a hyperparameter in the usual sense; all three sit in the *preprocessing and constructed structure* row of the table."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the budget is part of the result.** A reported value that came from a search is a different kind of number from one that came from a single run, and the difference is countable."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Multiply the choices: 3 learning rates × 2 batch sizes × 4 layer counts = 24 candidate settings.",
+          "why": "Every combination is one point in the search space, so the product counts the points."
+        },
+        {
+          "md": "Each candidate is scored by 5-fold cross-validation, so the search trains 24 × 5 = 120 models.",
+          "why": "Cross-validation repeats each setting once per fold, so the cost of one candidate is the number of folds."
+        },
+        {
+          "md": "The published model is then trained once more on the full training split, so the total is 120 + 1 runs, not 120.",
+          "why": "The search only scores candidates; the reported score comes from a separate final fitting step, and leaving it out understates the cost."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "A checklist is a diagnostic, not a demand that every paper be self-contained down to the last decimal. Its use is to name which omission you are looking at, so that \"this did not reproduce\" can be reported as a specific missing fact rather than a vague failure."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "A paper lists every hyperparameter to several decimal places. Which item can still be missing and still prevent a rebuild?",
+      "opts": [
+        {
+          "md": "The learning rate",
+          "expl": "That is exactly the kind of number such a table reports, so this answer reads the question as being about numbers — the mistake the card warns against."
+        },
+        {
+          "md": "The protocol that formed the train and test splits",
+          "correct": true,
+          "expl": "Correct. The split protocol is not a hyperparameter value, so a table full of decimals can omit it entirely, and an unstated split lets one method see a friendlier test set than another."
+        },
+        {
+          "md": "The name of the optimiser",
+          "expl": "Like the learning rate, the optimiser is a named setting that these tables normally include. The persistent omissions are the non-numeric ones."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A search crosses 5 learning rates with 3 batch sizes and 2 weight-decay values, and scores each candidate with 5-fold cross-validation. How many training runs does the search cost?",
+      "answer": 150,
+      "tol": 0.5,
+      "hint": "Count the candidate settings first — the product of the three lists — then repeat each candidate once per cross-validation fold.",
+      "sol": "Candidate settings: 5 × 3 × 2 = 30. Each is scored once per fold, so the runs are 30 × 5 = 150. The final model is trained separately afterwards and is not part of the search cost.",
+      "unit": "training runs"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Two papers report the same method with the same chosen hyperparameters. Paper A selected them with a 10-trial search; Paper B with a 500-trial search. Both print the best value found. What should a reader suspect?",
+      "opts": [
+        {
+          "md": "The two numbers are a fair comparison, because the settings are identical",
+          "expl": "The settings are identical and the *processes that produced them* are not. This answer reads the table's values while ignoring the budget row of the checklist."
+        },
+        {
+          "md": "Paper B's number is expected to look better for a reason that has nothing to do with the methods being compared",
+          "correct": true,
+          "expl": "Correct. A longer search finds a better setting on the data it was scored on, so the reported value partly reflects the search budget. A reader comparing the two cannot separate the method from the search without knowing the budget."
+        },
+        {
+          "md": "Paper A's number is more trustworthy because less searching means less overfitting to the test data",
+          "expl": "This sounds prudent and reverses the direction without justification. A short search is not automatically more trustworthy; the point is that the budget is a hidden variable, not that smaller is safer."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the split protocol and the seeds in that checklist are the reason a single number is not a result. The next card makes that precise with arithmetic."
+}

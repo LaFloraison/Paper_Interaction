@@ -1,0 +1,257 @@
+{
+  "kind": "extension",
+  "title": "How a tree chooses which question to ask",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "At a node holding a set $S$ of training rows, a **candidate split** is the partition of $S$ produced by one test on one feature. A **splitting criterion** is a function that scores each candidate split by how thoroughly it separates the class labels within the parts, and the tree is grown by taking the candidate with the best score (highest, for the gain-based criteria below). The score is always written as the *impurity of the node before the split* minus the *impurity of the parts after it*, where the impurity of a set of rows is a fixed function of the proportions of the classes in it.",
+      "plain": "A splitting criterion is a score for a candidate question: it is the mixed-upness of the current pile of rows, minus the mixed-upness of the piles the question would create. The tree asks whichever question lowers mixed-upness the most."
+    },
+    {
+      "t": "p",
+      "md": "**Impurity, informally.** A node is the set of training rows that have survived the tests above it. Those rows carry class labels, and the node is *impure* to the extent that its labels disagree with each other. If every row in the node has the same label, the node is pure and there is nothing left to ask. If the labels are evenly split, the node is as mixed as it can be. A criterion is simply a way of turning that picture into a number."
+    },
+    {
+      "t": "p",
+      "md": "Two properties are wanted, and both entropy and Gini have them. An impurity measure should be **zero at purity** — so that splitting a pure node is never scored as an improvement — and it should be **maximal when the classes are equally represented**, so that the measure is largest exactly where the node is least informative. Both conditions also make the measure independent of which class is which: swapping the names of the classes does not change the number, which is what you want, since the labels are arbitrary names."
+    },
+    {
+      "t": "p",
+      "md": "This is why the quantity used is a *smooth* function of the proportions rather than the misclassification error of the node. Take the node with 3 rows of class A and 1 of class B, whose majority-class error is 0.25, and split it into a child holding 2 A and 0 B (error 0) and a child holding 1 A and 1 B (error 0.5). Weighting the children by size gives $(0.5)(0) + (0.5)(0.5) = 0.25$ — identical to the parent, so the error criterion reports this split as worthless. The Gini criterion reports a gain of 0.125 for exactly the same split. The cause is that misclassification error is not strictly concave: it stays flat as long as the identity of the majority class does not change, so any split that purifies a node without making the other class the majority is invisible to it. A criterion has to detect those changes, because they are the ones that let the next level of the tree finish the job."
+    },
+    {
+      "t": "p",
+      "md": "The three families of algorithm differ only in which smooth function they use and how they divide one node's impurity drop by something. Here they are by name; cards 3, 4 and 5 work each through."
+    },
+    {
+      "t": "formula",
+      "tex": "H(S) = -\\sum_{k=1}^{K} p_k \\log_2 p_k",
+      "note": "**Entropy**, the measure used by ID3. The score for a candidate is the *information gain*: how much entropy the split destroys.",
+      "gloss": [
+        {
+          "sym": "H(S)",
+          "md": "the entropy of the node $S$ — its mixed-up-ness, in bits. $H = 0$ exactly when the node is pure."
+        },
+        {
+          "sym": "K",
+          "md": "the number of distinct classes present in the node. For the two-class problems in this section, $K = 2$."
+        },
+        {
+          "sym": "p_k",
+          "md": "the proportion of rows in $S$ whose label is class $k$; the proportions sum to 1. The intuition is that $p_k$ is the probability that a row drawn at random from the node is of class $k$."
+        },
+        {
+          "sym": "\\log_2 p_k",
+          "md": "how *surprising* getting a class-$k$ row is, measured as the length in bits of the shortest code for an event of probability $p_k$. Rare classes give a large negative logarithm."
+        },
+        {
+          "sym": "-",
+          "md": "the leading minus sign exists only because $\\log_2 p_k$ is negative (a probability is at most 1), and an impurity must be non-negative. The minus sign converts the surprise into a quantity that decreases as the node gets purer."
+        }
+      ]
+    },
+    {
+      "t": "formula",
+      "tex": "\\mathrm{IG}(S, A) = H(S) - \\sum_{v \\in \\mathrm{values}(A)} \\frac{|S_v|}{|S|}\\, H(S_v)",
+      "note": "**Information gain** for the test on feature $A$: the node's entropy, minus the average entropy of the parts the test creates. The average is weighted by part size, so a large unusually mixed part counts for more than a small one.",
+      "gloss": [
+        {
+          "sym": "A",
+          "md": "the feature being tested — the question whose value is being scored"
+        },
+        {
+          "sym": "S_v",
+          "md": "the subset of rows in $S$ that the test sends to branch $v$ (for a numeric feature, $v$ is the side of the threshold; for a categorical feature, $v$ runs over the categories, or over the two sides of a subset test)"
+        },
+        {
+          "sym": "|S_v| / |S|",
+          "md": "the fraction of the node's rows that land in branch $v$; this is the weight of branch $v$ in the average. Large branches weigh more, which is what stops a split from looking good merely by isolating one row."
+        },
+        {
+          "sym": "\\sum_v",
+          "md": "summed over every branch of the test, so the second term is the *weighted average* child entropy"
+        },
+        {
+          "sym": "\\mathrm{IG}",
+          "md": "the entropy destroyed, in bits. $\\mathrm{IG} = 0$ means the test told you nothing about the label; $\\mathrm{IG} = H(S)$ means the parts came out perfectly pure."
+        }
+      ]
+    },
+    {
+      "t": "formula",
+      "tex": "\\mathrm{SplitInfo}(S, A) = -\\sum_{v} \\frac{|S_v|}{|S|} \\log_2 \\frac{|S_v|}{|S|}, \\qquad \\mathrm{GR}(S, A) = \\frac{\\mathrm{IG}(S, A)}{\\mathrm{SplitInfo}(S, A)}",
+      "note": "**Gain ratio**, used by C4.5. $\\mathrm{SplitInfo}$ is the entropy of the *branch assignment itself* — it measures how finely the test cuts the node, ignoring the labels entirely. Dividing by it charges a split for the number and balance of the pieces it makes. Card 4 shows the bias this repairs and the new one it introduces.",
+      "gloss": [
+        {
+          "sym": "\\mathrm{SplitInfo}(S,A)",
+          "md": "the entropy of the partition the test induces, computed from branch sizes $|S_v|/|S|$ with no reference to the labels at all"
+        },
+        {
+          "sym": "\\mathrm{GR}",
+          "md": "information gain per unit of splitting — the same kind of normalisation as measuring fuel per passenger rather than fuel per trip"
+        },
+        {
+          "sym": "\\log_2",
+          "md": "again the logarithm of a size, with the same meaning as before: the information content of the branch chosen"
+        }
+      ]
+    },
+    {
+      "t": "formula",
+      "tex": "\\mathrm{Gini}(S) = 1 - \\sum_{k=1}^{K} p_k^{2}",
+      "note": "**Gini impurity**, used by CART. Read it as a probability that reveals what it measures: the sum $\\sum_k p_k^2$ is the probability that two rows drawn independently from the node have the same label, so Gini impurity is the probability that they disagree.",
+      "gloss": [
+        {
+          "sym": "1 - \\sum_k p_k^2",
+          "md": "$\\sum_k p_k^2$ is the chance a random pair of rows agrees; one minus that is the chance they disagree, which is exactly the mixed-up-ness wanted"
+        },
+        {
+          "sym": "p_k^2",
+          "md": "the chance that both members of the pair are of class $k$, since the two draws are independent"
+        },
+        {
+          "sym": "Gini(S)",
+          "md": "the CART impurity. It has the same two anchor points as entropy: 0 at purity, and its largest value when all classes are equally frequent."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The criterion is greedy, not optimal.** At each node the tree takes the single best-scoring test available *locally*, with no lookahead, because choosing the smallest tree that fits the data exactly is computationally intractable: the value of a split cannot be judged without knowing which splits follow it, so the search does not decompose into independent subproblems. Every algorithm in this section is greedy, and card 6 shows the concrete price of that: a test that scores zero can be the necessary first step of a perfect tree."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — what impurity looks like at the two extremes and between them.** Two-class nodes, characterised by the proportion $p$ of the larger class. Zero means pure; 0.5 means perfectly balanced. Both measures anchor at the same two points and rise between them:"
+    },
+    {
+      "t": "table",
+      "head": [
+        "Proportion of the larger class, p",
+        "Entropy H (bits)",
+        "Gini impurity"
+      ],
+      "rows": [
+        [
+          "1.00 (pure node)",
+          "0.0000",
+          "0.0000"
+        ],
+        [
+          "0.90",
+          "0.4690",
+          "0.1800"
+        ],
+        [
+          "0.75",
+          "0.8113",
+          "0.3750"
+        ],
+        [
+          "0.50 (most mixed)",
+          "1.0000",
+          "0.5000"
+        ]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "Two readings of the table. The endpoints are the ones the criterion needs: a pure node scores zero under both measures, so no test can be credited with improving an already-pure node, and the perfectly balanced node is the maximum under both. The scales differ — entropy reaches 1, Gini only 0.5, so the two numbers are never compared with each other. What matters is that the *ordering* of splits is almost always the same, which is why ID3 and CART usually agree on which question to ask while disagreeing about numbers."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — one split, scored end to end.** A node contains 6 training rows with labels Yes, Yes, No, No, No, No. That is 2 of one class and 4 of the other. A candidate test would send 3 of these rows one way and 3 the other way."
+    },
+    {
+      "t": "calc",
+      "md": "Parent proportions: $p_{\\text{No}} = 4/6 = 0.6667$ and $p_{\\text{Yes}} = 2/6 = 0.3333$. Entropy: $H = -0.6667\\log_2 0.6667 - 0.3333\\log_2 0.3333$. Numerically $\\log_2 0.6667 = -0.5850$ and $\\log_2 0.3333 = -1.5850$, so $H = 0.3900 + 0.5283 = 0.9183$ bits."
+    },
+    {
+      "t": "calc",
+      "md": "Gini of the same node: $1 - (0.6667^2 + 0.3333^2) = 1 - (0.4444 + 0.1111) = 1 - 0.5556 = 0.4444$. Different number, same conclusion: the node is mixed, and neither measure says *how* it should be split."
+    },
+    {
+      "t": "p",
+      "md": "This is the division of labour in the whole section. The formula produces one number per candidate split; the algorithm compares the numbers and takes the largest. Everything that follows is the arithmetic of producing those numbers correctly, and the three-card sequence 3, 4, 5 is nothing more than three different choices of the formula."
+    },
+    {
+      "t": "callout",
+      "md": "**What this example does not show.** It scores a node but does not perform a split, so it never exhibits the weighted-average term $\\sum_v (|S_v|/|S|) H(S_v)$ that is the actual heart of information gain. Card 3 computes that term in full, twice, on a six-row dataset."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "A node contains 12 rows, all of them labelled A. What do entropy and Gini impurity say about it, and why?",
+      "opts": [
+        {
+          "md": "Entropy is 0 and Gini is 0, because every impurity measure is defined to be zero when the node is pure",
+          "correct": true,
+          "expl": "Correct. With p_A = 1 the sum inside entropy is -1 × log2 1 = 0, and inside Gini it is 1^2 = 1 so 1 - 1 = 0. The zero at purity is not a convention but a requirement: without it, splitting an already-pure node could score as an improvement and the tree would never stop."
+        },
+        {
+          "md": "Entropy is 0 but Gini is 1, because Gini counts disagreements and there are none",
+          "expl": "The reasoning about disagreements is right and the number is wrong. No disagreements means the probability of a disagreement is zero, so Gini is 0 as well. Gini cannot reach 1 for a two-class node at all: with proportions p and 1-p it equals 2p(1-p), whose maximum is 0.5 at p = 0.5, so the answer 1 would be out of range."
+        },
+        {
+          "md": "Both are undefined, because there is no second class to compare against",
+          "expl": "A missing class is a class with proportion 0, and a term with p_k = 0 contributes 0 × log2 0, which is taken to be 0 in the limit. The measure is perfectly well defined on a pure node; that is precisely the case it has to handle most cleanly."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A node contains 4 rows: 3 labelled Yes and 1 labelled No. Compute its Gini impurity.",
+      "answer": 0.375,
+      "tol": 0.01,
+      "hint": "Square each class proportion, add the squares, and subtract the total from 1. Do not use logarithms.",
+      "sol": "The proportions are p_Yes = 3/4 = 0.75 and p_No = 1/4 = 0.25. Squaring: 0.75^2 = 0.5625 and 0.25^2 = 0.0625. Sum: 0.5625 + 0.0625 = 0.6250. Gini impurity is 1 - 0.6250 = 0.3750. As a check on the interpretation: 0.6250 is the probability that two independently drawn rows have the same label, so 0.3750 is the probability that they disagree.",
+      "unit": "Gini impurity"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why is a split scored by an impurity measure rather than by the misclassification error of the resulting children?",
+      "opts": [
+        {
+          "md": "Because misclassification error cannot be computed for a node until the node has been turned into a leaf",
+          "expl": "It can be computed at any moment: a node predicts its majority class, so its error count is the number of rows of the minority class, available as soon as the counts are. The problem is what the number does, not when it can be obtained."
+        },
+        {
+          "md": "Because misclassification error is not strictly concave, so it reports no improvement for splits that do make the children more pure",
+          "correct": true,
+          "expl": "Correct, and the counterexample is the node discussed in the criterion section above. A node with 3 A and 1 B has error 0.25. Split it into 2 A and 0 B, and 1 A and 1 B: the child errors are 0 and 0.5, so the size-weighted child error is (0.5)(0) + (0.5)(0.5) = 0.25, exactly the parent's, and the split is scored as worthless. Gini scores the identical split at 0.125, correctly identifying it as a real improvement. The error measure is flat in any region where the majority class does not change hands, which is most of the space a tree needs to search."
+        },
+        {
+          "md": "Because the two measures always rank splits the same way, and impurity is cheaper to compute",
+          "expl": "They do not always rank splits the same way, as the 3 A and 1 B node demonstrates: error says no gain, Gini says 0.125. And impurity is the more expensive of the two, since entropy involves logarithms and Gini involves squares, whereas error involves a single comparison of counts."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A candidate test partitions a node into many small pieces, each of which happens to be nearly pure. Which statement about how the criteria treat it is correct?",
+      "opts": [
+        {
+          "md": "All three criteria reward it fully, since nearly pure children mean nearly zero child impurity",
+          "expl": "Two of them do; the third does not. The child impurity really is near zero, and information gain and Gini both count that as a win — this is exactly the pathology that gain ratio was designed to correct."
+        },
+        {
+          "md": "Information gain and Gini reward it; gain ratio divides the gain by how finely the node was carved up, so it charges for the number of branches",
+          "correct": true,
+          "expl": "Correct. The term SplitInfo is the entropy of the branch sizes alone, so a test making many roughly equal pieces has a large denominator and its gain ratio is deflated. This is the whole content of card 4: information gain is biased towards features with many distinct values, and SplitInfo is the price charged for that."
+        },
+        {
+          "md": "All three criteria reject it, because many small children mean the tree is overfitting",
+          "expl": "Criteria are local scores computed on the training node they are given; none of them detects overfitting, which is a property of the whole fitted tree and is handled by pruning in card 6. A criterion that already rejected such splits would make pruning unnecessary, and it does not."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the criterion is named but not yet computed. Card 3 runs information gain across an entire six-row dataset, entropy by entropy, until the tree's first question is forced by the arithmetic."
+}

@@ -1,0 +1,210 @@
+{
+  "kind": "extension",
+  "title": "C4.5: gain ratio, thresholds and pruning",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**C4.5** is ID3 with four changes. First, the score of a candidate split is the **gain ratio** $\\mathrm{GR}(S,A) = \\mathrm{IG}(S,A) / \\mathrm{SplitInfo}(S,A)$, where $\\mathrm{SplitInfo}$ is the entropy of the branch sizes alone. Second, a numeric feature is always tested with a two-sided threshold $x_j \\le t$, and the candidate thresholds are the midpoints between consecutive distinct observed values. Third, branches are pruned after growing, by estimating the error of each subtree on a held-out portion and replacing it by a leaf whenever the estimate is no worse. Fourth, a row whose value for the tested feature is missing is not discarded: it is sent down every branch with a weight equal to that branch's share of the known rows, so its contribution is split in proportion.",
+      "plain": "C4.5 is ID3 with the split score divided by a penalty for cutting the data into many pieces, with numeric features handled by a two-sided threshold, with missing values distributed down all branches, and with a pruning pass at the end."
+    },
+    {
+      "t": "p",
+      "md": "**The bias that information gain has.** Add a column to the six-row dataset that is the row number: 1, 2, 3, 4, 5, 6. Every value is distinct, so testing this column splits the node into six branches of one row each. Every child is pure, so its entropy is 0, so the weighted average child entropy is 0, so the information gain is exactly 1.0000 bit — the maximum achievable. By the rule \"take the largest gain\" this useless column beats Outlook's 0.4591 and the tree's root test becomes the row identifier."
+    },
+    {
+      "t": "p",
+      "md": "The failure is not arithmetic; it is that a gain computed on the training rows cannot tell the difference between a test that *explains* the label and a test that *indexes* the rows. A column with $n$ distinct values can always partition $n$ rows into $n$ pure singletons, whatever the labels are, and it will do the same on any other dataset — which is to say it carries no information that generalises. The quantity that distinguishes the two cases is not the purity of the children but the *number and balance of the pieces* the test creates, and that quantity is measurable without any reference to the labels."
+    },
+    {
+      "t": "formula",
+      "tex": "\\mathrm{SplitInfo}(S, A) = -\\sum_{v} \\frac{|S_v|}{|S|} \\log_2 \\frac{|S_v|}{|S|}, \\qquad \\mathrm{GR}(S, A) = \\frac{\\mathrm{IG}(S, A)}{\\mathrm{SplitInfo}(S, A)}",
+      "note": "$\\mathrm{SplitInfo}$ is the entropy of the partition itself: feed it the branch sizes as if they were class proportions and it returns how finely the node was carved up. Dividing the gain by it converts the score from *bits destroyed* into *bits destroyed per bit of splitting*.",
+      "gloss": [
+        {
+          "sym": "|S_v| / |S|",
+          "md": "the share of the node's rows sent to branch $v$; the whole measure depends only on these shares, never on the labels"
+        },
+        {
+          "sym": "\\mathrm{SplitInfo}",
+          "md": "0 when a test sends every row down one branch (no split at all); larger the more branches a test makes and the more evenly the rows are spread across them. For a balanced $n$-way split it equals $\\log_2 n$."
+        },
+        {
+          "sym": "\\mathrm{GR}",
+          "md": "gain per unit of splitting. Dividing by a size-dependent quantity is the same idea as normalising any count by its opportunity: a test that is allowed to make six pieces has six chances to look good, so its gain is charged six ways."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Gain ratio has a defect of its own, and C4.5 patches it.** When a test puts almost every row in one branch and a handful in another, $\\mathrm{SplitInfo}$ is close to zero, and a tiny numerator over a tiny denominator can produce a very large ratio from a split that is obviously useless. The patch: at each node, first discard every candidate whose information gain is below the *average* information gain of all candidates at that node, and only then rank the survivors by gain ratio. The gain filter removes the degenerate uneven splits; the ratio then ranks what is left. Real implementations of C4.5 do exactly this two-stage selection, and skipping the first stage is a common way to get an inexplicably bad tree."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the same three candidates, scored three ways.** This is the six-row dataset of card 3, plus the row-identifier column. The information gains were computed there in full; the new column is the penalty each test pays."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Candidate feature",
+        "Information gain",
+        "SplitInfo of the test",
+        "Gain ratio"
+      ],
+      "rows": [
+        [
+          "Outlook (2 branches, 4 and 2 rows)",
+          "0.4591",
+          "0.9183",
+          "0.5000"
+        ],
+        [
+          "Wind (2 branches, 3 and 3 rows)",
+          "0.0817",
+          "1.0000",
+          "0.0817"
+        ],
+        [
+          "Row number (6 branches of 1 row)",
+          "1.0000",
+          "2.5850",
+          "0.3869"
+        ]
+      ]
+    },
+    {
+      "t": "calc",
+      "md": "$\\mathrm{SplitInfo}$ for Outlook: the branch shares are $4/6 = 0.6667$ and $2/6 = 0.3333$, so it is $-0.6667\\log_2 0.6667 - 0.3333\\log_2 0.3333 = 0.3900 + 0.5283 = 0.9183$, exactly the entropy of a 2-to-1 split. Then $\\mathrm{GR} = 0.4591 / 0.9183 = 0.5000$."
+    },
+    {
+      "t": "calc",
+      "md": "$\\mathrm{SplitInfo}$ for Wind: two equal branches, so it is the entropy of a 50/50 split, $1.0000$. Then $\\mathrm{GR} = 0.0817 / 1.0000 = 0.0817$ — dividing changed nothing, because the penalty is already 1."
+    },
+    {
+      "t": "calc",
+      "md": "$\\mathrm{SplitInfo}$ for the row number: six equal branches, so it is $\\log_2 6 = 2.5850$. Then $\\mathrm{GR} = 1.0000 / 2.5850 = 0.3869$."
+    },
+    {
+      "t": "p",
+      "md": "**Reading the table honestly.** The correction works, and it works only partly. Under information gain the order was row number 1.0000, Outlook 0.4591, Wind 0.0817 — the useless column came first and would have been chosen. Under gain ratio the order is Outlook 0.5000, row number 0.3869, Wind 0.0817 — the useless column has been demoted from first to second, and the tree now starts with Outlook, which is correct. But it is still ahead of Wind, and it still carries no generalisable information. Gain ratio is a repair, not a solution: the underlying problem is that any criterion evaluated on the training rows alone can be gamed by a sufficiently flexible feature, and the durable answer is to judge a tree on data it was not fitted to."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — a numeric feature, scanned threshold by threshold.** Four rows, with a numeric Temperature and the label Play: 12 gives No, 18 gives Yes, 22 gives Yes, 27 gives No. Sorted, the distinct values are 12, 18, 22, 27, so there are 3 candidate thresholds, at the midpoints 15, 20 and 24.5. A threshold other than a midpoint would give exactly the same partition as the nearest midpoint, which is why only these need to be tried."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Threshold t",
+        "Left branch",
+        "Right branch",
+        "Child entropies",
+        "Weighted",
+        "Gain"
+      ],
+      "rows": [
+        [
+          "15",
+          "12 (No)",
+          "18, 22, 27 = 2 Yes, 1 No",
+          "0 and 0.9183",
+          "0.6887",
+          "0.3113"
+        ],
+        [
+          "20",
+          "12, 18 = 1 No, 1 Yes",
+          "22, 27 = 1 Yes, 1 No",
+          "1 and 1",
+          "1.0000",
+          "0.0000"
+        ],
+        [
+          "24.5",
+          "12, 18, 22 = 1 No, 2 Yes",
+          "27 (No)",
+          "0.9183 and 0",
+          "0.6887",
+          "0.3113"
+        ]
+      ]
+    },
+    {
+      "t": "calc",
+      "md": "The parent holds 2 Yes and 2 No, so its entropy is 1.0000 bit. For $t = 15$: the left branch is one row, pure, entropy 0; the right branch holds 3 rows with proportions $2/3$ and $1/3$, entropy 0.9183. Weighting by branch sizes, $1/4$ and $3/4$: $(0.25)(0) + (0.75)(0.9183) = 0.6887$. Gain $= 1.0000 - 0.6887 = 0.3113$ bit."
+    },
+    {
+      "t": "p",
+      "md": "Two things to take from the scan. The middle threshold, $t = 20$, has gain exactly zero, and this is not a coincidence: it cuts the rows into two halves that each contain one of each label, so it recreates the parent's mix on both sides. A threshold search that reports zero for the middle of an alternating dataset is behaving correctly. And the best thresholds, $t = 15$ and $t = 24.5$, tie at 0.3113 because the data is symmetric about its centre; a tie is broken by a fixed rule, such as taking the first found, and the resulting trees differ only in which of the two outer rows is isolated."
+    },
+    {
+      "t": "callout",
+      "md": "**Two of C4.5's four changes are dealt with elsewhere.** Pruning is card 6 — what matters here is that C4.5 grows the full tree first and cuts it back afterwards, rather than stopping early. And the missing-value rule is worth stating once plainly: a row with no recorded Temperature does not get dropped and does not get a guessed value; it travels down *both* sides of the threshold carrying a fractional weight, and its contribution to each side's entropy and to the gain is scaled by that weight. Dropping such rows silently biases the feature's score towards whatever the missingness correlates with."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does $\\mathrm{SplitInfo}$ measure, and what does it deliberately ignore?",
+      "opts": [
+        {
+          "md": "It measures how pure the children are, ignoring how many children there are",
+          "expl": "That is the information gain, without the division. SplitInfo is the opposite kind of quantity: it looks only at how the rows were divided."
+        },
+        {
+          "md": "It measures how finely and how evenly the test divides the rows, ignoring the labels entirely",
+          "correct": true,
+          "expl": "Correct. SplitInfo is fed the branch *sizes* |S_v|/|S| as though they were class proportions. The labels never enter, which is what makes it a pure measure of a split's shape — six branches of one row score log2 6 = 2.5850 no matter what the labels are or how pure the children turn out."
+        },
+        {
+          "md": "It measures the number of features used so far along the path to the node",
+          "expl": "That would be a depth or path measure. SplitInfo is computed at one node from one candidate test and knows nothing about the path."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A candidate test splits a node of 6 rows into three branches holding 3, 2 and 1 rows. Its information gain is 0.60 bits. Compute its gain ratio, to 3 decimal places.",
+      "answer": 0.411,
+      "tol": 0.01,
+      "hint": "Compute the branch shares first, then take the entropy of those shares exactly as you would take the entropy of a class distribution. Do not divide the gain by the number of branches.",
+      "sol": "The branch shares are 3/6 = 0.5, 2/6 = 0.3333 and 1/6 = 0.1667. Their entropy is -(0.5log2 0.5 + 0.3333log2 0.3333 + 0.1667log2 0.1667) = 0.5 + 0.5283 + 0.4308 = 1.4591. So GR = 0.60 / 1.4591 = 0.4112, which rounds to 0.411. Dividing by 3 instead of by SplitInfo would give 0.20 and would be wrong: the penalty depends on how evenly the rows were spread, not only on how many pieces there are.",
+      "unit": "gain ratio"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A numeric feature takes 10 distinct values across the rows of a node. How many candidate thresholds does C4.5 evaluate for it?",
+      "answer": 9,
+      "tol": 0.01,
+      "hint": "Thresholds are placed between adjacent distinct values, not at the values themselves.",
+      "sol": "Sort the 10 distinct values; there are 9 adjacent gaps between them, one midpoint per gap, so 9 candidates. In general a numeric feature with m distinct observed values yields m - 1 candidates. A threshold at any point inside a gap routes every row the same way as the midpoint of that gap, which is why only one candidate per gap is needed — the distinct values themselves are where the partition changes, and the candidates sit just between the changes.",
+      "unit": "candidate thresholds"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A dataset of 5000 rows includes a column that is a unique customer identifier, plus a column that is the customer's country, with 40 possible values. Which statement best describes what gain ratio does for these two columns?",
+      "opts": [
+        {
+          "md": "It eliminates the identifier column and leaves the country column, which is the point of the correction",
+          "expl": "It does not eliminate anything. Gain ratio re-ranks candidates, it does not remove them; the identifier's SplitInfo is log2 5000 only if all 5000 values are distinct, and even then its ratio is a finite number that can still exceed a genuinely useful feature's."
+        },
+        {
+          "md": "It penalises the identifier far more heavily than the country column, because $\\log_2 5000$ is much larger than $\\log_2 40$, but it does not make the identifier disappear",
+          "correct": true,
+          "expl": "Correct. The penalty scales with the logarithm of the number of branches, so the identifier pays roughly log2 5000 = 12.3 against the country column's roughly log2 40 = 5.3. That is a strong demotion and it is not a proof of uselessness — an identifier can still win the ratio on a small dataset. This is exactly the honest reading of Example 1, where the identifier fell from first place to second place without leaving the race. The reliable defence against identifier-like columns is to exclude them before fitting, and to check any tree on data it was not fitted to."
+        },
+        {
+          "md": "It changes nothing, because both columns are categorical and gain ratio only affects numeric features",
+          "expl": "Gain ratio applies to any test, numeric or categorical; the same division is performed on the numerator and denominator regardless. The threshold machinery of Example 2 is a separate change that C4.5 makes for numeric features only."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** C4.5 splits on gain ratio and permits multi-way categorical splits. CART, the algorithm underneath gradient boosting, makes the opposite choice on both counts — binary splits only, with a different impurity. Card 5 works it out and puts the three algorithms side by side."
+}

@@ -1,0 +1,166 @@
+{
+  "kind": "check",
+  "title": "How invariance is achieved — and the skip check",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "There are two standard routes to permutation invariance. **Symmetric aggregation**: combine a collection of values with a function whose output does not depend on the order of its arguments — the symmetric functions, of which sum, mean, max and min are the common ones. **Invariant statistics**: compute quantities that are themselves unchanged by relabelling — degrees (the row sums of the incidence matrix), edge sizes (its column sums), the multiset of Laplacian eigenvalues, or any sorted list of per-item numbers — and use only those as inputs.",
+      "plain": "Either add the values up in a way that ignores order (sum, mean, max, min), or hand the model numbers that never depended on the order in the first place (degrees, counts, eigenvalues, sorted lists)."
+    },
+    {
+      "t": "p",
+      "md": "**Route one, in detail.** A symmetric function is defined so that shuffling its inputs changes nothing. This is exactly why neighbourhood aggregation can be permutation invariant: the neighbours of a vertex form a *set*, not a list, so any honest summary of them must be a symmetric function. Sum answers \"how much in total\"; mean answers \"how much per neighbour\"; max answers \"the strongest\"; min answers \"the weakest\". All four are legitimate, and the choice is a modelling decision about which question is being asked."
+    },
+    {
+      "t": "p",
+      "md": "**Route two, in detail.** An invariant statistic sidesteps the problem by never looking at the order at all. The degree of a vertex does not depend on how the vertices were numbered; the eigenvalue spectrum of the Laplacian does not either; a sorted list throws the order away by construction. Feed a model only quantities of this kind and invariance is automatic, with no aggregation rule to design."
+    },
+    {
+      "t": "table",
+      "head": ["Construction", "Route", "What it is blind to"],
+      "rows": [
+        ["sum / mean / max / min over a vertex's neighbours", "symmetric aggregation", "which neighbour contributed which value"],
+        ["a vertex's degree (row sum of the incidence matrix)", "invariant statistic", "how a vertex's neighbours connect among themselves"],
+        ["the Laplacian eigenvalue spectrum", "invariant statistic", "which vertex sits where — and it does not in general reconstruct the graph"],
+        ["a sorted list of per-item features", "invariant statistic", "the identity of each item; every value is kept, only the order is dropped"],
+        ["features concatenated in file order, or an index used as a feature", "**neither** — invariance is broken", "nothing: it is exactly the file order that leaks in"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The cost, stated honestly.** Neither route is free. Symmetric aggregation **discards order**, which is harmless when the inputs genuinely are a set — the neighbours of a vertex — and harmful when they are not. If a hypergraph's columns carry information that is tied to their position, such as a year, a colour or a rank, then summing over columns deletes the pairing between each value and its label, and invariance has been bought at the price of content. Invariant statistics can be **too coarse to separate different structures**: the degree sequence is not a complete fingerprint of a graph, so two genuinely different graphs can share one, and a model that reads only degrees cannot tell them apart. Both routes trade the same thing — robustness to the file's layout is paid for in discriminating power."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**An overconfidence to avoid.** Because a statistic is invariant, it is easy to assume it captures the object. Invariance and completeness are different properties. A quantity can be perfectly invariant and still fail to separate two distinct structures; the second example below shows a concrete pair of graphs that defeat one of the most familiar invariant statistics."
+    },
+    {
+      "t": "h3",
+      "md": "This section in five points"
+    },
+    {
+      "t": "list",
+      "ordered": true,
+      "items": [
+        "Define invariance and equivariance of a function, and give an example of each: a sum is invariant under reordering, while the rank of each entry is equivariant.",
+        "Name the relabellings of a graph or hypergraph that are free to change: vertex renumbering (rows), hyperedge renumbering (columns), or both.",
+        "Say why a per-vertex output should be equivariant while a graph-level output should be invariant.",
+        "Name the two routes to permutation invariance — symmetric aggregation and invariant statistics — and give one construction for each.",
+        "State the cost of each route: symmetric aggregation discards order, and invariant statistics can be too coarse."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The four questions below are the check. The bar is not a score — it is that none of them required hard thought. If you hesitated on which relabelling the paper's lemma concerns, or on what each route gives up, go back to card 2 before continuing."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — one symmetric aggregator, four summaries.** A vertex has a set of neighbour features $(4, 9, 2, 7)$. Each symmetric function below returns the same value whatever order the neighbours happen to be listed in."
+    },
+    {
+      "t": "calc",
+      "md": "sum:  4 + 9 + 2 + 7 = 22\nmean: 22 / 4 = 5.5\nmax:  9\nmin:  2"
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "The order of $(4, 9, 2, 7)$ never entered any of the four lines. That is what makes each of them a valid aggregation over a *set* of neighbours: no renumbering of the graph can change any of these outputs."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — an invariant statistic that is too coarse.** Two different graphs on five vertices, both with degree sequence $(1, 1, 2, 2, 2)$ and both with 4 edges."
+    },
+    {
+      "t": "list",
+      "items": [
+        "Graph one is the path $1\\!-\\!2\\!-\\!3\\!-\\!4\\!-\\!5$: degrees $1, 2, 2, 2, 1$, which sort to $(1, 1, 2, 2, 2)$.",
+        "Graph two is a triangle on vertices 1, 2, 3 together with a separate edge $4\\!-\\!5$: the triangle gives three vertices of degree 2, the edge gives two of degree 1, which also sort to $(1, 1, 2, 2, 2)$."
+      ]
+    },
+    {
+      "t": "p",
+      "md": "The two graphs are not the same object — the path is connected, while the triangle-plus-edge falls into two pieces — yet their degree sequences are identical. The sum of the degree sequence is $1+1+2+2+2 = 8$ in both cases, which by the handshake identity $\\sum_v d_v = 2|E|$ means both have exactly $4$ edges: even the edge count agrees. Any model reading only degrees and counts is blind to the difference between them."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**The lesson in one line.** Example 1 shows route one working; Example 2 shows route two reaching its limit. Invariance makes a model robust to the file's layout, and it is paid for by some loss of discriminating power — the design question is always *which* loss is acceptable for the task at hand."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which route to permutation invariance does taking the **maximum** over a vertex's neighbour features use?",
+      "opts": [
+        {
+          "md": "Symmetric aggregation, because max does not depend on the order of its arguments",
+          "correct": true,
+          "expl": "Correct. Max, like sum, mean and min, returns the same value for any ordering of its inputs, which is exactly what makes it a symmetric function and a valid aggregation over a set of neighbours."
+        },
+        {
+          "md": "Invariant statistics, because the maximum is a kind of statistic",
+          "expl": "The distinction is about how the value is produced, not about the word. Neighbour-max combines a set of per-neighbour values into one; an invariant statistic such as a degree or an eigenvalue is computed from the structure itself and never presents the neighbours as a collection at all."
+        },
+        {
+          "md": "Neither: max needs the neighbours sorted first",
+          "expl": "Sorting is not required. Max scans the values and keeps the largest; the result is the same whichever order they arrive in, which is the whole reason it works here."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A vertex has neighbour features $(6, 3, 8, 1)$. A mean-aggregator replaces the vertex's value by the mean of its neighbours' features. What is that value?",
+      "answer": 4.5,
+      "tol": 0.01,
+      "hint": "Add the four values and divide by four. The order they are listed in affects neither step.",
+      "sol": "$(6 + 3 + 8 + 1) / 4 = 18 / 4 = 4.5$. The sum 18 is invariant under reordering, and the count 4 never changes under reordering, so the mean is invariant too.",
+      "unit": "aggregated value"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Two graphs on five vertices both have degree sequence $(1, 1, 2, 2, 2)$. One is the path $1\\!-\\!2\\!-\\!3\\!-\\!4\\!-\\!5$; the other is a triangle together with a separate edge. What does this show?",
+      "opts": [
+        {
+          "md": "That the degree sequence is a complete description of a graph",
+          "expl": "The example shows the opposite. Two non-isomorphic graphs share this degree sequence, so it cannot be complete; a model reading only degrees would give them identical features."
+        },
+        {
+          "md": "That invariant statistics can be too coarse to separate different structures",
+          "correct": true,
+          "expl": "Correct. Both graphs have degree sequence 1,1,2,2,2 and both have 4 edges, yet one is connected and the other is not. Invariance to relabelling does not imply the ability to distinguish objects — they are separate properties."
+        },
+        {
+          "md": "That the degree sequence is not invariant",
+          "expl": "It is invariant, and that is exactly why it is used. Its shortcoming is the opposite one: it is invariant but not discriminating enough to pin down the graph."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A hypergraph's columns each carry a year label, and a model sums its values over the columns. What has been lost by that choice?",
+      "opts": [
+        {
+          "md": "Nothing: a sum keeps all the information",
+          "expl": "A sum keeps the values but discards the pairing between each value and its year. Once the terms are added, the total is the same whether a given amount came from the 1998 column or the 2021 one — that lost pairing is the information."
+        },
+        {
+          "md": "The pairing between each value and its column, so the model can no longer tell which year contributed which amount",
+          "correct": true,
+          "expl": "Correct. Summing is invariant precisely because it forgets the position of each term. When the position carried meaning — a year, a colour, a rank — invariance has been bought by discarding that meaning."
+        },
+        {
+          "md": "The total, because a sum is unbounded",
+          "expl": "The total is exactly what a sum preserves. What it drops is not the total but the association between each term and the column it came from."
+        }
+      ]
+    }
+  ],
+  "close": "**You are ready.** The paper's structural encoder is an instance of route two read through route one: it aggregates over hyperedges with a symmetric function, and its lemma proves that exchanging columns — renumbering the hyperedges — leaves the result unchanged. Every position-dependent construction you might meet in the method is the failure case this section described."
+}

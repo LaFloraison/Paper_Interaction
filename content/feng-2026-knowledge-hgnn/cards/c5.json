@@ -1,0 +1,114 @@
+{
+  "id": "5",
+  "kind": "title",
+  "chapter": "title",
+  "section": "1.4 The title assembled",
+  "kicker": "Title decoded 4/5 · Assembled",
+  "title": "The title put back together: a three-stage pipeline",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A paper title is a compressed claim: it names the object the work operates on, the operation it adds, and the machinery that performs it. Reading a title properly means recovering, for each noun phrase, the specific commitment the authors are making.",
+      "plain": "A title is the whole paper squeezed into one line. Take it apart word by word and you already know what the authors think they did."
+    },
+    {
+      "t": "p",
+      "md": "**Knowledge-Embedded Hypergraph Neural Networks.** Read it as three commitments stacked in the order they execute:"
+    },
+    {
+      "t": "list",
+      "items": [
+        "**Hypergraph** — the object. Relations in the data are group-shaped, so the object is not a graph but a hypergraph.",
+        "**Knowledge-Embedded** — the operation. Before anything is learned, two nameable kinds of knowledge are computed and stapled onto the features.",
+        "**Neural Networks** — the machinery. A trainable scoring machine runs on the hypergraph and mixes information along its hyperedges."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The word order is the load-bearing part. Had the title been *Hypergraph Neural Networks with Knowledge Embedding*, it would have described an add-on. Written as it is, it claims the knowledge is embedded **before** the network — and Chapter 5 shows that the fusion is element-wise, which means the paper is really claiming the two kinds of knowledge are not merely concatenated side by side but allowed to gate each other."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk the title as a sentence, once, without stopping.** \"The hypergraph's relations are group-shaped, so the object is a hypergraph; two kinds of knowledge — one from the structure, one from learned rules — are embedded into the features; and a trainable network then scores each vertex on that hypergraph.\" If you can say that sentence and mean every part of it, the title is decoded."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — what the title does *not* claim.** A well-written title also tells you what to expect *not* to find. This one makes no claim about architecture novelty: it does not say \"a new convolution\", \"an attention mechanism\" or \"a new training objective\". The only novelty it claims is the embedding stage. That prediction is testable, and Chapter 5 confirms it — the network layer is the standard hypergraph convolution from the previous literature, used unchanged."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "This is a habit worth keeping. When a title names exactly one new thing, the experiments should be concentrated on that one thing — and the ablations should be designed to isolate it. Chapter 6 checks whether this paper's ablations actually do that."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In the title, which part names the *operation* the paper adds?",
+      "opts": [
+        {
+          "md": "Hypergraph",
+          "expl": "That names the object the method operates on — the shape of the data. Nothing new is being added by picking it; the previous literature already worked on hypergraphs."
+        },
+        {
+          "md": "Knowledge-Embedded",
+          "correct": true,
+          "expl": "Correct. The operation is computing two named kinds of knowledge and embedding them into the features before learning. It appears in the middle of the title because that is the stage that runs after the data is organised and before the network starts."
+        },
+        {
+          "md": "Neural Networks",
+          "expl": "That names the machinery that does the scoring. The paper deliberately does not add anything there — the network layer is inherited, not invented."
+        }
+      ]
+    },
+    {
+      "t": "multi",
+      "level": "apply",
+      "q": "The paper claims exactly one new contribution. Which of these does the title commit the authors to **not** claiming?",
+      "opts": [
+        {
+          "md": "A new hypergraph convolution operation",
+          "correct": true,
+          "expl": "Right. No word in the title promises a new layer, and Chapter 5 confirms the layer is the standard one from prior work."
+        },
+        {
+          "md": "A new way of encoding structure into features",
+          "expl": "This one *is* claimed — it is the structural half of \"Knowledge-Embedded\", and it gets its own encoder (HOI) and equation."
+        },
+        {
+          "md": "A new attention or gating mechanism for combining signals",
+          "correct": true,
+          "expl": "Right. The gate at Equation (9) is a sigmoid applied element-wise; the mechanism is standard. What is new is *what* is being gated, not how gating works."
+        },
+        {
+          "md": "A new kind of training objective or loss function",
+          "expl": "This one is not excluded by the title — the paper still has to choose a loss — but it is also not promised. Careful: excluding it would be over-reading. The title is silent here, and silence is not a claim."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "If the paper had been titled *Hypergraph Neural Networks with Knowledge Embedding*, what would a reader reasonably infer instead?",
+      "opts": [
+        {
+          "md": "That the method works on graphs rather than hypergraphs",
+          "expl": "Both titles name the hypergraph. The object is not what changes when the phrasing changes."
+        },
+        {
+          "md": "That knowledge embedding is an optional add-on applied after the network, rather than a stage the network depends on",
+          "correct": true,
+          "expl": "Correct. \"With X\" marks a companion feature. This paper's actual design makes the network's input depend on the embedded knowledge, so the embedding cannot be removed without changing what the network sees — a difference that matters when you read the ablation tables."
+        },
+        {
+          "md": "That the paper has two separate models rather than one",
+          "expl": "Model count is not encoded in either phrasing; and the paper in fact ships two variants (RD and DD) under the real title anyway."
+        }
+      ]
+    }
+  ],
+  "close": "**How this paper uses it:** the title is the paper's table of contents: Chapter 2 supplies *hypergraph*, Chapter 5 supplies *knowledge-embedded*, and Equation (1) supplies *neural networks*. **Next:** what kind of paper this is — the venue, and why it explains the paper's shape."
+}

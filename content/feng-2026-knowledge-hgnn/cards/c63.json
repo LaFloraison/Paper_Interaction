@@ -1,0 +1,127 @@
+{
+  "id": "63",
+  "kind": "figure",
+  "chapter": "method",
+  "section": "5.4 Figure 1",
+  "kicker": "5.4 · Figure 1",
+  "title": "Figure 1: the whole framework on one page",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Figure 1 is the paper's architecture diagram: it is partitioned into the two phases of the framework, with the left panel containing the two encoders and the right panel containing fusion and the network. Reading it means reading its partitions first, then its arrows, then its shapes.",
+      "plain": "One page showing the whole method: two boxes on the left turn data into knowledge, and the right-hand box fuses that knowledge and feeds it to the network."
+    },
+    {
+      "t": "p",
+      "md": "**How to read a block diagram.** Three passes, in this order. First the **partitions** — the large dashed rectangles, which tell you where one stage ends and the next begins. Then the **arrows** — each one is a quantity, and the label on it names that quantity. Then the **shapes** — the matrix blocks, whose heights and widths are dimensions, and whose widths carry the paper's main argument."
+    },
+    {
+      "t": "figure",
+      "src": "fig1.png",
+      "alt": "Figure 1 of the paper: the Knowledge HGNN framework, showing the knowledge embedding phase and the integrated hypergraph neural network",
+      "cap": "Original Figure 1 (Feng et al., TPAMI 2026). Left: the Knowledge Embedding Phase, containing both encoders. Right: the Integrated Hypergraph Neural Network, containing fusion and the network itself."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the partitions.** Two large dashed boxes. The left one is labelled **Knowledge Embedding Phase (KE-Phase)** and contains two further dashed boxes, one per encoder. The right one is labelled **Integrated Hypergraph Neural Networks (iHGNN)** and contains fusion and the hypergraph network."
+    },
+    {
+      "t": "list",
+      "items": [
+        "The partition tells you the framework's claim immediately: nothing inside the left box is a network, and nothing inside the right box produces knowledge. The two phases do genuinely different kinds of work.",
+        "Both encoders inside the left box take a different input — the upper one takes the hypergraph, the lower one takes the feature matrix — which is exactly what the framework's $D_i$ and $\\varphi_i$ notation said without naming any particular encoder."
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — the upper encoder, element by element.** Trace the arrows left to right."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "A hypergraph drawing enters, and immediately becomes a **0/1 matrix** labelled *Hypergraph Incidence matrix*.",
+          "why": "This is the transition from the object to its arithmetic. The drawing is never used again — every later arrow in the upper path carries numbers."
+        },
+        {
+          "md": "The matrix passes through a green trapezoid labelled $\\varphi$, then a summation symbol $\\Sigma$, producing a **thin green column** labelled *Structure-Related Embedding*.",
+          "why": "The trapezoid is the transformation $\\rho$ and the $\\Sigma$ is the sum down the rows — together, Equation (3). The thinness is the point: **one number per vertex**, which is the paper's choice $C_s = 1$."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 3 — the lower encoder, and the fusion.** Features enter a pre-trained decision tree, whose nodes are annotated with depths $d(o) = 1$, $d(o) = 2$, $d(o) = 3$; the annotated formula $\\mu_p(o) = \\frac{\\alpha}{d(o)+\\beta}$ sits beside it. The output is a wide blue matrix, *Task-Related Embedding*."
+    },
+    {
+      "t": "list",
+      "items": [
+        "The tree's root is drawn at the left and depths increase rightwards — matching the paper's convention that the root has depth 0, so the labels shown start at 1 for the first level below it.",
+        "The blue output matrix is **wide**, while the green column was thin. That contrast is the entire reason fusion cannot simply concatenate.",
+        "In the right panel, the green column and the blue matrix meet at a circle-dot symbol, producing an orange matrix of the same width as the blue one: that is $\\tilde{X}_r = X_s \\odot X_r$, Equation (9)'s first half.",
+        "The orange matrix then meets a concatenation symbol (a tall wedge) and emerges as the purple *Knowledge-Embedded Features* — wider than either input. That is $Z = \\tilde{X}_r \\Vert X_r$, the second half.",
+        "The purple matrix replaces the features entering the **HGNN** box, alongside the hypergraph, and the output is *Prediction*."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**The legend is worth reading twice.** It defines exactly two symbols: the circle-dot is *Expanded Hadamard Production* and the wedge is *Matrix Concatenation*. The figure therefore tells you the paper's fusion is two operations, not one — and the word \"expanded\" is doing quiet work, since an ordinary Hadamard product is only defined between matrices of identical shape, and here a single column is being multiplied into a wide matrix."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does the figure draw one embedding as a thin column and the other as a wide matrix?",
+      "opts": [
+        {
+          "md": "Because one is drawn schematically and the other in detail",
+          "expl": "Both are the same kind of object — a per-vertex embedding. The difference in width is a dimension, not a level of detail, and the paper states the dimensions explicitly as $C_s = 1$ and $C_r$."
+        },
+        {
+          "md": "Because the structural embedding has one number per vertex while the rule embedding has one per rule — the dimension disparity that forces the fusion design",
+          "correct": true,
+          "expl": "Correct. The figure is making the paper's own argument visually: with $C_s = 1$ and $C_r$ large, a plain concatenation would bury the single structural number among $C_r$ rule numbers, and the network would struggle to give it weight. That is precisely the underfitting the paper says it is avoiding."
+        },
+        {
+          "md": "Because the rule embedding stores more information than the structural one",
+          "expl": "\"More numbers\" is not \"more information\". A single well-chosen number per vertex could in principle be more informative than many poor ones — the paper's argument is about *utilisation*, not about information content."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "In the figure, the rule embedding is drawn as a block with $C_r$ columns. After the Hadamard step and the concatenation, how many columns does the knowledge-embedded feature block have, in terms of $C_r$?",
+      "answer": 2,
+      "tol": 0.01,
+      "hint": "The concatenation joins two blocks of equal width.",
+      "sol": "Twice $C_r$ — the purple block is $2C_r$ wide because the concatenation joins the structure-aware version with the original rule embedding. If the figure's orange and purple blocks look like they grow by a factor of two rather than by one column, that is why: the single structural number is not appended as an extra column, it is folded into every existing column.",
+      "unit": "times C_r"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The figure's legend names the circle-dot operation \"Expanded Hadamard Production\". Why is \"expanded\" needed?",
+      "opts": [
+        {
+          "md": "Because the matrix is expanded in memory before the multiplication",
+          "expl": "That describes an implementation detail, and the figure is a mathematical diagram. The word is describing what the operation means, not how it is stored."
+        },
+        {
+          "md": "Because an ordinary Hadamard product needs identical shapes, so the single column must be broadcast across all $C_r$ columns",
+          "correct": true,
+          "expl": "Correct — the same broadcasting idea from Chapter 2's linear-algebra section. One number per vertex is applied to every one of that vertex's rule entries, so every column of the rule embedding is scaled by the same structural value. This is what makes a single scalar able to influence a whole row, and it is why the structural knowledge cannot be ignored for lack of dimension."
+        },
+        {
+          "md": "Because the operation is applied to more than two matrices at once",
+          "expl": "It is binary: one structural column and one rule matrix. No higher-arity product appears in the figure."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the encoder the upper path represents — Section IV-B-1, the High-Order Incidence Encoder, and the reason its output is one number per vertex rather than many."
+}

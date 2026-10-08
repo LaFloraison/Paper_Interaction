@@ -1,0 +1,220 @@
+{
+  "kind": "extension",
+  "title": "Why average ranks, not average scores",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Suppose $k$ methods are compared on $N$ datasets, where a *dataset* is one benchmark on which every method is run once and produces one score, with higher scores meaning better. Within a single dataset the **rank** of a method is its position after sorting the methods from the best score to the worst: the best score receives rank $1$, the next rank $2$, and the worst of the $k$ methods receives rank $k$. A method's **average rank** over the $N$ datasets is $R = \\frac{1}{N}\\sum_{i=1}^{N} r_i$, where $r_i$ is its rank on dataset $i$. Lower $R$ means the method finished ahead more often.",
+      "plain": "On each dataset, write down which method came first, second, third. Average those finishing positions across the datasets. First place counts as 1, so the smallest average is the best method."
+    },
+    {
+      "t": "p",
+      "md": "Two scores that are equal on a dataset produce a **tie**. The convention for handling ties is the subject of card 2, and none of the examples in this card contains one — everything below assumes the methods' scores on each dataset are distinct."
+    },
+    {
+      "t": "p",
+      "md": "**Why the obvious summary does not work.** The natural way to summarise a comparison is the mean score: add up a method's scores and divide by the number of datasets. That fails for a reason that has nothing to do with randomness. The datasets do not share a unit. One reports accuracy on a 0–100 scale; the next reports F1 or AUC on a 0–1 scale; another reports a correlation. Adding those numbers produces a quantity measured in nothing at all, and the datasets that happen to use the wider numeric scale dominate the sum purely because their digits are larger."
+    },
+    {
+      "t": "p",
+      "md": "**What ranking removes.** Replace each score by its position among the methods on that dataset. Every dataset, whatever its unit and range, now speaks the same language: 1 for the best, 2 for the next, and so on. The magnitudes are gone, and with them the unit problem — and every dataset now contributes to the average with the same weight, whether it was scored on a 0–1 scale or a 0–100 one. What is left is a single number per method that can legitimately be placed beside the others."
+    },
+    {
+      "t": "p",
+      "md": "**Two consequences worth stating up front.** First, lower is better: rank 1 is the best position, so the method with the smaller average rank finished ahead more often. Second, the average rank and the average score can disagree, and when they do it is not a paradox — they answer different questions. The average score asks who accumulated the largest numbers; the average rank asks who was ahead more often. A common misbelief is that the two summaries *must* agree, so that a disagreement signals an arithmetic slip; they measure different things and are free to differ, and the disagreement is itself information about the method. The examples below construct a case in which one method has the higher average score and the worse average rank, and show why."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**When this is the wrong tool.** Ranking is not free. It throws away the *margin*: a method that wins by 10 points and one that wins by 0.1 point both receive rank 1, so if the size of the gap is the scientific question, the rank cannot answer it. It also assumes the datasets measure comparable tasks — ranking methods across benchmarks that test unrelated things is no more meaningful than averaging across them, only less visibly so. And with only two methods a rank can be 1 or 2 and nothing else, which carries almost no information. Card 3 gathers the limits in full; for now, note that the average rank is a summary with a price."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a two-dataset warm-up.** Two methods, A and B, are compared on two datasets. D1 reports AUC, a quality score that runs from 0 to 1. D2 reports accuracy, a percentage that runs from 0 to 100."
+    },
+    {
+      "t": "table",
+      "head": ["Dataset", "Metric (scale)", "Method A", "Method B"],
+      "rows": [
+        ["D1", "AUC (0–1)", "0.80", "0.72"],
+        ["D2", "accuracy (0–100)", "61", "88"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The raw scores.** Average them and A gets $(0.80 + 61)/2 = 30.90$ while B gets $(0.72 + 88)/2 = 44.36$."
+    },
+    {
+      "t": "calc",
+      "md": "A:  (0.80 + 61) ÷ 2 = 30.90"
+    },
+    {
+      "t": "calc",
+      "md": "B:  (0.72 + 88) ÷ 2 = 44.36"
+    },
+    {
+      "t": "p",
+      "md": "Neither number has a unit or a meaning: 30.90 is the sum of an AUC value and an accuracy percentage, halved. Nothing in the study was measured on that scale. The comparison is being decided by the fact that accuracy happens to sit on a wider numeric range, so the accuracy dataset is worth about a hundred times as much to the sum as the AUC dataset."
+    },
+    {
+      "t": "p",
+      "md": "**The ranks.** On D1, A is ahead ($0.80 > 0.72$), so A takes rank 1 and B rank 2. On D2, B is ahead ($88 > 61$), so B takes rank 1 and A rank 2."
+    },
+    {
+      "t": "list",
+      "items": [
+        "A's ranks are 1 and 2 — sum 3, so A's average rank is $3/2 = 1.5$.",
+        "B's ranks are 2 and 1 — sum 3, so B's average rank is also 1.5."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The two datasets disagree, and the ranks say so plainly: one win each, an average rank of 1.5 for both. The raw scores also disagreed — but for the wrong reason, since their split was produced by the choice of numeric scale rather than by which method actually finished ahead."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — a higher mean score with a worse average rank.** Now four datasets, deliberately scored on different scales, and two methods A and B. F1 and AUC are quality scores running from 0 to 1; accuracy is a percentage running from 0 to 100. Higher is better on every dataset."
+    },
+    {
+      "t": "table",
+      "head": ["Dataset", "Metric (scale)", "Method A", "Method B"],
+      "rows": [
+        ["D1", "accuracy (0–100)", "95", "90"],
+        ["D2", "F1 (0–1)", "0.740", "0.750"],
+        ["D3", "AUC (0–1)", "0.640", "0.650"],
+        ["D4", "accuracy (0–100)", "41", "42"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Step 1 — the average scores.**"
+    },
+    {
+      "t": "calc",
+      "md": "A:  95 + 0.740 + 0.640 + 41 = 137.380   →   137.380 ÷ 4 = 34.345"
+    },
+    {
+      "t": "calc",
+      "md": "B:  90 + 0.750 + 0.650 + 42 = 133.400   →   133.400 ÷ 4 = 33.350"
+    },
+    {
+      "t": "p",
+      "md": "A's average score is the higher, by $34.345 - 33.350 = 0.995$. Look at where that lead comes from. On the two 0–100 datasets A is ahead by $95 - 90 = 5$ and behind by $42 - 41 = 1$, a net $+4$ in the sum, which is $+1.0$ in the average. On the two 0–1 datasets A is behind by $0.010$ and behind by $0.010$ — a net $-0.02$ in the sum, which is $-0.005$ in the average. So the two 0–1 datasets, where B is genuinely the better method, move the average score by half a hundredth; the wide-scaled pair moves it by a full point. The wide-scaled datasets decide the number on their own."
+    },
+    {
+      "t": "p",
+      "md": "**Step 2 — the ranks.** Sort the two methods on each dataset and record the positions."
+    },
+    {
+      "t": "table",
+      "head": ["Dataset", "rank of A", "rank of B"],
+      "rows": [
+        ["D1 (accuracy)", "1", "2"],
+        ["D2 (F1)", "2", "1"],
+        ["D3 (AUC)", "2", "1"],
+        ["D4 (accuracy)", "2", "1"]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "D1: A is ahead ($95 > 90$), so A gets rank 1 and B rank 2.",
+          "why": "Rank 1 is the *best* position, not the largest number. The sorting uses the scores; the number written down is the position."
+        },
+        {
+          "md": "D2: B is ahead ($0.750 > 0.740$), so B gets 1 and A gets 2.",
+          "why": "The gap is only 0.010, but a rank records who finished ahead, not by how much — so a 0.010 win counts exactly as much here as the 5-point win on D1."
+        },
+        {
+          "md": "D3: B is ahead ($0.650 > 0.640$) and D4: B is ahead ($42 > 41$), so B gets rank 1 on both.",
+          "why": "D3 and D4 are again narrow, and B again takes the top position. B is ahead on three of the four datasets, each time by a small margin."
+        },
+        {
+          "md": "Sum each method's ranks and divide by the number of datasets: $R_A = (1 + 2 + 2 + 2)/4 = 7/4 = 1.75$ and $R_B = (2 + 1 + 1 + 1)/4 = 5/4 = 1.25$.",
+          "why": "Dividing by $N = 4$ turns a sum of positions into an average position. A smaller average rank is better, so B is ahead."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**The reversal, and the check that goes with it.** A has the higher average score, 34.345 against 33.350, and the worse average rank, 1.75 against 1.25. Both statements are correct, and they answer different questions: the score says who accumulated the largest numbers, the rank says who finished ahead more often. The ranks also satisfy a bookkeeping check. Each dataset holds two methods, so its two ranks sum to $1 + 2 = 3$; over four datasets the ranks of A and B must therefore total $4 \\times 3 = 12$, and indeed $7 + 5 = 12$. Card 2 turns that check into a general rule you can apply to any table."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why is the mean of the raw scores across datasets not a usable summary of a comparison?",
+      "opts": [
+        {
+          "md": "Because averaging always loses information",
+          "expl": "Averaging is exact — it loses nothing on its own. The problem is not the operation but the inputs: the numbers being averaged were never on a common scale."
+        },
+        {
+          "md": "Because the datasets use different units and ranges, so the sum adds quantities that cannot be added and the widest-scaled dataset dominates it",
+          "correct": true,
+          "expl": "Correct, and the second half is the part that surprises people. In Example 2 the two 0–1 datasets, where B is genuinely ahead, moved the average score by half a hundredth, while the two 0–100 datasets decided the whole result."
+        },
+        {
+          "md": "Because different datasets may contain different numbers of test examples",
+          "expl": "Sample sizes affect how uncertain each score is, and that matters for significance — but it is not what breaks the raw mean. Even with identical sample sizes everywhere, a 0–1 F1 and a 0–100 accuracy cannot be added."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Three datasets compare methods P and Q. D1 gives P = 88, Q = 91; D2 gives P = 0.70, Q = 0.65; D3 gives P = 55, Q = 54. Higher is better on all three. What is P's average rank?",
+      "answer": 1.3333,
+      "tol": 0.01,
+      "hint": "Give P a finishing position on each dataset — exactly one per dataset — then divide the sum of those positions by the number of datasets.",
+      "sol": "Rank 1 goes to the better score on each dataset. D1: Q is higher (91 > 88), so P is 2nd. D2: P is higher (0.70 > 0.65), so P is 1st. D3: P is higher (55 > 54), so P is 1st. P's ranks are 2, 1, 1; their sum is 4; over three datasets the average is 4 ÷ 3 ≈ 1.333.",
+      "unit": "average rank"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A method turns out to have the highest mean raw score in the table and the worst average rank. What is the best reading?",
+      "opts": [
+        {
+          "md": "There is an arithmetic error, since the two summaries ought to agree",
+          "expl": "They measure different things and are free to disagree. A disagreement is information about the method's profile rather than a sign of a mistake."
+        },
+        {
+          "md": "It won by large margins on the datasets it won, and lost narrowly on many others",
+          "correct": true,
+          "expl": "Correct — this is exactly the pattern in Example 2, where A's single 5-point win outweighed three narrow losses of 1 point each in the score mean, while the ranks counted every dataset alike."
+        },
+        {
+          "md": "The average rank is the wrong number, because the raw score is what was actually measured",
+          "expl": "Both are legitimate summaries of the same measurements. The raw score is measured but not comparable across datasets; the rank is comparable but discards the margin."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which question can an average rank not answer?",
+      "opts": [
+        {
+          "md": "The ordering of the methods, from the best average rank to the worst",
+          "expl": "Reading off which average rank is smallest gives exactly this ordering, and that ordering is what the number is for."
+        },
+        {
+          "md": "By how much the best method beat the second on the datasets it won",
+          "correct": true,
+          "expl": "Correct — the margin is discarded when a score is replaced by a position. A 0.1-point win and a 10-point win both become rank 1, so if the size of the gaps is the question, the per-dataset scores have to be reported."
+        },
+        {
+          "md": "Whether the method has a lower average rank than a named competitor",
+          "expl": "That is precisely what the two numbers compare. Comparing two average ranks is the one thing they are built for."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** card 2 makes the arithmetic exact — the ranking rule, the tied-rank convention, and the invariant that lets you check a table by hand."
+}

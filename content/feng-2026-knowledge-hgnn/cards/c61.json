@@ -1,0 +1,142 @@
+{
+  "id": "61",
+  "kind": "formula",
+  "chapter": "method",
+  "section": "5.2 Equation (1)",
+  "kicker": "5.2 · Equation (1)",
+  "title": "Equation (1): the hypergraph convolution, taken apart",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Equation (1) defines one layer of a hypergraph neural network: $X^{l+1} = \\sigma\\big(D_v^{-1/2} H W D_e^{-1} H^{\\mathsf T} D_v^{-1/2} X^{l} \\Theta\\big)$, where $H$ is the incidence matrix, $D_v$ and $D_e$ are the diagonal matrices of vertex and hyperedge degrees, $W$ is the diagonal matrix of hyperedge weights, $\\Theta$ is the trainable parameter matrix, and $\\sigma$ is a nonlinearity applied elementwise.",
+      "plain": "Each vertex's new features are a weighted average of the features of the vertices it shares hyperedges with — with two corrections that stop the most-connected vertices and the biggest hyperedges from dominating."
+    },
+    {
+      "t": "p",
+      "md": "**This equation is not the paper's contribution.** It is inherited from the prior literature, used unchanged, and the paper says so. It is here because the contribution is a change to *what arrives at its input*, and you cannot judge that change without knowing what the layer does. It is also the cheapest place in the paper to practise reading a long formula, because every operation in it was carried out by hand in Chapter 2."
+    },
+    {
+      "t": "formula",
+      "tex": "X^{l+1} = \\sigma\\Big( D_v^{-1/2}\\, H\\, W\\, D_e^{-1}\\, H^{\\mathsf T}\\, D_v^{-1/2}\\, X^{l}\\, \\Theta \\Big)",
+      "note": "Operations are applied right to left, as always with matrix products. The middle four factors $H W D_e^{-1} H^{\\mathsf T}$ do not depend on the input — they are a fixed operator built once from the graph, and every layer applies the same one.",
+      "gloss": [
+        { "sym": "X^{l}", "md": "the $N \\times C$ feature matrix at layer $l$; $X^0$ is the raw vertex features (or, in this paper, the fused knowledge $Z$)" },
+        { "sym": "H", "md": "the $N \\times M$ incidence matrix — rows are vertices, columns are hyperedges" },
+        { "sym": "H^{\\mathsf T}", "md": "its transpose, which runs the information the other way: from hyperedges back to vertices" },
+        { "sym": "D_v", "md": "diagonal matrix of vertex degrees; $D_v^{-1/2}$ scales each vertex by $1/\\sqrt{d_v}$" },
+        { "sym": "D_e", "md": "diagonal matrix of hyperedge degrees; $D_e^{-1}$ divides each hyperedge's total by its size" },
+        { "sym": "W", "md": "diagonal matrix of hyperedge weights, one per relation; these are learnable in some variants, fixed to the identity in others" },
+        { "sym": "\\Theta", "md": "the trainable parameter matrix — the only part of this expression learned from data" },
+        { "sym": "\\sigma", "md": "an elementwise nonlinearity; the paper's encoders use the logistic sigmoid, defined in Chapter 2's deep-learning section" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The five moves, in order.** Reading the product right to left, the layer does exactly this:"
+    },
+    {
+      "t": "list",
+      "ordered": true,
+      "items": [
+        "**Damp each vertex** — multiply by $D_v^{-1/2}$, so a vertex in many relations contributes less per relation.",
+        "**Collect into hyperedges** — multiply by $H^{\\mathsf T}$, which sums the (damped) features of each hyperedge's members.",
+        "**Average and weight each relation** — multiply by $D_e^{-1}$ to divide by the hyperedge's size, then by $W$ to weight it.",
+        "**Distribute back to vertices** — multiply by $H$, which gives each vertex the sum of the summaries of the hyperedges it belongs to.",
+        "**Damp once more, then learn** — multiply by $D_v^{-1/2}$ again, then by $\\Theta$, and apply $\\sigma$."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "Step 2 and step 4 are the round trip you performed by hand in the linear-algebra section — the same $H^{\\mathsf T}$ that summed a signal over each hyperedge, followed by the same $H$ that distributed the result back. Nothing in this equation is new machinery. The two damping steps are there because Chapter 2's over-squashing discussion predicted what happens without them: one 982-member relation would otherwise dominate every vertex it touches."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — run the layer by hand on the four-person graph.** Take the star from Chapter 2 (edges $\\{1,2\\}, \\{2,3\\}, \\{2,4\\}$), vertex signal $X = (10, 20, 30, 40)$, $W = I$, $\\Theta = I$, and set $\\sigma$ aside for the moment so the arithmetic stays visible. Degrees are $d_v = (1,3,1,1)$ and $d_e = (2,2,2)$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "**Damp:** divide each entry by $\\sqrt{d_v}$, giving $(10,\\; 11.547,\\; 30,\\; 40)$.",
+          "why": "Only vertex 2 moves, because only vertex 2 has degree other than 1: $20/\\sqrt{3} = 11.547$. This is the entire effect of $D_v^{-1/2}$ on this signal — a hub is pre-emptively reduced."
+        },
+        {
+          "md": "**Collect into hyperedges:** sum each hyperedge's members. $e_1 = 10 + 11.547 = 21.547$; $e_2 = 11.547 + 30 = 41.547$; $e_3 = 11.547 + 40 = 51.547$.",
+          "why": "This is $H^{\\mathsf T}$ applied to the damped signal, exactly as computed in the linear-algebra section. Each entry is now a property of a relation rather than of a vertex."
+        },
+        {
+          "md": "**Average:** divide each by the hyperedge's size, 2, giving $(10.7735,\\; 20.7735,\\; 25.7735)$.",
+          "why": "Without this step a hyperedge with 982 members would return a number roughly 491 times larger than one with two members — which is what $D_e^{-1}$ exists to prevent. Note that the averages differ even though all three relations have the same size, because their members have different values."
+        },
+        {
+          "md": "**Distribute back:** each vertex takes the sum of the hyperedges it belongs to. Vertex 1 gets $10.7735$; vertex 2 gets $10.7735 + 20.7735 + 25.7735 = 57.3205$; vertex 3 gets $20.7735$; vertex 4 gets $25.7735$.",
+          "why": "The hub has just absorbed all three relation summaries, which is why its number is so much larger — and why the second damping step is needed."
+        },
+        {
+          "md": "**Damp again:** divide by $\\sqrt{d_v}$ once more, giving $(10.7735,\\; 33.094,\\; 20.7735,\\; 25.7735)$.",
+          "why": "$57.3205 / \\sqrt{3} = 33.094$. Compare the input spread ($10$ to $40$, range 30) with the output spread ($10.77$ to $33.09$, range 22.3): **the range has shrunk.** That shrinkage is smoothing, and applying this layer repeatedly shrinks it to nothing — which is over-smoothing, demonstrated on real numbers rather than asserted."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Two honest caveats about this walkthrough.** First, $\\Theta$ was set to the identity and $\\sigma$ omitted; with the real $\\Theta$ the values are a learned linear combination, and with the paper's sigmoid every value above about 8 saturates to almost exactly 1 — applied to $(10.77, 33.09, 20.77, 25.77)$ the sigmoid returns 1.0000 for all four, destroying the distinctions entirely. Real implementations avoid this by normalising features to small ranges before the layer. Second, the graph here has four vertices; the mechanism is identical at 4,057, which is why the paper needs both damping factors."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What job does $D_e^{-1}$ do in Equation (1)?",
+      "opts": [
+        {
+          "md": "It damps vertices that belong to many hyperedges",
+          "expl": "That is the job of $D_v^{-1/2}$ — the vertex-side correction, applied twice, once before the round trip and once after."
+        },
+        {
+          "md": "It divides each hyperedge's summary by how many vertices that hyperedge contains",
+          "correct": true,
+          "expl": "Correct. The two corrections target different imbalances: $D_e^{-1}$ stops a large *relation* from shouting, $D_v^{-1/2}$ stops a well-connected *vertex* from shouting. In this paper's data both imbalances are extreme — DBLP-Conf has hyperedges of 982 members and vertices of degree about 5."
+        },
+        {
+          "md": "It removes the self-loop contribution",
+          "expl": "There is no separate self-loop term in this formulation. A vertex's own value reaches it through the hyperedges it belongs to, since it is a member of them."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "In the walkthrough, what is vertex 2's value after the *final* damping step (before $\\Theta$ and $\\sigma$)? Give three decimals.",
+      "answer": 33.094,
+      "tol": 0.01,
+      "hint": "Take the value after distributing back to vertices and divide by the square root of vertex 2's degree.",
+      "sol": "After distributing back, vertex 2 holds $57.3205$; dividing by $\\sqrt{3} = 1.7321$ gives $33.094$. Answering 57.3205 stops one step early, and answering 19.107 divides by $3$ instead of $\\sqrt{3}$ — the same root-versus-degree confusion the linear-algebra section warned about.",
+      "unit": "value"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The walkthrough shows the signal's range shrinking from 30 to 22.3 in one layer. What does that imply for a deep hypergraph network?",
+      "opts": [
+        {
+          "md": "Deeper networks are always better, because smoothing removes noise",
+          "expl": "Smoothing removes noise and signal together. Once the range reaches zero, every vertex in a connected component has the same features, and no classifier can separate them."
+        },
+        {
+          "md": "Each layer contracts the spread, so beyond some depth the vertices become indistinguishable and accuracy falls",
+          "correct": true,
+          "expl": "Correct — over-smoothing, now measured rather than asserted. This is the prediction the introduction's first failure mode rested on, and Chapter 6's layer ablation is where the paper tests it on real data. Keep the range numbers in mind when you read that table: the mechanism predicts an inverted-U curve with accuracy rising then collapsing."
+        },
+        {
+          "md": "The layer is numerically unstable and should be replaced",
+          "expl": "Contraction is the intended behaviour of a smoothing operator, not an instability. The problem is applying it too many times, not using it."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Equation (2), which belongs to the other half of the paper's machinery. It is the update rule of gradient boosting, and it is the reason the rule encoder has anything to encode."
+}

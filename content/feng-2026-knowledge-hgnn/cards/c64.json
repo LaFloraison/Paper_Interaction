@@ -1,0 +1,109 @@
+{
+  "id": "64",
+  "kind": "method",
+  "chapter": "method",
+  "section": "5.5 The HOI-Encoder",
+  "kicker": "5.5 · HOI-Encoder",
+  "title": "The High-Order Incidence Encoder: turning structure into one number per vertex",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "The High-Order Incidence Encoder is a function $\\varphi_s : H \\mapsto X_s$ mapping the incidence matrix to a structural embedding $X_s \\in \\mathbb{R}^{N \\times C_s}$ with $C_s = 1$, constructed so that it is invariant to permutations of the columns of $H$ and is a monotone function of each vertex's hyperedge membership count.",
+      "plain": "Give every vertex a single number that says how structurally central it is — how many group relations it belongs to — in a way that does not depend on the order the relations happen to be written down in."
+    },
+    {
+      "t": "p",
+      "md": "**The requirement the encoder has to satisfy, and why.** The incidence matrix represents the same hypergraph after any permutation of its columns: rearrange the hyperedges in the file and nothing about the object changes. A function that reads structure honestly must therefore produce the same output either way. This is not a technicality — it is the difference between encoding the hypergraph and encoding the spreadsheet."
+    },
+    {
+      "t": "p",
+      "md": "**The justification, in the paper's own words, and it is more precise than the introduction's version.** Section IV-B-1 says that structural information \"is often subjected to normalization during the aggregation phase in HGNNs to preserve numerical stability, potentially resulting in the diminution of essential hypergraph structural details\". Read that carefully, because it settles a question worth settling."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**The degree is not overlooked — it is consumed and discarded.** Equation (1) normalises by $D_v^{-1/2}$, so every vertex's membership count *is* used; but it is used only as a divisor, and the resulting scale factor never reaches the network as a quantity the network can reason about. The accurate statement of the contribution is therefore: **expose the degree as a feature, instead of leaving it inside the normalisation.** That is a narrower claim than \"typically overlooked\", and it is the one the paper actually defends here."
+    },
+    {
+      "t": "p",
+      "md": "**Why one number, and not many.** The paper sets $C_s = 1$ deliberately: a single scalar per vertex, which it describes as \"analogous to degree-aware mechanisms in graph neural networks\". Two consequences follow, and both matter later. Because $C_s = 1$, the structural embedding is a column, not a matrix — which creates the dimension disparity that fusion exists to handle. And because it is a monotone function of the membership count, two vertices with the same degree receive the same structural embedding, so the encoder is a function of degrees and nothing else."
+    },
+    {
+      "t": "p",
+      "md": "**What that last point implies, stated plainly.** The structural encoder cannot distinguish two vertices that belong to the same number of hyperedges even if those hyperedges are entirely different — one vertex in five conferences and another in five small workshops get the same number. That is a real limit on how much \"structure\" this encoder captures, and it is worth holding on to when you read the claim that it captures high-order incidence *patterns*. Compared with the alternative — supplying no structural quantity at all — it is an improvement; compared with a richer encoding, it is a coarse summary."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — what the encoder can and cannot tell apart.** Take two vertices from the paper's own Table I setting."
+    },
+    {
+      "t": "table",
+      "head": ["Vertex", "Belongs to", "Hyperedge sizes", "Structural embedding"],
+      "rows": [
+        ["A", "5 conferences", "982, 640, 1200, 300, 410", "one number"],
+        ["B", "5 small workshops", "3, 4, 3, 5, 2", "the same one number"],
+        ["C", "4 conferences", "same large sizes as A", "a smaller number"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "A and B are indistinguishable to this encoder, while A and C differ. **The encoder counts memberships and is blind to their sizes.** That is a defensible design — degree is the standard notion of structural salience — but it means the phrase \"high-order incidence patterns\" should be read as \"the number of higher-order relations a vertex takes part in\", not as a description of those relations' shapes. Card 65 makes the same point arithmetically."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why must the structural encoder be invariant to column permutations of the incidence matrix?",
+      "opts": [
+        {
+          "md": "Because permuting columns changes the hypergraph",
+          "expl": "It does not. The columns are the hyperedges, and a set has no order — rewriting them in a different sequence is the same hypergraph written differently."
+        },
+        {
+          "md": "Because the column order is an artefact of how the data was written down, so any dependence on it would encode the file rather than the object",
+          "correct": true,
+          "expl": "Correct. This is the same argument as permutation invariance for vertices, applied to the other axis. Without it, two files containing the same hypergraph could produce different embeddings, and the model would be learning the layout of a spreadsheet."
+        },
+        {
+          "md": "Because the network cannot process non-square matrices",
+          "expl": "The incidence matrix is rectangular throughout the paper and is used without difficulty. Permutation invariance is about meaning, not about shape."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A vertex belongs to 4 hyperedges. With $C_s = 1$, how many entries does its structural embedding have?",
+      "answer": 1,
+      "tol": 0.01,
+      "hint": "The subscript in $C_s = 1$ is a number of columns per vertex.",
+      "sol": "One. This is the paper's deliberate choice, and it is why the structural embedding is a thin column in Figure 1 rather than a matrix. The membership count of 4 is the *input* to that single number, not its dimension — the count passes through a transformation and what emerges is one scalar.",
+      "unit": "entries"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Two vertices both belong to exactly five hyperedges, but one belongs to five conferences of 900 members and the other to five workshops of 4 members. What does the structural encoder report?",
+      "opts": [
+        {
+          "md": "Different numbers, because the hyperedges differ in size",
+          "expl": "The encoder sums $H[v,e]$ for each vertex — a count of 1s, and every membership contributes exactly 1 regardless of how many other vertices share the hyperedge. Size does not enter."
+        },
+        {
+          "md": "The same number, because the encoder counts memberships only",
+          "correct": true,
+          "expl": "Correct. This is a genuine limitation of the design and worth stating without softening: the encoder compresses all structural information about a vertex into one degree-like scalar, and two structurally very different vertices of equal degree are indistinguishable to it. Whether that costs accuracy is an empirical question — and it is the kind of question a variant with a richer structural encoding would answer, which the paper does not test."
+        },
+        {
+          "md": "It cannot be determined without knowing the vertex features",
+          "expl": "This is the *structural* encoder — it is given the incidence matrix and nothing else. Features are the other encoder's input, and the two paths are separate in Figure 1 for exactly this reason."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Equation (3), the encoder's formula — one sum and one transformation, with the arithmetic done on the paper's own degrees."
+}

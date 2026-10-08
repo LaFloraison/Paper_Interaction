@@ -1,0 +1,46 @@
+<!-- ============ c39 Table III production ============ -->
+<section class="card" data-c="39" data-title-zh="表 III · Production 划分" data-title-en="Table III · the production split">
+  <div class="card-inner">
+    <div class="card-kicker k-fig"><span class="len">Table III · who stays out of sight</span><span class="lz">表 III · 谁在训练时"隐身"</span></div>
+    <h2><span class="lz">表 III：实务卷把测试集劈成两半</span><span class="len">Table III: the realistic exam splits the test in two</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">表 III 是第 19 卡"实务卷"（production）的座位表：训练、验证两份与表 II 完全一致，<b>测试集被再劈成两半</b>——<b>直推测试</b>（训练时特征可见——见过人、不见答案）与<b>归纳测试</b>（训练时连人带边全部隐去，考时才放进大图）。</p>
+    <p class="len">Table III is card 19's "realistic exam" (production) seating chart: training and validation match Table II exactly, while <b>the test set splits again in two</b> — <b>transductive testing</b> (features visible during training; face seen, answer unseen) and <b>inductive testing</b> (person and links both hidden during training, inserted into the big graph only at test time).</p>
+    <p class="lz"><b><span class="hl">表 III 的意义：最后两列的比值告诉你这场考试"多像真实世界"——归纳那一列越大，考得越狠。</span></b>训练时被隐去的那批点，正是现实里"明天才出现的新用户/新论文"。</p>
+    <p class="len"><b><span class="hl">Why Table III matters: the ratio of its last two columns tells you how real-world the exam is — the bigger the inductive column, the harsher the test.</span></b> The points hidden during training are exactly tomorrow's new users and new papers.</p>
+    <div class="figbox">
+      <img data-fig="tab3" alt="Table III of the paper: splitting under the production setting">
+      <div class="figcap"><span class="lz">论文表 III 原图（Feng et al., TPAMI 2026）。最后两列：转导测试（直推）与归纳测试的规模。</span><span class="len">Original Table III (Feng et al., TPAMI 2026). Last two columns: transductive and inductive test sizes.</span></div>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>走查 1（接上表 II 的 Cora 行）：</b>表 II 说测试 406；表 III 把这 406 拆成直推 <b>244</b> + 归纳 <b>162</b>（自检：244 + 162 = 406 ✓，两表接得上）。归纳占 162 ÷ 406 ≈ <b>39.9%</b>。训练阶段隐去 162 篇及其连边：2,708 − 162 = 2,546 篇拼子图（第 19 卡算过这笔账）。</p>
+    <p class="len"><b>Walk 1 (Cora's row, continuing Table II):</b> Table II said test 406; Table III splits it into transductive <b>244</b> + inductive <b>162</b> (check: 244 + 162 = 406 ✓, the tables join). The inductive share is 162 ÷ 406 ≈ <b>39.9%</b>. Training hides those 162 papers and their edges: 2,708 − 162 = 2,546 form the sub-graph (card 19 did this arithmetic).</p>
+    <p class="lz"><b>走查 2（一处必须点破的出入）：</b>论文正文写着"测试集里 20% 作归纳、其余 80% 作直推"——<b>但表 III 十行的实测比例全是约 40% / 60%</b>（逐行验算：Cora 39.9%、Github 2,262/5,655 = 40.0%、ModelNet40 739/1,847 = 40.0%……十行无一例外）。正文与表格对不上，这是本次拆解复核出的实据之一，完整账目在第 48 批判卡。<b>我们在这里照表读、并把矛盾挂出来</b>——这正是本站在"读懂"之外要求你养成的习惯。</p>
+    <p class="len"><b>Walk 2 (a discrepancy that must be called out):</b> the paper's text says "20% of the test set goes inductive, the rest 80% transductive" — <b>yet all ten rows of Table III measure ≈ 40% / 60%</b> (row by row: Cora 39.9%, Github 2,262/5,655 = 40.0%, ModelNet40 739/1,847 = 40.0% … not one exception). Text and table disagree — one of the verified findings of this site's audit, itemized at card 48. <b>We read the table as printed and hang the contradiction out in the open</b> — the habit this site wants you to build beyond mere comprehension.</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">最后一列"归纳测试"的点，训练时状态如何？</span><span class="len">What is the training-time state of the last column's inductive points?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="特征可见是直推列的待遇——归纳列连边都隐去，比它更狠一级。"><span class="lz">特征可见、只是没答案</span><span class="len">Features visible, answers withheld</span></button>
+        <button class="opt" data-correct="1" data-expl="对！归纳点在训练时连人带边全部不在场（子图里没有它们），考试时才放进大图——这才是"新面孔"的严格模拟。"><span class="lz">连人带边全部隐去，考时才放入</span><span class="len">Person and links fully absent until test time</span></button>
+        <button class="opt" data-expl="归纳点完全不参与训练——若参与，它们就成了直推点，两列失去区分意义。"><span class="lz">参与训练但不参与验证</span><span class="len">Participate in training but not validation</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="2262" data-tol="0.5" data-hint="翻到表 III 原图，找 Github 行最右一列（#Inductive Testing）。" data-sol="Github 行：直推 3,393 + 归纳 2,262 = 5,655 ✓（与表 II 的测试集 5,655 吻合）。答案 2,262。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：表 III 里 Github 的归纳测试集有多少个顶点？</span><span class="len">Numeric: how many vertices are in Github's inductive test in Table III?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：一个模型在表 II（传统卷）上 89 分、在表 III（实务卷）上 88 分，你更信哪个数字？</span><span class="len">Transfer: a model scores 89 on Table II (classic) and 88 on Table III (realistic) — which number do you trust more?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="高不等于真——传统卷的"见过特征"会给分偏松（第 18 卡的甲同学占便宜）。上线前的预测看实务卷。"><span class="lz">信 89：更高说明模型更强</span><span class="len">Trust 89 — higher means stronger</span></button>
+        <button class="opt" data-correct="1" data-expl="正确！实务卷里有一批点连见都没见过，更接近上线后的遭遇战；传统卷的 89 里藏了"见过题面"的便宜。部署决策该拿 88 去做规划。"><span class="lz">信 88：实务卷含"从未见过的新点"，更接近上线表现</span><span class="len">Trust 88 — the realistic exam includes never-seen points, closer to production</span></button>
+        <button class="opt" data-expl="两个都报没问题，但"更信哪个"的答案是明确的：预测上线表现，看含归纳的那份。"><span class="lz">两数取平均 88.5 才公允</span><span class="len">Average them: 88.5 is the fair number</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

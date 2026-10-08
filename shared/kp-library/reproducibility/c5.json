@@ -1,0 +1,127 @@
+{
+  "kind": "check",
+  "title": "Skip check: hyperparameters and reproduction",
+  "what": [
+    {
+      "t": "p",
+      "md": "This section taught five things, listed at the end of this card. First, one application of the section to the paper in front of you — stated without assuming any number that paper reports."
+    },
+    {
+      "t": "p",
+      "md": "**What a hyperparameter table of this kind does contain.** Such a table records the values chosen for the reported experiment: the model's architecture, its widths and depths, the optimiser and its learning rate, and similar settings. Read that way, the table is a description of the model, and the arithmetic of the previous card applies — from a layer count, a hidden width and an input dimension, the parameter count the table implies can be computed."
+    },
+    {
+      "t": "p",
+      "md": "**What it does not contain, as a general pattern.** Three things are commonly absent. The first is the search space and budget: the table gives the winning value, not the range searched or the number of trials, so a default cannot be told from a heavily tuned setting. The second is the seeds and the number of runs: a hyperparameter table is not a statement about seed variation, and every reported single score has the spread of the seed card behind it. The third is the time and computing cost, and often the split protocol — how train and test were separated, and how any constructed structure was built. None of this is a defect peculiar to one paper; it is the usual state of a method section, and naming it is what the checklist is for."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**A warning against overclaiming in either direction.** Nothing in this section supports saying that a specific reported number is wrong. Equally, do not treat the table as evidence that a reader could rebuild the result: the cards above show exactly which omissions leave a rebuild under-determined. The honest statement is conditional — given what is reported, an independent implementer can rebuild this much, and cannot settle that."
+    },
+    {
+      "t": "p",
+      "md": "**What to ask the authors.** The useful question is never \"is this reproducible\" but \"which of the six items is stated, and in which artefact\". A request for the search range and trial count, the seed list, and the split protocol is answerable from an appendix or a repository, and each answer converts a blocked rebuild into a possible one."
+    },
+    {
+      "t": "list",
+      "items": [
+        "Name the three levels of reproduction and say which one a method section alone can support.",
+        "State the six items a method section owes an independent implementer, and what breaks when each is missing.",
+        "Explain why a single run is not a result, and compute a mean and a sample standard deviation over a handful of runs.",
+        "Say why the seed standard deviation is not a confidence interval for the gap to a baseline.",
+        "Compute a fully connected network's parameter count from its input dimension, hidden width and output dimension.",
+        "Separate what a hyperparameter table says about *what* was set from what it is silent about regarding *why*."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The questions below are the check. The bar is not a score — it is that none of them made you stop and think hard. If you had to reconstruct the standard-deviation arithmetic, or could not say what breaks when the search budget is missing, stay: this checklist is the tool the paper's own tables are read with."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**One application you can do without the paper.** Suppose a table reports input dimension 12, one hidden layer of width 5, and output dimension 1, and says nothing about how those three were chosen. The table still determines the model's size exactly."
+    },
+    {
+      "t": "calc",
+      "md": "input to hidden: 12 × 5 + 5 = 60 + 5 = 65"
+    },
+    {
+      "t": "calc",
+      "md": "hidden to output: 5 × 1 + 1 = 5 + 1 = 6"
+    },
+    {
+      "t": "calc",
+      "md": "total parameters: 65 + 6 = 71"
+    },
+    {
+      "t": "p",
+      "md": "That is the half the table settles: 71 fitted values, fixed by three integers. What it does not settle is why the width is 5 rather than 4 or 16 — whether it was searched, and over what range — and that unwritten half is what decides whether the reported score is a description of the method or of a search."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which of these does a hyperparameter table of the kind discussed here most commonly omit?",
+      "opts": [
+        {
+          "md": "The architecture's layer count and hidden widths",
+          "expl": "Those are the table's usual content — the numbers a reader can compute a parameter count from. Expecting them to be missing misreads what the table is for."
+        },
+        {
+          "md": "The search space and the number of trials behind the chosen values",
+          "correct": true,
+          "expl": "Correct. The table gives the winner, not the race: without the range and the budget, a default cannot be distinguished from a heavily tuned value, and the reported score has no scale."
+        },
+        {
+          "md": "The name of the optimiser",
+          "expl": "The optimiser is normally printed alongside the learning rate, since it is a named choice. The recurring omissions are the non-numeric protocol items and the search budget."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A table reports input dimension 24, one hidden layer of width 6, and output dimension 4. Using P = d·h + h + h·c + c, compute the parameter count.",
+      "answer": 178,
+      "tol": 0.5,
+      "hint": "Fill the two layers separately — the input-to-hidden block, then the hidden-to-output block — and count one bias per unit in each layer.",
+      "sol": "Input to hidden: 24 × 6 = 144 weights plus 6 biases = 150. Hidden to output: 6 × 4 = 24 weights plus 4 biases = 28. Total: 150 + 28 = 178 parameters.",
+      "unit": "parameters"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Four runs give 80.0, 82.0, 81.0 and 85.0. Compute the sample standard deviation.",
+      "answer": 2.16,
+      "tol": 0.03,
+      "hint": "The four values straddle their mean; square each distance from it, add, divide by n − 1 = 3, then take the square root.",
+      "sol": "Mean = (80 + 82 + 81 + 85)/4 = 328/4 = 82.0. Distances from 82.0: −2, 0, −1, +3; squares 4, 0, 1, 9, summing to 14. Sample variance = 14/3 ≈ 4.667. Sample standard deviation = √4.667 ≈ 2.16.",
+      "unit": "accuracy points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The section argues that a hyperparameter table cannot by itself settle whether a result is reproducible. What is the useful response for a reader?",
+      "opts": [
+        {
+          "md": "Reject the result, since an incomplete table disqualifies it",
+          "expl": "This over-corrects: incompleteness makes the claim conditional, not false. Rejecting on the grounds of a missing detail throws away a result that may be perfectly sound."
+        },
+        {
+          "md": "Ask which of the six checklist items are stated and where, then request the missing ones — the search range and trial count, the seed list, the split protocol",
+          "correct": true,
+          "expl": "Correct. Each item is answerable from an appendix or a repository, and each answer turns a blocked rebuild into a possible one. This is also exactly what a reader can demand of the next paper they read."
+        },
+        {
+          "md": "Assume the omitted settings were the library defaults named in the paper",
+          "expl": "This sounds practical and is a guess: the defaults of a named library are neither reported nor necessarily what the authors used, and assuming them silently reintroduces the very gap the checklist exists to expose."
+        }
+      ]
+    }
+  ],
+  "close": "**You are ready to read a method section as a recipe.** The checklist, the seed arithmetic and the parameter count are the three tools, and the paper's own tables are read with all three at once. If you skipped this section, the checklist is the one to come back to."
+}

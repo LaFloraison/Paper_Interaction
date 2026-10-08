@@ -1,0 +1,205 @@
+{
+  "kind": "check",
+  "title": "Skip check: what an average rank hides",
+  "what": [
+    {
+      "t": "p",
+      "md": "A comparison across datasets is turned into one number per method. This card asks what that number can support and collects its limits. If you can do all of the following unaided, skip ahead — nothing later depends on a step you cannot take."
+    },
+    {
+      "t": "list",
+      "items": [
+        "Say why raw scores from different datasets cannot be averaged, and what ranking puts in their place.",
+        "Compute a method's average rank from a table of per-dataset scores, remembering that rank 1 is the best position.",
+        "Apply the tied-ranks convention — the mean of the shared positions — and check a table with the invariant that each dataset's ranks sum to k(k+1)/2.",
+        "State what an average rank discards, and what its range depends on.",
+        "Explain why a difference between two average ranks needs a paired test across datasets, and why a count of dataset wins is not one."
+      ]
+    },
+    {
+      "t": "h3",
+      "md": "What an average rank hides"
+    },
+    {
+      "t": "p",
+      "md": "**The margin is discarded.** A method that wins a dataset by 10 points and one that wins it by 0.1 point both receive rank 1. If the question is *by how much*, the average rank cannot answer it, and a method with a small average rank may owe it to many trivial leads rather than to a few decisive ones. The per-dataset scores belong beside the ranks whenever the size of the gap could matter."
+    },
+    {
+      "t": "p",
+      "md": "**The range depends on how many methods were compared.** Ranks on one dataset run from 1 to $k$, so the average rank is confined to $[1, k]$. The same value, say 1.5, is a middling position in a comparison of three methods but a near-top result in a comparison of thirty. Average ranks from studies with different numbers of competitors are not on a common scale, and a gap of 0.2 in one study does not mean the same as a gap of 0.2 in another with a different roster. The number of datasets does not change the range, but it does change the resolution — an average over ten datasets with no ties is a multiple of one tenth, and a tie can make the step finer still, since an even number of tied positions averages to a half-integer — and, as the next paragraph shows, it changes what significance is reachable at all."
+    },
+    {
+      "t": "p",
+      "md": "**A mean says nothing about the spread.** An average rank summarises the datasets with one number and hides how the ranks were distributed. A method ranked 1 on five datasets and 4 on the other five has average rank 2.5; a method ranked 2.5 on every dataset also has average rank 2.5. The first is a specialist that wins half the time and finishes badly the other half; the second is consistently middling and never wins. These are different claims about the method, and the mean alone cannot tell them apart — the per-dataset ranks, or a spread around the mean, have to be reported too."
+    },
+    {
+      "t": "p",
+      "md": "**A difference in means is not yet a result.** Two average ranks will usually differ in the decimal places — and even when they agree exactly, as in Example 1, that equality can hide opposite behaviours — so the real question is whether the observed difference is larger than what the datasets could produce by chance. Because the same datasets are used for every method, the comparison is **paired**: what matters is the set of per-dataset differences between the two methods, dataset by dataset, rather than two independent samples. A paired test — the sign test, which counts only *which* method won each dataset; the Wilcoxon signed-rank test, which also weighs the *size* of each difference; or the Friedman test, the analogue of the signed-rank test when more than two methods are compared — is what turns \"these numbers are not equal\" into \"this difference is hard to explain by luck\"."
+    },
+    {
+      "t": "p",
+      "md": "**The number of datasets caps how small a p-value you can reach.** A paired test that uses only the signs and sizes of the per-dataset differences — assuming nothing about how those differences are distributed — works from those differences, and with $N$ datasets there are only $2^{N}$ possible sign patterns. The smallest two-sided p-value the exact sign test can produce is $2 \\times (\\tfrac{1}{2})^{N} = 2^{1-N}$, reached only when every dataset points the same way. With ten datasets that floor is $2^{-9} = \\frac{1}{512} \\approx 0.002$; with five datasets it is $\\frac{1}{16} = 0.0625$, which is *above* the conventional 0.05, so a five-dataset study cannot reach significance this way even with a clean sweep. More datasets do not merely add evidence — they lower the floor."
+    },
+    {
+      "t": "p",
+      "md": "**A count of wins is not a significance test.** \"Our method wins on 8 of 10 datasets\" is a description of the sample — a tally of signs — not a comparison against a chance model. It carries no p-value, no null hypothesis and no stated error rate. Turn it into the simplest possible test and the gap appears: under the null that the two methods are interchangeable, each dataset's winner is a fair coin, so the count of wins is binomial with ten trials and probability one half. That leaves $2^{10} = 1024$ equally likely win patterns, of which 45 give exactly eight wins, 10 give exactly nine, and 1 gives all ten. Eight wins then give a two-sided p-value of $2 \\times \\frac{45 + 10 + 1}{1024} = \\frac{112}{1024} \\approx 0.109$, which is not significant at 0.05. Nine wins give $\\approx 0.021$, and only a clean ten gives $\\approx 0.002$. The headline count sounds decisive and, on its own, is not."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The over-claim this section exists to prevent.** A table of average ranks makes two things look proved that are not proved. That the method with the smallest average rank is *significantly* the best does not follow from the table; it requires a paired test over the per-dataset differences. That winning a majority of datasets *demonstrates* superiority does not follow either; a count of wins describes the sample, and 8 wins out of 10 corresponds to p ≈ 0.11 under the simplest test."
+    },
+    {
+      "t": "callout",
+      "md": "**The questions below are the check.** Five correct answers is not the bar — the bar is that none of them required real thought. If the tied-rank convention, the invariant, or the difference between a count and a test made you pause, stay with this section."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — one average rank, two different methods.** Ten datasets, and four methods in total. The table lists the ranks of two of them, S and T, and omits the other two for clarity. In a four-method comparison rank 4 is last, and rank 2.5 is the mean of the two tied middle positions 2 and 3. On each dataset one of the omitted methods is tied with T at those same positions and takes rank 2.5 as well, while the other takes the single remaining position — rank 4 where S is first, rank 1 where S is last. Either way the four ranks total $1 + 2 + 3 + 4 = 10$. Each cell below gives a method's rank on one dataset."
+    },
+    {
+      "t": "table",
+      "head": ["Method", "its ranks, dataset by dataset", "sum", "average rank"],
+      "rows": [
+        ["S", "1, 1, 1, 1, 1, 4, 4, 4, 4, 4", "25", "2.5"],
+        ["T", "2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5", "25", "2.5"]
+      ]
+    },
+    {
+      "t": "calc",
+      "md": "S:  5 × 1 + 5 × 4 = 5 + 20 = 25   →   25 ÷ 10 = 2.5"
+    },
+    {
+      "t": "calc",
+      "md": "T:  10 × 2.5 = 25                  →   25 ÷ 10 = 2.5"
+    },
+    {
+      "t": "p",
+      "md": "Identical average ranks, opposite behaviours. S finishes either first or last and nothing in between: it wins half the datasets outright and trails on the other half. T never wins a dataset and never finishes last; it sits consistently in the middle. A reader told only \"both average rank 2.5\" would conclude the two methods are indistinguishable, which is the opposite of what the per-dataset rows show. This is the ordinary weakness of every mean, made sharp here because ranks are already a coarse summary. The example also shows only part of the picture: the ranks record who finished where, not by how much, so on the five datasets where S is ranked 1 its winning margin could have been 10 points or 0.01 — both give rank 1 — and the size of the gaps is not visible in the table."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — a count of wins turned into a test.** Suppose two methods are compared on ten paired datasets and one of them is ahead on 8 of them. Under the null that the methods are interchangeable, each dataset's winner is a fair coin, so the number of wins is binomial with ten trials and probability one half. There are $2^{10} = 1024$ equally likely win patterns, of which $\\binom{10}{8} = 45$ give exactly eight wins, $\\binom{10}{9} = 10$ give nine, and $\\binom{10}{10} = 1$ gives all ten. Summing those far-tail terms and doubling for the two-sided test gives the p-values below."
+    },
+    {
+      "t": "table",
+      "head": ["datasets won (of 10)", "two-sided p-value", "below 0.05?"],
+      "rows": [
+        ["8", "≈ 0.109", "no"],
+        ["9", "≈ 0.021", "yes"],
+        ["10", "≈ 0.002", "yes"]
+      ]
+    },
+    {
+      "t": "calc",
+      "md": "8 wins:   2 × (45 + 10 + 1) ÷ 1024 = 112 ÷ 1024 ≈ 0.109"
+    },
+    {
+      "t": "calc",
+      "md": "9 wins:   2 × (10 + 1) ÷ 1024 = 22 ÷ 1024 ≈ 0.021"
+    },
+    {
+      "t": "calc",
+      "md": "10 wins:  2 ÷ 1024 = 1 ÷ 512 ≈ 0.002"
+    },
+    {
+      "t": "p",
+      "md": "Two things follow. First, \"we won 8 of 10\" sounds decisive and is not: under the simplest paired test it corresponds to $p \\approx 0.11$, well above the usual 0.05 bar — eight wins out of ten is an ordinary coin-tossing outcome. Second, the number of datasets sets a floor. With ten datasets the smallest two-sided p-value any sign-based test can reach is $2 \\times (\\tfrac{1}{2})^{10} = \\frac{1}{512} \\approx 0.002$, obtained only by a clean sweep; with five datasets the floor is $\\frac{1}{16} = 0.0625$, already above 0.05, so a five-dataset study cannot reach significance this way however complete its victory."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "A report states that a method \"wins on 9 of the 12 datasets\". What does this sentence establish on its own?",
+      "opts": [
+        {
+          "md": "That the method is significantly better at the 0.05 level",
+          "expl": "The sentence contains no null hypothesis and no p-value. Converted into the simplest paired test it gives p ≈ 0.146, above 0.05, so the count does not support that claim."
+        },
+        {
+          "md": "A description of the per-dataset comparisons, but nothing about whether that pattern is unlikely to arise by chance",
+          "correct": true,
+          "expl": "Correct. A count of wins summarises what happened in the sample; significance is a statement about how often such a pattern would arise if the methods were interchangeable, and that requires a test."
+        },
+        {
+          "md": "That the method's margins on those nine datasets were large",
+          "expl": "The count says nothing about margin — all nine wins could be by 0.001. This is the same information loss as in an average rank, and it is why the size of the differences enters a signed-rank test but not a count of signs."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "An exact sign test compares two methods across 8 paired datasets. What is the smallest two-sided p-value it can return?",
+      "answer": 0.0078125,
+      "tol": 0.0005,
+      "hint": "The test is built from the signs of the per-dataset differences, so first count how many sign patterns eight datasets admit, then ask which single pattern is the most extreme.",
+      "sol": "Each of the 8 datasets contributes one sign, so there are 256 equally likely sign patterns under the null. The most extreme pattern is all 8 signs agreeing — one pattern — and the two-sided p-value counts it together with its mirror image: 2 ÷ 256 = 1 ÷ 128 ≈ 0.0078. Only a clean sweep of all eight datasets reaches this floor.",
+      "unit": "two-sided p-value"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Two methods both have average rank 2.5 over six datasets. Method P is ranked 1 on three datasets and 4 on the other three; method Q is ranked 2.5 on all six. Which reading is supported?",
+      "opts": [
+        {
+          "md": "The two methods are equally good, since their average ranks agree",
+          "expl": "The averages agree; the behaviours do not. P wins half the datasets and trails on the other half, while Q is never first and never last. The mean rank is precisely the summary that cannot separate them."
+        },
+        {
+          "md": "P wins half the datasets and trails on the other half, while Q is consistently middling and never wins — one number cannot distinguish those two claims",
+          "correct": true,
+          "expl": "Correct. This is the central limitation of the average rank: it compresses the per-dataset profile into a single number and discards the spread. Reporting the per-dataset ranks alongside the average is what makes the difference visible."
+        },
+        {
+          "md": "Q is better, because a constant rank indicates a more stable method",
+          "expl": "Stability is a real property, but it is not superiority here: Q never finishes first, and P wins half the datasets. Calling Q better would need a criterion the table does not supply."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which of these can an average rank not tell you?",
+      "opts": [
+        {
+          "md": "The ordering of the methods, from the best average rank to the worst",
+          "expl": "That ordering is exactly what a set of average ranks gives, and reading it off is the purpose of the number."
+        },
+        {
+          "md": "How large the best method's winning margin was on any given dataset",
+          "correct": true,
+          "expl": "Correct — the margin is discarded when a score is replaced by a position. A 0.1-point win and a 10-point win both become rank 1, so the per-dataset scores must be reported if the size of the gaps matters."
+        },
+        {
+          "md": "How many datasets the comparison used",
+          "expl": "The number of datasets is the N in the definition and is read straight off the table; the average rank divides by it."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "One paper reports a method's average rank as 1.5 from a comparison of 3 methods. Another paper reports 1.5 for a different method from a comparison of 30 methods. What follows?",
+      "opts": [
+        {
+          "md": "The two methods performed equally well, since the two numbers are equal",
+          "expl": "Equal numbers on different scales. Rank values run from 1 to k, so 1.5 out of 3 and 1.5 out of 30 are not measured against the same ruler."
+        },
+        {
+          "md": "The two numbers are not directly comparable, because the range of a rank depends on how many methods were compared",
+          "correct": true,
+          "expl": "Correct. With 3 methods an average rank can only lie between 1 and 3, so 1.5 sits between the best position and the middle; with 30 methods it lies between 1 and 30, and 1.5 is close to the top. Comparing average ranks across studies needs the same roster size, or at least an explicit statement of it."
+        },
+        {
+          "md": "Nothing can be concluded, because average ranks are meaningless across different studies",
+          "expl": "They are meaningful within a study, and usable across studies once the roster size is stated. The problem is comparability, not meaning."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** with the concept, the arithmetic and the limits in hand, a table of average ranks can be read for exactly what it says — and any claim that the best method is *significantly* the best can be checked against the paired test it requires, rather than assumed from the size of the number."
+}

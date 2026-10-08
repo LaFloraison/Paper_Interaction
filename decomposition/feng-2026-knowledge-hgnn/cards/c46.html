@@ -1,0 +1,48 @@
+<!-- ============ c46 Table IX 换底座 ============ -->
+<section class="card" data-c="46" data-title-zh="表 IX · 换底座：即插即用" data-title-en="Table IX · swap the backbone: plug and play">
+  <div class="card-inner">
+    <div class="card-kicker k-fig"><span class="len">Table IX · a plug that fits every socket</span><span class="lz">表 IX · 插到哪台机器都好使</span></div>
+    <h2><span class="lz">表 IX：换掉打分机器，知识账照样管用</span><span class="len">Table IX: swap the scoring machine — the ledgers still pay</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">论文自称"通用框架"（第 21 卡）：<b>知识嵌入是可以插在任何超图网络前面的前置工序。</b>表 IX 就是验收：把打分机器换成六种不同的超图网络——GCN（把超图退化当图算）、HGNN（论文的默认底座）、HGNN+（增强版 HGNN）、HNHN（超图-超边双通道）、LightHGNN（轻量蒸馏版）、AllSetTransformer（基于集合注意力）——每种都跑三行（Production / Transductive / Inductive）。</p>
+    <p class="len">The paper calls itself a general framework (card 21): <b>knowledge embedding is a prep stage that plugs ahead of any hypergraph network.</b> Table IX is the acceptance test: six different scoring machines — GCN (a hypergraph flattened to a graph), HGNN (the paper's default), HGNN+ (enhanced HGNN), HNHN (a vertex-edge dual channel model), LightHGNN (a lightweight distilled one), AllSetTransformer (set attention) — each run in three settings (Production / Transductive / Inductive).</p>
+    <p class="lz">读法：每个模型块里，<b>Origin 列 = 该模型原装成绩</b>（不插知识账），<b>RD-HGNN / DD-HGNN 列 = 插上知识账之后的成绩</b>，最后一列 Δ = 两者中较好者 − Origin。整张表只问一个问题：<b>Δ 是正还是负？</b></p>
+    <p class="len">How to read: in each block, <b>Origin = the model as shipped</b> (no knowledge ledgers), <b>RD-HGNN / DD-HGNN = the same model with ledgers plugged in</b>, and Δ = the better of the two minus Origin. The whole table asks one question: <b>is Δ positive or negative?</b></p>
+    <div class="figbox">
+      <img data-fig="tab9" alt="Table IX of the paper: KE-HGNN integrating different hypergraph models">
+      <div class="figcap"><span class="lz">论文表 IX 原图（Feng et al., TPAMI 2026）。六种底座 × 三种设定，Δ<sub>Origin</sub> 列全部为正。</span><span class="len">Original Table IX (Feng et al., TPAMI 2026). Six backbones × three settings; every Δ<sub>Origin</sub> is positive.</span></div>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>走查 1（扫描 Δ 列：18 个格子有无例外）：</b>六模型 × 三设定 = 18 个 Δ 值，逐格看符号——<b>18 格全为正，一个例外都没有</b>（全表最小增益约 +1.09、最大约 +8.35）。换句话说：无论把知识账插到哪台机器前面，成绩都不降、只升。具体每格多少，习题会让你亲手取两格来验。</p>
+    <p class="len"><b>Walk 1 (scan the Δ columns: any exceptions among 18 cells?):</b> six models × three settings = 18 Δ values, sign by sign — <b>all 18 positive, not one exception</b> (the table's smallest gain ≈ +1.09, largest ≈ +8.35). In other words: plug the ledgers ahead of any machine and scores never drop, only rise. The exercises will have you pull two cells and verify by hand.</p>
+    <p class="lz"><b>走查 2（谁受益最大，谁"扶不起"）：</b>Δ 最大的一族是 <b>LightHGNN：+5.80 / +5.16 / +8.35</b>——复算一例：其归纳行 Origin 65.46、插账后最好 73.82，73.82 − 65.46 = <b>8.35 ✓</b>。为什么偏偏是"轻量版"受益最多？回到第 24/32 卡的道理：LightHGNN 靠蒸馏把大模型压小，<b>它被压掉的信息</b>恰恰包括结构细节与任务规则——而知识账正是这两样的"备份"，插回去等于把蒸馏时丢掉的部分捞回来。反面是 <b>HGNN 的 Production 行增益最小（+2.35）</b>（它本来就是这套系里结构保留较好的一款），说明"提升空间取决于底座缺什么"。</p>
+    <p class="len"><b>Walk 2 (who gains most — and who has little to gain):</b> the biggest payer is <b>LightHGNN: +5.80 / +5.16 / +8.35</b> — recompute one: inductive Origin 65.46, plugged-in best 73.82: 73.82 − 65.46 = <b>8.35 ✓</b>. Why the lightweight one? Cards 24/32: LightHGNN is distilled small, and <b>what distillation squeezed out</b> includes exactly structural detail and task rules — the ledgers are backups of both, so plugging them in recovers the loss. The other extreme: <b>HGNN's Production row gains least (+2.35)</b> (already structure-preserving), showing that headroom depends on what a backbone lacks.</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">表 IX 的 18 个 Δ 全为正，这个事实在论证链里起什么作用？</span><span class="len">All 18 Δ values positive — what role does that fact play in the paper's argument?</span></p>
+      <div class="opts">
+        <button class="opt" data-correct="1" data-expl="对！如果只在默认底座 HGNN 上有效，读者会怀疑"是不是碰巧调好了 HGNN 的参"；18 格全正说明增益来自知识账本身、与底座无关——这才配得上"通用框架"四个字。"><span class="lz">证明增益来自"知识账"这一步，而非只对某一种机器有效——"通用框架"称号的凭据</span><span class="len">It shows the gain comes from the ledger stage itself, not from any single machine — the evidence for "general framework"</span></button>
+        <button class="opt" data-expl="表格没有比较训练速度——18 个 Δ 全是准确率增益，与效率无关。"><span class="lz">证明知识账还能让训练更快</span><span class="len">It shows the ledgers also speed up training</span></button>
+        <button class="opt" data-expl="超图数据这几行本来就是各模型的强项——表 IX 要证明的不是"哪个模型最好"，而是"插账之后一律更好"。"><span class="lz">证明六个底座里 AllSetTransformer 最强</span><span class="len">It crowns AllSetTransformer as the strongest backbone</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="2.04" data-tol="0.03" data-hint="找 GCN 那一块的 Transductive 行：Origin 与插账后最好者相减。" data-sol="Origin 72.98，插账后最好 75.02（RD-HGNN）→ 75.02 − 72.98 = 2.04，与表里印的 Δₒᵣᵢ = +2.04 吻合——顺带验证了 Δ 列的口径。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：表 IX 里 GCN 的 Transductive 行，Δ 值是多少个百分点（两位小数）？</span><span class="len">Numeric: in Table IX, what is the Δ for GCN's Transductive row (two decimals)?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：团队已经上线了一套 LightHGNN（图省事、模型小），现在想提升成绩但不想换系统。表 IX 给出什么建议？</span><span class="len">Transfer: a team runs LightHGNN in production (small and cheap) and wants gains without replacing the system. What does Table IX advise?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="换系统正是他们想避免的——而且表 IX 的数据说明不换也行：插账即可。"><span class="lz">必须换成 HGNN+ 才能提升</span><span class="len">They must migrate to HGNN+ to improve</span></button>
+        <button class="opt" data-correct="1" data-expl="正确！LightHGNN 是表 IX 里受益最大的一族（+5.80/+5.16/+8.35）——因为蒸馏丢掉的恰是结构与规则细节，而知识账是这两样的现成备份。不动模型主体，只在前面加一段知识嵌入工序即可。"><span class="lz">不用换：给 LightHGNN 前置一段知识嵌入即可——它恰是受益最大的一族（蒸馏丢掉的细节被账本补回）</span><span class="len">No swap needed: prepend the knowledge-embedding stage — LightHGNN is the biggest beneficiary since the ledgers restore what distillation squeezed out</span></button>
+        <button class="opt" data-expl="表 IX 里没有"不插账"的路线能涨——Origin 列是原装基线，它本身不会动。"><span class="lz">什么都不动，调一调学习率就能涨</span><span class="len">Change nothing; tuning the learning rate suffices</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>
+
+<!-- NEXT-CARD -->

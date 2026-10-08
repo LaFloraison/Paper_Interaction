@@ -1,0 +1,108 @@
+{
+  "kind": "extension",
+  "title": "HGNN: the layer everyone else starts from",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**HGNN**, the hypergraph neural network of Feng et al. (2019), is the model whose layer is the hypergraph convolution of card 1, $X \\mapsto \\sigma(D_v^{-1/2} H W_e D_e^{-1} H^{\\top} D_v^{-1/2} X \\Theta)$. It is derived by writing down a **hypergraph Laplacian** $\\Delta = I - D_v^{-1/2} H W_e D_e^{-1} H^{\\top} D_v^{-1/2}$ and reading the layer as the first-order spectral filter built from it.",
+      "plain": "HGNN is the first network that ran a graph-convolution-style layer directly on a hypergraph. It takes the same normalised operator a graph network uses, with the graph Laplacian replaced by the hypergraph Laplacian, so the group structure is never expanded away."
+    },
+    {
+      "t": "p",
+      "md": "**Where the layer comes from, in two steps.** A graph convolution is built from the graph Laplacian $L = D - A$: the filter is a function of $L$, and the cheapest useful version approximates that function by a low-order polynomial in $L$. HGNN does the same with the hypergraph Laplacian. Define the normalised operator $S = D_v^{-1/2} H W_e D_e^{-1} H^{\\top} D_v^{-1/2}$; then the hypergraph Laplacian is $\\Delta = I - S$, and reading $\\Delta$ as the hypergraph's version of the graph Laplacian makes the layer above the hypergraph counterpart of a graph convolution. **One fact worth holding: when every hyperedge has size 2, HGNN's operator is the familiar degree-normalised graph operator with self-loops, up to a constant factor** — card 4 checks this numerically. HGNN is therefore not a different species from the graph networks; it is their hypergraph generalisation."
+    },
+    {
+      "t": "p",
+      "md": "**What it improved over expanding the hypergraph into a graph.** Before HGNN, the only way to run a neural network on a hypergraph was to convert it first: either into all its pairs (clique expansion), or into a graph with one added vertex per hyperedge (star expansion), and then run a graph network on the result. Both conversions cost something a hypergraph network avoids. Clique expansion needs a number of edges that grows with the *square* of the hyperedge size, and in doing so it stops recording that the pairs came from one event. Star expansion is cheaper but adds vertices that exist only as bookkeeping. HGNN never converts: it multiplies by the incidence matrix and its transpose, so the cost is proportional to the number of memberships — the number of ones in $H$ — and the relation stays whole."
+    },
+    {
+      "t": "callout",
+      "md": "**The limitation, stated honestly, in one sentence:** the layer smooths vertex features along hyperedges and that is all it does. The hypergraph is an input fixed before training; the only things a network trains are $\\Theta$ and the optional per-hyperedge weights $W_e$. There is no mechanism inside the layer to invent a hyperedge, to reweight one from evidence, or to reason about the structure as data. A common over-reading is that HGNN *learns* the hypergraph — it does not."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the expansion HGNN avoids.** Take the same four-vertex hypergraph: $e_1=\\{1,2,3\\}$, $e_2=\\{1,4\\}$, $e_3=\\{2,4\\}$. Convert it to a graph by clique expansion and count the edges each hyperedge becomes."
+    },
+    {
+      "t": "calc",
+      "md": "e1 (size 3) → 3·2/2 = 3 edges    e2 (size 2) → 2·1/2 = 1 edge    e3 (size 2) → 2·1/2 = 1 edge    total = 5 edges"
+    },
+    {
+      "t": "p",
+      "md": "So the incidence matrix's $7$ memberships become $5$ pairwise edges. In this tiny example the counts are close. Watch what happens as groups grow: a single hyperedge of size $s$ becomes $s(s-1)/2$ pairs, so a 10-member group becomes 45 edges and a 982-member one becomes 481,671. HGNN's cost, by contrast, is the number of memberships — 10 and 982 respectively. Star expansion would instead add one auxiliary vertex per hyperedge: here $3$ new vertices, giving a graph on $7$ vertices of which $3$ are not in the data."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the layer, and what repeated smoothing does.** HGNN's operator is $S = I - \\Delta$, the normalised object on the left of $\\Theta$. On this hypergraph, applying $S$ to $x=(2,4,6,8)$ gives $(4.9142,\\ 5.4142,\\ 3.4142,\\ 5.5000)$ — the arithmetic of card 1, because HGNN's tensor product is exactly the layer of card 1. The spread of the values shrank from $6$ to about $2.09$. Apply the layer again:"
+    },
+    {
+      "t": "table",
+      "head": ["After", "Values", "Spread"],
+      "rows": [
+        ["1 layer", "$(4.9142,\\ 5.4142,\\ 3.4142,\\ 5.5000)$", "$2.09$"],
+        ["2 layers", "$(5.1297,\\ 5.2547,\\ 3.5725,\\ 5.3321)$", "$1.76$"],
+        ["5 layers", "$(5.2098,\\ 5.2117,\\ 3.6774,\\ 5.2209)$", "$1.54$"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "Each application pulls the values closer together, and after enough layers adjacent vertices become hard to tell apart. This **over-smoothing** is a property of the smoothing operator itself, not a bug in HGNN, and it is why these networks are kept shallow. It matters for reading the paper under study: because the backbone layer is unchanged, the same ceiling applies to it."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What did HGNN add over running a graph network on an expanded hypergraph?",
+      "opts": [
+        {
+          "md": "It works on the incidence matrix directly, so the group structure is kept and the cost grows with memberships rather than with pairs",
+          "correct": true,
+          "expl": "Correct. The hypergraph is never converted, so no edge has to be created and no auxiliary vertex is invented. This is the whole argument for a hypergraph-specific layer, and it is the argument the paper under study inherits."
+        },
+        {
+          "md": "It learns the hypergraph structure along with the weights",
+          "expl": "The structure is fixed input. Only the feature transform (and optional per-hyperedge weights) is trained, so this is a common over-reading rather than a property of HGNN."
+        },
+        {
+          "md": "It removes the need for any degree normalisation",
+          "expl": "The opposite is true. HGNN's improvement over a raw incidence-based sum is precisely the introduction of the degree normalisation — the square-root vertex factor and the hyperedge-size factor — without which large groups would dominate."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A hypergraph has one hyperedge of size 4 and one of size 5. How many edges does clique expansion produce in total?",
+      "answer": 16,
+      "tol": 0.01,
+      "hint": "Expand each hyperedge separately into all its pairs, then add the two counts.",
+      "sol": "A hyperedge of size s becomes s(s−1)/2 edges. Size 4 gives 4×3/2 = 6; size 5 gives 5×4/2 = 10. Total 6+10 = 16. Answering 20 counts each pair twice; answering 2 counts hyperedges instead of their expansion.",
+      "unit": "edges"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Which statement is the accurate one-sentence description of HGNN's limitation?",
+      "opts": [
+        {
+          "md": "It cannot handle hyperedges larger than a few members",
+          "expl": "It handles large hyperedges — that was a design goal, and the Dₑ⁻¹ factor exists to make them manageable. Size is not the limit."
+        },
+        {
+          "md": "It smooths vertex features along hyperedges and does nothing else; the structure is fixed input and never scrutinised or altered",
+          "correct": true,
+          "expl": "Correct. Everything the layer does is one round of structure-guided smoothing. It cannot reweight a hyperedge from evidence, add one, or treat the structure as something to reason about — which is exactly the gap the paper under study fills by placing a stage in front of this unchanged layer."
+        },
+        {
+          "md": "It is slower than graph networks",
+          "expl": "It is cheaper than clique expansion, which is quadratic in hyperedge size. Cost is not where the limitation lies; the limitation is in what the layer can represent."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** HGNN fixes the layer, so later work attacked a different question — how to change the *structure* the layer reads. Card 3 covers the two sharpest answers: reduce the hypergraph to a graph, or update the hypergraph as training proceeds."
+}

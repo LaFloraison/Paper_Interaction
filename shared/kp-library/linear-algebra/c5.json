@@ -1,0 +1,114 @@
+{
+  "kind": "extension",
+  "title": "Normalising by degree: why the square root",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "For a graph with degrees $d_1, \\dots, d_n$, the degree matrix is $D = \\mathrm{diag}(d_1, \\dots, d_n)$, and $D^{-1/2}$ is the diagonal matrix with entries $1/\\sqrt{d_i}$. Multiplying a matrix by $D^{-1/2}$ on the left and again on the right scales entry $(u,v)$ by $1/\\sqrt{d_u\\,d_v}$.",
+      "plain": "Divide each vertex's contribution by the square root of how many relations it is in, so that a vertex involved in a thousand groups does not shout a thousand times louder than one involved in a single group."
+    },
+    {
+      "t": "p",
+      "md": "**The problem.** Suppose every vertex simply adds up its neighbours' values. A vertex in 900 hyperedges then receives 900 contributions, and a vertex in one hyperedge receives one — not because the hub is 900 times more informative, but because it is 900 times better connected. Left uncorrected, this makes the numbers depend on the dataset's degree distribution rather than on its content."
+    },
+    {
+      "t": "p",
+      "md": "**Why the square root, and not the degree itself.** Dividing by the full degree would fix the imbalance but break symmetry: the influence of $u$ on $v$ would be scaled by $1/d_v$ while the influence of $v$ on $u$ would be scaled by $1/d_u$, and those differ whenever the degrees differ. Splitting the factor as $1/\\sqrt{d}$ on each side gives the symmetric weight $1/\\sqrt{d_u d_v}$ — the same in both directions — which is the standard construction $D^{-1/2} A D^{-1/2}$. A symmetric operator is what makes the corresponding matrix well behaved, which in turn is what keeps repeated application from blowing up."
+    },
+    {
+      "t": "callout",
+      "md": "Squaring the root gives you a useful slogan: **normalisation turns a growth of $d$ into a growth of $\\sqrt{d}$.** A vertex in $d$ relations ends up with total influence proportional to $\\sqrt{d}$ instead of $d$ — much gentler, while still rewarding connectivity rather than erasing it."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the star, by hand.** Degrees are $(1, 3, 1, 1)$, so $\\sqrt{d} = (1, 1.732, 1, 1)$ and the scale factors $1/\\sqrt{d} = (1, 0.577, 1, 1)$."
+    },
+    {
+      "t": "table",
+      "head": ["Vertex", "Degree $d$", "$1/\\sqrt{d}$", "Row sum of $D^{-1/2}AD^{-1/2}$"],
+      "rows": [
+        ["1", "1", "1.000", "0.577"],
+        ["2 (the hub)", "3", "0.577", "**1.732**"],
+        ["3", "1", "1.000", "0.577"],
+        ["4", "1", "1.000", "0.577"]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Read a single entry: $(1,2)$ of the normalised adjacency is $1/\\sqrt{1 \\times 3} = 0.577$.",
+          "why": "That is how much vertex 2's value can influence vertex 1. Without normalisation it would be 1 — so the hub's pull has already been cut by 42%."
+        },
+        {
+          "md": "Read the hub's total: its row sums to $3 \\times 0.577 = 1.732$.",
+          "why": "Unnormalised the hub's row would sum to 3. Normalised, it is $\\sqrt{3} = 1.732$ — the growth is now $\\sqrt{d}$, exactly as advertised."
+        },
+        {
+          "md": "Push it to the paper's actual scale. A vertex in 900 hyperedges would have total influence 900 unnormalised, but $\\sqrt{900} = 30$ normalised.",
+          "why": "A factor of thirty instead of a factor of nine hundred. That is the difference between a hub that dominates every result and a hub that merely matters more — and it is why this normalisation appears in essentially every graph network, including this paper's Equation (1)."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "The paper's Equation (1) uses this idea twice — once on the vertex side and once on the hyperedge side, because a *relation* can also be enormous (DBLP-Conf averages 982 authors per hyperedge). An unnormalised method would let that one 4,057-member hyperedge swamp everything. When you read Equation (1), expect two such factors, and expect them to be doing exactly this job."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why normalise by $\\sqrt{d}$ rather than by $d$?",
+      "opts": [
+        {
+          "md": "Because it is cheaper — a square root is faster than a division",
+          "expl": "Both are trivial. The reason is structural, not computational."
+        },
+        {
+          "md": "Because splitting the factor onto both endpoints keeps the operator symmetric, while dividing by $d$ does not",
+          "correct": true,
+          "expl": "Correct. $1/\\sqrt{d_u d_v}$ is the same weight in both directions; $1/d_v$ and $1/d_u$ are not. Symmetry is what makes the operator's behaviour stable under repeated application, which is what a deep network needs."
+        },
+        {
+          "md": "Because degrees are usually odd numbers",
+          "expl": "Degrees are arbitrary integers; parity plays no role here."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A vertex belongs to 400 relations. Unnormalised its total influence is 400. What is it after $\\sqrt{d}$ normalisation?",
+      "answer": 20,
+      "tol": 0.01,
+      "hint": "Take the square root of the degree — do not divide by it.",
+      "sol": "$\\sqrt{400} = 20$. Answering 1 is what dividing by the full degree would give. The point of the example is the scale of the change: influence growth drops from 400 to 20, so a well-connected vertex still counts for more, but twenty times rather than four hundred times.",
+      "unit": "influence factor"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The paper's Equation (1) normalises on the hyperedge side as well as the vertex side. Why is the second factor needed?",
+      "opts": [
+        {
+          "md": "For symmetry with the first factor",
+          "expl": "Aesthetic symmetry is not a reason. The second factor addresses a concrete failure that the first does not touch."
+        },
+        {
+          "md": "Because a single hyperedge can contain 982 vertices, and without damping it would dominate every vertex it touches",
+          "correct": true,
+          "expl": "Correct. The vertex-side factor limits how much a hub *receives*; the hyperedge-side factor limits how much an enormous relation *broadcasts*. DBLP-Conf has 20 hyperedges averaging 982 members, so without the second factor one relation would swamp the entire dataset. Both factors are responses to real structure in the data the paper uses."
+        },
+        {
+          "md": "Because hypergraphs always have more edges than vertices",
+          "expl": "Often the opposite is true. DBLP-Conf has 4,057 vertices and 20 hyperedges — far more vertices than relations."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** you now hold every operation in Equations (1) and (9) — sum over members, transpose, Hadamard gate, concatenate, and normalise by degree. Card 6 is the skip check for the section."
+}

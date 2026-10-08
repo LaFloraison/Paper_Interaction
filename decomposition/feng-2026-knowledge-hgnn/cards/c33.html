@@ -1,0 +1,55 @@
+<!-- ============ c33 公式(9) MDK-Fusion ============ -->
+<section class="card" data-c="33" data-title-zh="公式 (9) · MDK-Fusion 融合" data-title-en="Eq. (9) · MDK-Fusion">
+  <div class="card-inner">
+    <div class="card-kicker k-math"><span class="len">Equation 9 · fusing the two ledgers</span><span class="lz">公式 9 · 两本账合订</span></div>
+    <h2><span class="lz">式 (9)：两本账怎么合订成一份特征</span><span class="len">Eq. (9): binding two ledgers into one feature set</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">现在右手边有两本账：<b>结构账</b> X<sub>s</sub>（每个顶点 1 个数——参加几条超边，第 25 卡）与<b>规则账</b> X<sub>r</sub>（每个顶点 5 个数——内容×位置的清单，第 32 卡）。要把它们合订成一份特征 Z，塞进打分机器。</p>
+    <p class="len">Two ledgers now sit on the desk: the <b>structural ledger</b> X<sub>s</sub> (one number per vertex — membership counts, card 25) and the <b>rule ledger</b> X<sub>r</sub> (five numbers per vertex — the content×position lists, card 32). They must bind into one feature set Z for the scoring machine.</p>
+    <p class="lz">直接拼不行吗？论文说不行，并给了理由：两本账"厚度"悬殊（1 格 vs 5 格），直接拼成一页 6 格，那 1 格结构信息会被 5 格规则信息<b>稀释</b>——薄的那本等于没带。</p>
+    <p class="len">Why not simply concatenate? The paper says no, with a reason: the ledgers differ wildly in "thickness" (1 slot vs 5). Pasted directly into a 6-slot page, the single structural slot gets <b>diluted</b> by five rule slots — the thin ledger might as well be left home.</p>
+    <p class="lz"><b><span class="hl">合订配方两步：① 让结构账那个数"按位乘"进规则账的每一格（⊙，逐位相乘），得到一份"结构加权版"的规则账 X̃<sub>r</sub>；② 把加权版与原版并排拼成一页（‖），得到 10 格的 Z。</span></b></p>
+    <p class="len"><b><span class="hl">The binding recipe, two steps: (1) let the structural number multiply into every slot of the rule ledger (⊙, slot-wise), giving a "structure-weighted" copy X̃<sub>r</sub>; (2) staple the weighted copy and the original side by side (‖) into a 10-slot Z.</span></b></p>
+    <span class="tex-display" data-tex="\tilde{X}_r = X_s \odot X_r \qquad \text{and} \qquad Z = \tilde{X}_r \,\|\, X_r"></span>
+    <p class="formula-note"><span class="lz">逐符号：X<sub>s</sub> = 结构账（每人 1 个数）；X<sub>r</sub> = 规则账（每人 5 个数）；⊙ = "逐位相乘"（一个数乘进一整列，每个格子都乘一遍）；X̃<sub>r</sub> = 加权后的规则账；‖ = "并排拼接"（第 32 卡的老朋友）；Z = 最终的"知识嵌入特征"（每人 5 + 5 = 10 个数）。<b>读法：结构大的顶点，规则账被整体放大；结构小的顶点，规则账被整体压低。</b></span><span class="len">Symbol by symbol: X<sub>s</sub> = structural ledger (1 number each); X<sub>r</sub> = rule ledger (5 each); ⊙ = "slot-wise multiply" (one number times a whole column, every slot); X̃<sub>r</sub> = the weighted copy; ‖ = "side-by-side concatenation" (card 32's friend); Z = the final "knowledge-embedded feature" (5 + 5 = 10 numbers each). <b>Reading: structurally rich vertices get their rule ledger amplified; structurally poor ones get it damped.</b></span></p>
+    <p class="lz">论文自己打了个比方：这像 Transformer 里的"位置编码"——把一个额外的信息（结构分量）<b>注入</b>进每位特征里，而不是在名单末尾另起一格。结果就是：真正要紧的顶点，它的规则账会被顶出来；边缘顶点被压低但不消失。</p>
+    <p class="len">The paper's own analogy: this resembles positional encoding in Transformers — extra information (the structural weight) is <b>injected into every slot</b> rather than bolted on the end. Consequence: pivotal vertices' rule ledgers get pushed forward; marginal ones are damped but never deleted.</p>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>例 1（顶点甲合订，逐格算）：</b>结构账 X<sub>s</sub>(甲) = σ(2) ≈ <b>0.8808</b>（他参加 2 个组，第 25 卡的算例）；规则账 X<sub>r</sub>(甲) = [0, 0, 1.125, 1.0, 0]（第 32 卡算例）。逐位相乘：0.8808 × 0 = 0；0.8808 × 0 = 0；0.8808 × 1.125 ≈ <b>0.9909</b>；0.8808 × 1.0 = <b>0.8808</b>；0.8808 × 0 = 0。得 X̃<sub>r</sub> = [0, 0, 0.9909, 0.8808, 0]。</p>
+    <p class="len"><b>Example 1 (bind A's ledgers, slot by slot):</b> structural X<sub>s</sub>(A) = σ(2) ≈ <b>0.8808</b> (he joins 2 groups — card 25's walkthrough); rule X<sub>r</sub>(A) = [0, 0, 1.125, 1.0, 0] (card 32's walkthrough). Slot-wise: 0.8808 × 0 = 0; × 0 = 0; 0.8808 × 1.125 ≈ <b>0.9909</b>; 0.8808 × 1.0 = <b>0.8808</b>; × 0 = 0. So X̃<sub>r</sub> = [0, 0, 0.9909, 0.8808, 0].</p>
+    <p class="lz"><b>例 1 续（拼成 Z）：</b>加权版 ‖ 原版 = [0, 0, 0.9909, 0.8808, 0] ‖ [0, 0, 1.125, 1.0, 0] → <b>Z(甲) = [0, 0, 0.9909, 0.8808, 0, 0, 0, 1.125, 1.0, 0]</b>，共 10 格。前 5 格是"被结构放大镜看过一遍"的规则账，后 5 格是原账——机器同时看到两种视角。</p>
+    <p class="len"><b>Example 1, continued (bind into Z):</b> weighted ‖ original = [0, 0, 0.9909, 0.8808, 0] ‖ [0, 0, 1.125, 1.0, 0] → <b>Z(A) = [0, 0, 0.9909, 0.8808, 0, 0, 0, 1.125, 1.0, 0]</b>, ten slots. The first five are the rule ledger seen through the structural magnifier; the last five are the original — the machine sees both views at once.</p>
+    <p class="lz"><b>例 2（边缘顶点被压低）：</b>若某顶点的结构账只有 X<sub>s</sub> = 0.5（孤立，谁也不参加），规则账 [1.125, 0, 0, 0, 0] → 逐位乘：0.5 × 1.125 = <b>0.5625</b>，其余仍 0 → X̃<sub>r</sub> = [0.5625, 0, 0, 0, 0]；Z = [0.5625, 0, 0, 0, 0, 1.125, 0, 0, 0, 0]。对比甲：结构分量 0.8808 对上 0.5，同一笔悬账 1.125 被压到 0.5625——<b>结构的轻重，直接写进了规则账的每一格</b>。</p>
+    <p class="len"><b>Example 2 (a marginal vertex, damped):</b> suppose a vertex's structural ledger reads X<sub>s</sub> = 0.5 (isolated, no groups) and its rule ledger [1.125, 0, 0, 0, 0] → slot-wise: 0.5 × 1.125 = <b>0.5625</b>, rest stay 0 → X̃<sub>r</sub> = [0.5625, 0, 0, 0, 0]; Z = [0.5625, 0, 0, 0, 0, 1.125, 0, 0, 0, 0]. Against A's 0.8808, the same 1.125 entry is damped to 0.5625 — <b>structural weight, written into every slot of the rule ledger</b>.</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">⊙（逐位相乘）在这套配方里的作用是什么？</span><span class="len">What does ⊙ (slot-wise multiply) do in this recipe?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="拼接是 ‖ 的活儿——⊙ 不改变位数，它只把结构分量“乘进去”；两个符号各管一件事。"><span class="lz">把两本账并排接起来</span><span class="len">Joins the two ledgers side by side</span></button>
+        <button class="opt" data-correct="1" data-expl="对！它把一个结构分数按位乘进规则账，像给整张成绩单统一打个折——结构强的放大、结构弱的压低，结构信息就“注入”到了每一格。"><span class="lz">把结构分数乘进规则账的每一位，为整列统一加权</span><span class="len">Multiplies the structural score into every rule slot, weighting the whole column</span></button>
+        <button class="opt" data-expl="取平均会抹掉差异——⊙ 恰恰保留每一格的相对大小，只做整体缩放。"><span class="lz">把两本账对应位置取平均</span><span class="len">Averages the ledgers entry by entry</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="0.75" data-tol="0.01" data-hint="⊙ 是逐位相乘：结构分数 × 规则账里那一格——两个数直接乘。" data-sol="0.6 × 1.25 = 0.75。顺带记一个规律：结构分永远在 0 与 1 之间（它是 σ 的输出），规则格可以大于 1（位置分可达 1.125）——乘出来通常比原格小，但绝不改变位数。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：某顶点结构分 X<sub>s</sub> = 0.6，规则账某格 = 1.25。加权后这一格是多少？</span><span class="len">Numeric: a vertex's structural score X<sub>s</sub> = 0.6, a rule slot reads 1.25. The weighted slot?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：为什么论文不直接拼成 6 格（1 格结构 + 5 格规则），而要绕道做 ⊙ 再拼成 10 格？</span><span class="len">Transfer: why not concatenate into 6 slots (1 structural + 5 rule) instead of the ⊙ detour into 10?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="位数不省——10 格比 6 格还多。理由在“信息的呈现方式”，不在容量。"><span class="lz">为了节省位数</span><span class="len">To save slots</span></button>
+        <button class="opt" data-correct="1" data-expl="对！6 格里那 1 格结构信息会被 5 格规则稀释（论文原话：直接拼接导致结构知识利用不足）。绕道 ⊙ 把结构信息“发到每一格”里，再保留原账——结构知识不再是一格孤岛，而是全列的秤。"><span class="lz">避免结构信息被稀释：⊙ 把结构分数写进每一格，10 格里处处有结构的声音</span><span class="len">To avoid dilution: ⊙ writes the structural score into every slot, so all ten slots carry the structural voice</span></button>
+        <button class="opt" data-expl="论文没有这个限制——⊙ 只是乘法，10 格照样能喂给网络；位数变化不是障碍。"><span class="lz">因为网络只接受偶数维输入</span><span class="len">Because the network accepts only even dimensions</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout">
+      <b><span class="lz">本文如何用它：</span><span class="len">How the paper uses it:</span></b>
+      <span class="lz">下一卡：Z 备好了，式 (10) 把两个最终型号的装配线画出来——一个只用规则账，一个两本账都用。</span>
+      <span class="len">Next card: Z is ready; Eq. (10) draws the assembly lines of the two final models — one runs on the rule ledger alone, one on both.</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

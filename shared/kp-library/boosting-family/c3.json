@@ -1,0 +1,180 @@
+{
+  "kind": "extension",
+  "title": "Boosting: diversity by correction",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Boosting** builds an ensemble one model at a time. Model $m$ is fitted to the errors that the ensemble of the first $m-1$ models is still making, and the final prediction is a weighted sum $F(x) = \\sum_{m=1}^{M} \\alpha_m\\, h_m(x)$ of the base learners $h_m$ with fitted weights $\\alpha_m$. Each $h_m$ is deliberately a **weak learner** — barely better than a trivial guess on its own.",
+      "plain": "Train one small model. Look at where it is wrong. Train the next small model to fix exactly those mistakes. Repeat, and add up the models with weights. Each model exists to repair the last one, so the models are built in sequence, not side by side."
+    },
+    {
+      "t": "p",
+      "md": "**The motivating picture.** A single decision stump — one split, two outputs — is close to useless on a curved target. But imagine many stumps, each allowed to see how the running ensemble is doing and nudged to correct its worst region. The first stump gets the broad shape roughly right, the second fixes the biggest remaining error, the third fixes the biggest error after that, and so on. No individual stump is impressive; the accumulated sum can be. This is the opposite logic to bagging: bagging relies on models failing *differently and independently*, boosting relies on each model *depending on the last*."
+    },
+    {
+      "t": "p",
+      "md": "**A concrete way to do the correction: AdaBoost.** The oldest boosting algorithm reweights the training points rather than fitting residuals. After each round it increases the weight of the points the current ensemble misclassifies and decreases the weight of the points it gets right; the next weak learner is trained to focus on the now-heavier hard points. Each round also assigns the learner a weight $\\alpha$ that measures how much the ensemble should trust it: a learner with a low weighted error rate earns a large weight, a coin-flip learner earns almost none."
+    },
+    {
+      "t": "formula",
+      "tex": "\\alpha = \\frac{1}{2}\\ln\\!\\left(\\frac{1-\\epsilon}{\\epsilon}\\right)",
+      "note": "Here $\\epsilon$ is the weighted error rate of the round's weak learner. When the learner is accurate ($\\epsilon$ small) the ratio is large and $\\alpha$ is large; at $\\epsilon = 0.5$ the learner is no better than a coin and $\\alpha = 0$, so it is given no say at all.",
+      "gloss": [
+        {
+          "sym": "\\epsilon",
+          "md": "the weighted error rate of the weak learner on the current data weights — the fraction of weight it gets wrong"
+        },
+        {
+          "sym": "\\alpha",
+          "md": "the weight the ensemble gives this learner when summing predictions"
+        },
+        {
+          "sym": "\\ln",
+          "md": "the natural logarithm; here it converts a ratio of errors into the scale on which weights are added"
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Which kind of error does each family fix?** A model's error splits into *bias* — being systematically wrong because the model is too rigid to capture the pattern — and *variance* — being unreliably jumpy because the model is fitting the particular sample rather than the signal. Averaging many independent models cancels their independent jumps, so bagging and random forests attack variance; they barely change a systematic bias that all the trees share. Boosting works differently: each added model reduces the ensemble's systematic error on the points it is still getting wrong, so boosting attacks bias. This one distinction explains almost every practical difference between the two families, including the table below."
+    },
+    {
+      "t": "table",
+      "head": [
+        "",
+        "Bagging / random forest",
+        "Boosting"
+      ],
+      "rows": [
+        [
+          "How models are trained",
+          "In parallel, independently of one another",
+          "Sequentially, each depending on the one before"
+        ],
+        [
+          "What each model is fitted to",
+          "A bootstrap resample of the data",
+          "The current ensemble's remaining errors"
+        ],
+        [
+          "Error component mainly reduced",
+          "Variance",
+          "Bias"
+        ],
+        [
+          "Where diversity comes from",
+          "Different row samples plus random feature subsets",
+          "Each model specialising in the mistakes the ensemble still makes"
+        ],
+        [
+          "Base-learner size",
+          "Deep, fully grown trees",
+          "Very shallow trees — a stump at the extreme"
+        ],
+        [
+          "Behaviour on noisy labels",
+          "Robust: the noise is spread over many independent samples and averaged away",
+          "Fragile: the sequence keeps re-chasing the few hard, wrongly-labelled points"
+        ],
+        [
+          "Risk as you add models",
+          "Error falls, then flattens; adding more is safe",
+          "Error can start to rise; needs a learning rate and early stopping"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Common misconception.** \"Boosting is just bagging with more trees.\" The two are opposite in mechanism: bagging's members are independent and could be trained in any order, while boosting's members are a chain in which removing one invalidates the rest. A second misconception is \"boosting never overfits because each model is weak\" — with noisy labels a long boosting run will happily memorise the mislabelled points, which is why a learning rate and early stopping are standard parts of every boosting implementation."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — weighting a weak learner.** Suppose a round's stump has weighted error rate $\\epsilon = 0.3$: it gets $30\\%$ of the weight wrong. Its weight is $\\alpha = \\frac{1}{2}\\ln\\!\\left(\\frac{1-0.3}{0.3}\\right)$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Compute the ratio: $\\frac{1-0.3}{0.3} = \\frac{0.7}{0.3} = 2.333$.",
+          "why": "The ratio compares the weight of the correct answers to the weight of the errors. Greater than $1$ means the learner is right more than wrong, so its vote should count positively."
+        },
+        {
+          "md": "Take the logarithm: $\\ln(2.333) = 0.8473$.",
+          "why": "The log turns the comparison into a signed quantity: ratios above $1$ give positive logarithms (trust the learner), ratios below $1$ give negative ones (distrust it)."
+        },
+        {
+          "md": "Halve it: $\\alpha = \\frac{1}{2}\\times 0.8473 = 0.4236$.",
+          "why": "The factor of $\\frac{1}{2}$ normalises the weight so that a learner at the coin-flip boundary gets exactly $0$ — the next two rows show that."
+        },
+        {
+          "md": "Check the boundaries: at $\\epsilon = 0.1$, $\\alpha = \\frac{1}{2}\\ln(9) = 1.0986$; at $\\epsilon = 0.4$, $\\alpha = \\frac{1}{2}\\ln(1.5) = 0.2027$; at $\\epsilon = 0.5$, $\\alpha = \\frac{1}{2}\\ln(1) = 0$.",
+          "why": "A confident learner ($10\\%$ error) earns a weight of $1.0986$, more than five times the $0.2027$ of a weak $40\\%$ learner, and the useless $50\\%$ learner earns nothing. That is the whole point of the formula: accuracy is converted into influence."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — why noisy labels hurt a boosting chain.** Take one training row that is labelled $+1$ but truly belongs to the $-1$ class. A bagged forest shows it to roughly $63\\%$ of the trees and it is averaged among all their predictions, so its influence is diluted and mostly washed out by the correctly-labelled majority. A boosting run, by contrast, sees the ensemble keep getting this row wrong, keeps raising its weight, and eventually trains later weak learners almost exclusively to satisfy it. The ensemble's error on the clean rows can rise while its error on this single row falls to zero: the sequence has been captured by an outlier."
+    },
+    {
+      "t": "calc",
+      "md": "**Reading the contrast table, row by row.** Row 1 (*parallel vs sequential*): bagging's $M$ trees are independent, so they can be built on separate cores at the same time; boosting's $M$ trees form a chain and must be built in order. Row 3 (*variance vs bias*): averaging independent trees cancels their independent jumps, lowering variance; the sum of error-correcting trees lowers the systematic error, i.e. bias. Row 6 (*noise*): these two mechanisms give opposite noise behaviour — dilution for bagging, capture for boosting — which is why random forests tolerate dirtier labels than boosting does. Every row in the table traces back to the one structural fact that bagging is parallel and boosting is sequential."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In boosting, what is each new base learner fitted to?",
+      "opts": [
+        {
+          "md": "The original target values, using a fresh bootstrap sample",
+          "expl": "That describes bagging. Fitting every boosted learner to the raw target would make each round repeat roughly the same model, not correct the last."
+        },
+        {
+          "md": "The errors the current ensemble is still making",
+          "correct": true,
+          "expl": "Correct. Each stage looks at how far the running ensemble is from the truth and trains the next weak learner to reduce exactly that. This is why the models must be built in sequence and cannot be trained in parallel."
+        },
+        {
+          "md": "A random subset of the features",
+          "expl": "Feature subsetting is a random-forest device for decorrelating parallel trees. Boosting's diversity comes from the sequence, not from feature sampling."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A boosted round's weak learner has weighted error rate $\\epsilon = 0.2$. Using $\\alpha = \\frac{1}{2}\\ln\\!\\left(\\frac{1-\\epsilon}{\\epsilon}\\right)$, what weight does it earn? Give your answer to two decimal places.",
+      "answer": 0.6931,
+      "tol": 0.01,
+      "hint": "Form the ratio of correct weight to error weight, take its natural logarithm, then halve the result.",
+      "sol": "The ratio is 0.8/0.2 = 4, so alpha = (1/2)·ln(4) = (1/2)·1.3863 = 0.6931. For comparison, a 30%-error learner earns 0.4236 and a coin-flip learner earns 0: halving the error rate from 40% to 20% more than triples the weight.",
+      "unit": "weight"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A dataset has $5\\%$ of labels flipped at random. Which ensemble family is more likely to cope, and why?",
+      "opts": [
+        {
+          "md": "Boosting, because the sequence eventually corrects every wrong prediction including the flips",
+          "expl": "\"Correcting every wrong prediction\" is precisely the failure mode here. The flipped rows are wrong in the data, and forcing the ensemble to satisfy them means memorising the noise."
+        },
+        {
+          "md": "Bagging, because each noisy row appears in only about $63\\%$ of the trees and is diluted by averaging, whereas boosting keeps re-chasing it",
+          "correct": true,
+          "expl": "Correct. Averaging over independent samples dilutes the influence of any single mislabelled row; the boosting sequence instead keeps raising that row's weight and can be dragged toward it. This is exactly the noise-behaviour row of the contrast table, and the reason gradient-boosting implementations expose a learning rate and early stopping."
+        },
+        {
+          "md": "Neither; both are equally sensitive to label noise",
+          "expl": "They behave quite differently. The parallel-vs-sequential structure gives them different noise sensitivity, which is a deliberate, checkable difference."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** this card described boosting in words. The next card turns it into an algorithm — fitting each new tree to the negative gradient of the loss, which for squared error is exactly the ensemble's residual."
+}

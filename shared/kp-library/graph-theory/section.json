@@ -1,0 +1,7 @@
+{
+  "key": "graph-theory",
+  "name": "Graph theory",
+  "title": "Graph theory: the vocabulary every graph paper assumes",
+  "blurb": "Before anything can be learned on a hypergraph, the hypergraph has to be written down as numbers. This section supplies that vocabulary from zero — vertices, degrees, and the three matrices (adjacency, incidence, Laplacian) that turn a picture into arithmetic. The incidence matrix defined in card 4 is the exact object in the paper's Equation (3).",
+  "skip_hint": "If you can build an incidence matrix from a picture and say what its row sums mean, skip this section."
+}

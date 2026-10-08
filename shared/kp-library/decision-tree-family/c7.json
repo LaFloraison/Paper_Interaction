@@ -1,0 +1,176 @@
+{
+  "kind": "extension",
+  "title": "When decision trees fail",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A decision tree is a **piecewise-constant, axis-parallel** model. *Piecewise-constant*: the feature space is divided into one region per leaf, and the prediction is the same number throughout each region, so a tree can never express a smooth or gradual change inside a leaf. *Axis-parallel*: every test compares a single feature with a threshold, so every boundary between two regions is a hyperplane perpendicular to one feature axis, and a boundary that runs diagonally relative to the axes can only be approximated, in steps. Every limitation in this card follows from one of those two words.",
+      "plain": "A tree slices the feature space into boxes with cuts that are always parallel to the feature axes, and it gives the same answer everywhere inside each box. Anything that is not box-shaped has to be imitated with many boxes."
+    },
+    {
+      "t": "p",
+      "md": "**1. Overfitting.** Covered in card 6, and repeated here for completeness: a tree grown until every leaf is pure reaches zero training error regardless of how noisy the labels are, because a leaf holding one row is pure. The symptom is a large gap between training and validation accuracy, and the treatment is pruning, a depth limit, or averaging many shallow trees."
+    },
+    {
+      "t": "p",
+      "md": "**2. Axis-parallel splits cannot express a diagonal boundary cheaply.** Take the grid of integer points with coordinates from 1 to 4, and label a point positive exactly when its first coordinate exceeds its second. The positive points form a staircase: at $x = 2$ there is one, at $x = 3$ there are two, at $x = 4$ there are three. To reproduce this boundary exactly, every leaf region must be a rectangle whose sides are parallel to the axes — a product of an interval of $x$ values with an interval of $y$ values. The staircase needs three such rectangles: $y = 1$ across $x$ from 2 to 4; $y = 2$ across $x$ from 3 to 4; and the single point $(4,3)$. Two rectangles are impossible: whichever rectangle contains $(4,3)$ cannot also contain $(2,1)$, and any rectangle spanning both would have to include the off-staircase point $(2,2)$."
+    },
+    {
+      "t": "p",
+      "md": "The point generalises. A staircase whose step heights are 1, 2, 3, ..., $k$ needs $k$ rectangles, so the number of leaves grows linearly with the resolution demanded of the boundary. A linear model with two coefficients represents the same diagonal exactly, with one boundary. So on any problem whose true boundary is oblique, a tree pays in leaves for what a linear model gets for free — and it pays again in the variance of having many leaves. This is one of the reasons boosted trees and linear models are often blended rather than chosen between, and it is why a single oblique boundary is a case where a tree is the wrong tool."
+    },
+    {
+      "t": "p",
+      "md": "**3. No extrapolation beyond the training range.** A regression leaf predicts the mean of the targets that reached it. The mean of a set of numbers always lies between the smallest and the largest of them, so a regression tree can never predict a value larger than the largest training target in its leaf, nor smaller than the smallest. And because the leaf is a region, the prediction does not change as a test point moves further and further outside the training data: it stays at that mean forever."
+    },
+    {
+      "t": "p",
+      "md": "**4. Instability.** The chosen splits depend on comparisons between criteria that are often close, and a close comparison can be reversed by a small change in the data. In the six-row dataset of card 3, Outlook wins the root decisively: information gain 0.4591 against Wind's 0.0817. Change the label of row 5 from Yes to No — one label out of six — and the parent becomes 2 Yes and 4 No, after which Outlook's gain collapses to 0.0441 while Wind's rises to 0.4591. The root test changes from Outlook to Wind. A single relabelled row out of six has rewritten the tree's first question."
+    },
+    {
+      "t": "p",
+      "md": "**5. Sensitivity to feature scaling: there is none, and that is a strength.** A test on a numeric feature is $x_j \\le t$. Replace $x_j$ by $c\\,x_j$ for any positive constant $c$ and the test $c\\,x_j \\le c\\,t$ routes exactly the same rows, so every candidate score is unchanged and the fitted tree is identical. This holds for any strictly increasing transformation: taking logarithms, or ranks, or monotone rescaling to a fixed interval, all leave the set of achievable partitions untouched. Trees therefore need no feature standardisation, unlike distance-based models and gradient-descent models. One boundary case is worth stating, because the invariance is often overstated: a *non-monotone* transformation breaks it. Squaring a feature that takes negative values reorders the rows along that feature, and the tree changes. The invariance is with respect to monotone transformations only."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Property",
+        "Consequence",
+        "What can be done"
+      ],
+      "rows": [
+        [
+          "Grown to purity, leaves hit single rows",
+          "Zero training error regardless of label noise; a large train-validation gap",
+          "Prune (card 6), cap the depth, or average many shallow trees"
+        ],
+        [
+          "Axis-parallel boundaries",
+          "A diagonal or oblique boundary costs a staircase of leaves; shallow trees cannot fit it at all",
+          "Feed a linear combination of the features as an extra column, blend with a linear model, or accept many leaves"
+        ],
+        [
+          "Prediction constant on each leaf",
+          "No extrapolation: the output is capped by the training target range, and forecasts go flat outside it",
+          "Remove a trend or rescale the target before fitting; do not use a tree to forecast a growing series"
+        ],
+        [
+          "Split choice decided by close comparisons",
+          "Small data changes can rewrite the split structure — instability",
+          "Average over many trees, which is exactly what a random forest or a boosted ensemble does"
+        ],
+        [
+          "No dependence on feature scale",
+          "No standardisation needed, and results are unchanged by monotone transforms of any feature",
+          "Nothing to fix — but do not rely on it for non-monotone transforms such as squaring a signed feature"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The fourth and fifth rows are the reason ensembles exist.** Instability is the one failure mode on this list that is not a limitation of the model class but an opportunity: if the tree structure changes when the data changes slightly, then averaging the trees fitted to many slightly different versions of the data cancels much of the change. That is the entire justification for random forests and, with a different correction mechanism, for the boosted ensemble in this paper. Extrapolation and axis-parallel boundaries, by contrast, do not go away in an ensemble — a sum of trees is still piecewise constant and still cannot predict outside the range its trees saw."
+    }
+  ],
+  "example": [
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "**Step 1 — build a regression leaf.** Suppose the training targets that reach a particular leaf are 20, 24 and 31. The leaf's prediction is their mean: $(20 + 24 + 31)/3 = 75/3 = 25$.",
+          "why": "The mean is the constant that minimises squared error over those three rows, which is why the criterion of card 5 and the leaf's prediction are the same quantity. A regression tree is a collection of conditional means."
+        },
+        {
+          "md": "**Step 2 — query it far outside the training range.** A test row whose numeric feature value is far beyond anything in the training set still routes through the same sequence of tests if each threshold comparison points the same way, and lands in the same leaf. Its prediction is 25, the same as a training row's.",
+          "why": "Nothing in the model depends on the distance from the training data. The leaf region extends to infinity in whichever directions the thresholds allow, and the prediction is constant on the whole of it."
+        },
+        {
+          "md": "**Step 3 — see why this kills trend forecasting.** If the feature is time, the last leaf's region is the unbounded interval from the final threshold onwards, and every future time point lands in it and receives that leaf's mean. A series that grew throughout the training window is forecast to hold exactly still at the average level of the last window, forever.",
+          "why": "This is a structural cap, not a tuning problem. No amount of depth or boosting changes it, because every tree in the ensemble is subject to the same argument, and a sum of numbers each bounded above by its own training maximum is bounded above by their sum. Growing a trend-based series without removing the trend first will always produce a forecast that is flat and too low, and the standard remedies are to difference or detrend the target before fitting, or to fit the trend with a model that can extrapolate it."
+        },
+        {
+          "md": "**Step 4 — the oblique boundary, counted.** Return to the 4-by-4 staircase. A single leaf cannot do it: one rectangle containing all six positive points also contains the negative points $(2,2)$, $(3,3)$. Two cannot do it, by the argument in the paragraph above. Three can, so the minimum leaf count is 3 — against one boundary for the linear rule $x > y$.",
+          "why": "The comparison is the useful part. The tree has not failed at an impossible task; it has paid three leaves where a linear model paid two coefficients. That price is the honest measure of how badly a tree suits an oblique boundary, and it is why the answer is often to give the tree the linear combination as an input column rather than to abandon trees."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**What this example does not show.** The instability demonstration is entirely absent from these steps: it needs a comparison of two root candidates, which the paragraph on instability above carries out with its numbers. Neither part of the example shows overfitting, which requires a training and a validation set to measure."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "A regression tree trained on a series with targets between 10 and 60 is asked for a prediction at a feature value far beyond the largest one it saw. What is the guarantee?",
+      "opts": [
+        {
+          "md": "The prediction grows with the feature value, because the deepest leaf on that side has the largest mean",
+          "expl": "There is no such progression. Moving further along a feature does not move you into a new leaf, because a leaf region is unbounded in both directions on each axis; you simply stay in the same region and receive the same constant."
+        },
+        {
+          "md": "The prediction is a number that appears in the training targets of the leaf the point lands in, and it does not change as the point moves further out",
+          "correct": true,
+          "expl": "Correct, with the small refinement that the prediction is the leaf's mean, which lies between the smallest and largest training targets in that leaf rather than necessarily equalling one of them. Two consequences follow and both matter: the prediction can never exceed 60, and it is constant outside the training range. A tree cannot express a trend, which is why it is the wrong default for a trending time series."
+        },
+        {
+          "md": "The tree refuses to answer, because the point is outside the convex hull of the training features",
+          "expl": "A tree has no such concept. Testing whether a point lies inside the training region would require the model to retain the training features, which it does not — it retains only thresholds and leaf means."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "The training targets reaching a particular regression leaf are 40, 44 and 60. A test row lands in that leaf. What does the tree predict?",
+      "answer": 48,
+      "tol": 0.01,
+      "hint": "A regression leaf predicts one summary of its training targets, and it is the summary that minimises squared error.",
+      "sol": "The leaf predicts the mean: (40 + 44 + 60)/3 = 144/3 = 48. Note that 48 is not the midpoint of the range, which would be (40 + 60)/2 = 50; the mean is pulled towards the two low values because they outnumber the high one. The mean is used rather than the midpoint or the median-to-the-extremes because it is the constant that minimises squared error, which is the criterion the tree was grown with.",
+      "unit": "predicted value"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A team standardises every feature of a table to have mean 0 and standard deviation 1 before fitting a decision tree, then a colleague re-runs the pipeline without the standardisation and gets a slightly different tree. Which is the correct reading?",
+      "opts": [
+        {
+          "md": "The difference proves the model is unstable, since standardisation is a harmless preprocessing step",
+          "expl": "Standardisation is monotone: it subtracts a constant and divides by a positive constant, so it preserves the order of the rows along every feature. A partition achievable before is achievable after, and no candidate score can change. Something else caused the difference."
+        },
+        {
+          "md": "The difference cannot come from the standardisation itself, since it is a monotone transformation and leaves the fitted tree unchanged; look for a different cause such as a different random seed or a different data split",
+          "correct": true,
+          "expl": "Correct. Monotone rescaling maps each threshold t to (t - m)/s and routes exactly the same rows, so every candidate split scores identically and the tree is the same object. Real causes of a changed tree are a different random seed when there are ties in the criterion, a different train-validation split feeding the pruning decision, a different subsample of rows or features, or a preprocessing step that is not monotone — squaring a signed feature, or log-transforming one that contains zeros."
+        },
+        {
+          "md": "The difference is expected, because trees are affected by feature magnitude just as linear models are",
+          "expl": "This is the intuition carried over from gradient-based models, where an unscaled feature does change the step it takes. In a tree, magnitude plays no role at all: only the ordering of rows within a single feature matters, and a threshold test can express nothing else."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A dataset has a single continuous feature and a binary label separated by the diagonal rule \"positive when the feature is above a straight line that is not parallel to either axis\". A decision tree, a linear classifier, and a boosted ensemble of 200 depth-3 trees are all fitted. Which statement is best supported?",
+      "opts": [
+        {
+          "md": "The boosted ensemble eliminates the limitation, because 200 trees can represent any boundary",
+          "expl": "Two hundred piecewise-constant, axis-parallel trees sum to a piecewise-constant, axis-parallel model. The sum has more steps than one tree, and the steps can approximate the diagonal more finely, but the boundary remains a staircase and the leaf count grows with the required resolution. Averaging removes variance; it does not remove the model class's inability to express an oblique line in one step."
+        },
+        {
+          "md": "The linear classifier represents the boundary exactly, the tree needs a staircase of leaves to approximate it, and boosting buys finer staircases at the cost of many leaves rather than changing the shape",
+          "correct": true,
+          "expl": "Correct. This is the comparison worth holding on to: the limitation is a property of the hypothesis space, and ensembling expands that space outward rather than sidewise — more boxes, never a box with a diagonal side. In practice boosted trees still win on tables because real tables rarely have a single clean oblique boundary and usually have many mixed feature types, which is the compensating side of the trade recorded in card 1."
+        },
+        {
+          "md": "None of the three can fit the boundary, because the true rule is not representable in any of these hypothesis spaces",
+          "expl": "A linear classifier represents this rule exactly, in one boundary and two coefficients — this is one of the cases where a linear model is strictly the better tool. The mistake is to read the tree's difficulty as shared by every model."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the section ends with the skip check. Card 8 collects the definitions and the criteria in one list and asks whether you can leave without them."
+}

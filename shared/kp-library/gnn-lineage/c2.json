@@ -1,0 +1,139 @@
+{
+  "kind": "extension",
+  "title": "Message passing: the recipe almost every graph network instantiates",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Message passing** is the update rule in which each vertex replaces its feature vector by a learned function of two things: its own current feature, and a symmetric aggregation of its neighbours' current features. Written for a single vertex $v$ and a single layer,",
+      "plain": "For every vertex, gather the numbers from its neighbours, squash that bag of numbers into one summary with an operation that ignores order, combine that summary with the vertex's own numbers, push the result through a small learned function, and apply a nonlinearity. That is one layer."
+    },
+    {
+      "t": "formula",
+      "tex": "h_v^{(l+1)} = \\sigma\\left( W_{s}\\, h_v^{(l)} + W_{n}\\, \\mathrm{AGG}_{u \\in \\mathcal{N}(v)}\\left( h_u^{(l)} \\right) \\right)",
+      "note": "Read it left to right as four moves: **aggregate** the neighbours symmetrically, **transform** the result with a learned matrix, **add** the vertex's own transformed feature (a *self-connection*), then **apply** a nonlinearity $\\sigma$. Network architectures differ in which choices they make for $\\mathrm{AGG}$ and how they set the weights — but they are all this shape.",
+      "gloss": [
+        { "sym": "h_v^{(l)}", "md": "vertex $v$'s feature vector before this layer. ${}^{(l)}$ is the layer index; ${}^{(0)}$ is the raw input feature." },
+        { "sym": "h_u^{(l)}", "md": "the feature vector of a neighbour $u$ of $v$, at the same stage" },
+        { "sym": "\\mathcal{N}(v)", "md": "the *set* of $v$'s neighbours — a set, with no order, which is why the next symbol must be symmetric" },
+        { "sym": "\\mathrm{AGG}", "md": "a symmetric operation applied to the bag of neighbour vectors: a sum, a mean, or a componentwise maximum. Any one of these returns the same vector for every ordering of the bag." },
+        { "sym": "W_{n}, W_{s}", "md": "learned matrices. $W_n$ is applied to the aggregated neighbour summary; $W_s$ to the vertex's own feature. Both are trained by gradient descent like any weight." },
+        { "sym": "\\sigma", "md": "a nonlinearity applied entry by entry (a ReLU is the common choice). Without it, stacked layers collapse into one linear map and depth buys nothing." },
+        { "sym": "h_v^{(l+1)}", "md": "the vertex's new feature vector, which the next layer will read exactly as this layer read $h_v^{(l)}$" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Why each piece is there.** The aggregation is symmetric because of card 1: it is the only way to consume an unordered bag. The self-connection exists because a vertex's own state would otherwise be overwritten by its neighbourhood every layer, and a vertex in a dense region would lose all trace of itself. The learned matrices exist because the *shape* of a useful summary is not known in advance — the layer learns which directions in feature space matter. The nonlinearity exists because a composition of linear maps is a linear map: with no $\\sigma$, a hundred layers would be algebraically a single matrix, and depth would be a cosmetic change of notation."
+    },
+    {
+      "t": "p",
+      "md": "**The self-connection has two spellings.** One is the explicit $W_s h_v^{(l)}$ term above. The other is to add a *self-loop* to the graph — to declare every vertex its own neighbour — and then let the single aggregation include $v$ itself. These are the same idea written differently, and the choice of spelling is a convention of the paper rather than a different model. It is worth knowing both, because the GCN of card 3 uses the self-loop spelling and the formula above uses the explicit term."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "The claim to take away: GCN, GAT, GraphSAGE and GIN are not four unrelated inventions. Each is this one template with a different answer to \"what is $\\mathrm{AGG}$, and what weights does it use?\" — GCN fixes the weights by degree, GAT learns them per edge, GraphSAGE samples the bag before aggregating, and GIN asks which choice of $\\mathrm{AGG}$ is most discriminating. When you read a new graph architecture, find these four slots and you have read the method."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — one layer by hand.** A vertex $v$ has self-feature $1$ and two neighbours with features $2$ and $6$. Take $\\mathrm{AGG}$ to be the sum, set $W_s = 0$ for this example so the self term enters through the aggregation instead, use a scalar weight $W_n = 0.5$, and let $\\sigma$ be the ReLU $\\sigma(z) = \\max(0, z)$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Aggregate the neighbours. Sum: $2 + 6 = 8$.",
+          "why": "The bag is $\\{2, 6\\}$. Because the operation is a sum, writing the bag as $\\{6, 2\\}$ gives the same $8$ — this is the symmetry card 1 demanded."
+        },
+        {
+          "md": "Add the self-connection. Instead of $W_s h_v$ use the self-loop spelling: include $v$ in its own bag, so the bag becomes $\\{1, 2, 6\\}$ and the sum is $1 + 2 + 6 = 9$.",
+          "why": "This is where the vertex's own state survives the layer. Without it the output would be $8$, carrying no trace of $v$'s feature of $1$."
+        },
+        {
+          "md": "Transform. $0.5 \\times 9 = 4.5$.",
+          "why": "The learned matrix is what reshapes the summary; here it is a single scalar, so the arithmetic stays visible."
+        },
+        {
+          "md": "Apply the nonlinearity. $\\sigma(4.5) = \\max(0, 4.5) = 4.5$.",
+          "why": "The ReLU leaves positive values alone and clips negatives to zero. Had the transform produced $-4.5$, the output would be $0$ — the layer's way of saying \"this pattern is absent\"."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the same layer with the three aggregations side by side.** A vertex $v$ has self-feature $4$ and three neighbours with features $1$, $2$ and $3$. Keep $W_n = 0.5$, keep the self-loop spelling so the bag is $\\{4, 1, 2, 3\\}$, and apply the ReLU at the end."
+    },
+    {
+      "t": "table",
+      "head": ["Aggregation", "Bag summary", "After $\\times 0.5$", "After ReLU"],
+      "rows": [
+        ["sum", "$4 + 1 + 2 + 3 = 10$", "$5.0$", "$5.0$"],
+        ["mean", "$10 / 4 = 2.5$", "$1.25$", "$1.25$"],
+        ["max", "$\\max(4, 1, 2, 3) = 4$", "$2.0$", "$2.0$"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "Every entry comes from the same formula; only the $\\mathrm{AGG}$ slot changed. Reorder the bag to $\\{2, 4, 3, 1\\}$ and each row is unchanged: the sum is still $10$, the mean still $2.5$, the max still $4$. Note also what the three columns *preserve*. Sum keeps the total and therefore the size of the neighbourhood. Mean discards the size — a bag of three values summing to $3$ and a bag of one value equal to $3$ both average to $1$. Max keeps only the largest contribution and forgets everything else. Example 2 shows the values differ; card 5 shows a pair of graphs where mean and sum disagree about whether two neighbourhoods are even the same."
+    },
+    {
+      "t": "callout",
+      "md": "This example does not exercise the learned matrices $W_s$ and $W_n$ in more than one dimension, and it does not stack two layers. Both omissions are deliberate: the arithmetic stays checkable by eye. Card 3's numeric example applies a full degree-normalised layer, and card 6 covers what stacking does."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which part of the message-passing update is what makes the layer usable on a graph at all, rather than a mere table of independent rows?",
+      "opts": [
+        {
+          "md": "The nonlinearity $\\sigma$",
+          "expl": "The nonlinearity is what makes *stacking* layers useful, by stopping the composition collapsing to one linear map. It has nothing to do with graphs — a network on grids, on text, on anything uses one."
+        },
+        {
+          "md": "The symmetric aggregation $\\mathrm{AGG}$ over the neighbour set",
+          "correct": true,
+          "expl": "Correct. $\\mathcal{N}(v)$ is a set with no order, so the only operations that can consume it are the symmetric ones. Swap $\\mathrm{AGG}$ for a position-weighted read and, as card 1 showed, the layer's output starts depending on how the file was written."
+        },
+        {
+          "md": "The self-connection",
+          "expl": "The self-connection keeps the vertex's own state from being washed out, which is important for what the network can represent — but it is not what makes the operation legal on an unordered neighbour set."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A vertex has self-feature $4$ and neighbours with features $1$, $2$ and $3$. Use the self-loop spelling, sum aggregation, weight $W_n = 0.5$, and ReLU. What is the vertex's new feature?",
+      "answer": 5,
+      "tol": 0.01,
+      "hint": "Build one bag containing the vertex and all its neighbours, take the sum first, and only then apply the weight.",
+      "sol": "The bag is $\\{4, 1, 2, 3\\}$; its sum is $4 + 1 + 2 + 3 = 10$. The weight gives $0.5 \\times 10 = 5.0$, and the ReLU $\\max(0, 5.0)$ leaves it at $5.0$. A common slip is to weight first and sum afterwards — that gives the same number here, but it stops being equal as soon as the weight differs per vertex.",
+      "unit": "new feature"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You want a layer to be able to tell that a vertex has three neighbours rather than one, all with identical features. Which $\\mathrm{AGG}$ choice supports that, and why?",
+      "opts": [
+        {
+          "md": "Mean — because it divides by the number of neighbours",
+          "expl": "Dividing by the count is exactly what *removes* the count from the answer. A bag of three equal values and a bag of one of that same value average to the same number, so a mean aggregator cannot see the difference the question asks about."
+        },
+        {
+          "md": "Max — because the largest contribution is unaffected by how many smaller ones exist",
+          "expl": "That is the opposite of what is wanted. Max keeps only the largest value, so three neighbours with feature $2$ and one neighbour with feature $2$ both give $2$."
+        },
+        {
+          "md": "Sum — because it accumulates every contribution, so its value grows with the number of neighbours",
+          "correct": true,
+          "expl": "Correct. Three neighbours of feature $1$ sum to $3$; one neighbour of feature $1$ sums to $1$. The sum carries the cardinality of the neighbourhood, which the mean normalises away and the max ignores. This is precisely the distinction GIN exploits in card 5."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** card 3 fills the $\\mathrm{AGG}$ and weights of this template with the specific choice Kipf and Welling made — a degree-normalised sum — and shows what the normalisation buys."
+}

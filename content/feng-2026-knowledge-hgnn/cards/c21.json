@@ -1,0 +1,8 @@
+{
+  "id": "21",
+  "kind": "include",
+  "library": "spectral-spatial",
+  "chapter": "pre",
+  "section": "2.4 The graph-network half",
+  "kicker": "Extension · Two roads to a graph convolution"
+}

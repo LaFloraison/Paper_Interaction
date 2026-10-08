@@ -1,0 +1,110 @@
+{
+  "kind": "extension",
+  "title": "The incidence matrix: a hypergraph written as a table",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "The incidence matrix of a hypergraph $H = (V, E)$ is the $|V| \\times |E|$ matrix $H$ whose entry $H_{ve}$ is 1 if vertex $v$ belongs to hyperedge $e$ and 0 otherwise. Each row is a vertex and each column is one relation; the 1s in a column mark the members of that hyperedge.",
+      "plain": "Make a table: one row per thing, one column per relation, and put a 1 wherever that thing takes part in that relation. That table is the hypergraph."
+    },
+    {
+      "t": "p",
+      "md": "**Why this matrix, and not the adjacency matrix.** The adjacency matrix of card 1 stores *pairs*, so it cannot express a relation that holds five vertices at once without first inventing all ten pairs — which is exactly the information loss that motivated hypergraphs in the first place. The incidence matrix stores relations directly. It makes no assumption that a relation has two members, which is why the same object describes a plain graph (every column has two 1s) and a hypergraph (a column may have any number) without a change of notation."
+    },
+    {
+      "t": "p",
+      "md": "Two conventions are worth fixing now, because this paper uses the second. Some authors index $H$ by edges first and vertices second; this paper writes it with **rows = vertices, columns = hyperedges**, and uses the letter $H$ for the matrix as well as the hypergraph. When you read Equation (3) later, $H_{ve}$ is the entry you have just built."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "Note the collision of names: $H$ is both the hypergraph and its incidence matrix, and $E$ is both the edge set and (in Chapter 6's tables) an experimental setting. Papers reuse letters ruthlessly. Whenever a symbol appears, read what it is *doing* in that line rather than trusting the letter."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the dorm, as a table.** Three students, one relation. Rows: Zhang, Li, Wang. Columns: the single hyperedge \"dorm 302\"."
+    },
+    {
+      "t": "formula",
+      "tex": "H = \\begin{pmatrix} 1 \\\\ 1 \\\\ 1 \\end{pmatrix}",
+      "note": "Three rows, one column, all three entries 1 — every student takes part in the one relation. This is the smallest possible hypergraph that is **not** a plain graph, because its single column has three 1s rather than two.",
+      "gloss": [
+        { "sym": "H", "md": "the incidence matrix — rows are vertices, columns are hyperedges" },
+        { "sym": "H_{ve}", "md": "1 exactly when vertex $v$ is a member of hyperedge $e$" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the same table for a plain graph.** Take the four-person graph again, with rows 1–4 and columns $e_1=\\{1,2\\}$, $e_2=\\{2,3\\}$, $e_3=\\{2,4\\}$:"
+    },
+    {
+      "t": "formula",
+      "tex": "H = \\begin{pmatrix} 1 & 0 & 0 \\\\ 1 & 1 & 1 \\\\ 0 & 1 & 0 \\\\ 0 & 0 & 1 \\end{pmatrix}",
+      "note": "Read column $e_2$: the 1s sit in rows 2 and 3, so $e_2 = \\{2,3\\}$. **A column tells you its own members** — you never need the drawing again.",
+      "gloss": [
+        { "sym": "H_{2e_2}", "md": "vertex 2 is in edge $e_2$, so this entry is 1" },
+        { "sym": "H_{1e_2}", "md": "vertex 1 is not in edge $e_2$, so this entry is 0" }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Compare the two matrices above and you have the whole difference between the two kinds of object: in the dorm's incidence matrix one column holds three 1s; in the graph's every column holds exactly two. **A plain graph is precisely the case where every column has exactly two 1s** — the same statement the title-decode card made about hyperedges, now visible in the arithmetic."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In this paper's convention, what does a column of the incidence matrix represent?",
+      "opts": [
+        {
+          "md": "One vertex and the relations it belongs to",
+          "expl": "That is a row. Rows and columns are transposes of each other, so mixing them up is easy and consequential — it silently swaps the two degree columns of Table I."
+        },
+        {
+          "md": "One hyperedge, with 1s marking its members",
+          "correct": true,
+          "expl": "Correct. A column is a relation; the 1s in it name the vertices that take part. This is what makes the incidence matrix able to describe a relation of any size."
+        },
+        {
+          "md": "The number of hyperedges",
+          "expl": "The count of hyperedges is the *number* of columns, not the content of any one of them."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A hypergraph has 7 vertices and 4 hyperedges. How many entries does its incidence matrix have in total?",
+      "answer": 28,
+      "tol": 0.01,
+      "hint": "The matrix has one row per vertex and one column per hyperedge.",
+      "sol": "The matrix is $7 \\times 4$, so it has $7 \\times 4 = 28$ entries. The number of 1s inside it is a different quantity — that is the total membership count, which you would need the actual edges to know.",
+      "unit": "entries"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why does this paper write its network layer in terms of the incidence matrix rather than the adjacency matrix?",
+      "opts": [
+        {
+          "md": "Because the incidence matrix is smaller",
+          "expl": "It is usually *larger*: $|V| \\times |E|$ entries against $|V| \\times |V|$ for adjacency, and $|E|$ can be comparable to $|V|$."
+        },
+        {
+          "md": "Because it can express relations among any number of vertices, which is what the data actually contains",
+          "correct": true,
+          "expl": "Correct. Converting a co-authorship hyperedge of 982 authors into an adjacency matrix would require up to 481,671 entries for that one relation — and once expanded, no operation could tell that those pairs came from a single event. The incidence matrix keeps relations intact, which is exactly what Equation (3) needs in order to count them."
+        },
+        {
+          "md": "Because adjacency matrices cannot be used with neural networks",
+          "expl": "They can — ordinary graph neural networks use adjacency-like operators routinely. The reason here is expressiveness about group relations, not a limitation of the tool."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the incidence matrix is the object in the paper's Equation (3), where each vertex's membership count is summed over hyperedges. Card 4 does that sum and shows it is the vertex degree."
+}

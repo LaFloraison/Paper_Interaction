@@ -1,0 +1,192 @@
+{
+  "id": "90p",
+  "kind": "practice",
+  "for": "90",
+  "chapter": "experiments",
+  "section": "6.1 Datasets",
+  "kicker": "6.1 · Practice",
+  "title": "Practice: read a dataset table without being fooled",
+  "what": [
+    {
+      "t": "p",
+      "md": "This set drills one skill: reading a dataset-statistics table and knowing, cell by cell, whether the numbers in it are consistent. It is a separate card because three exercises cannot cover it — the topic has one central trap and four distinct ways of falling into it."
+    },
+    {
+      "t": "p",
+      "md": "Keep these four results from card 90 in hand; every item below uses one of them."
+    },
+    {
+      "t": "list",
+      "items": [
+        "**Edge degree** counts vertices per relation; **vertex degree** counts relations per vertex. In the four ordinary graphs edge degree is exactly 2 by definition.",
+        "For a hypergraph, multiplying edge degree by |E| gives the total number of memberships (an author in three hyperedges counts three times).",
+        "Dividing that total by |V| must reproduce the printed vertex degree: (edge degree × |E|) ÷ |V| ≈ vertex degree.",
+        "That check is **conditional**: it fails if the two columns were computed under different conventions. Cora is the worked counter-example."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "If any of the four is not yet solid, go back to card 90 before starting. The exercises below will not re-explain them."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**One fully worked prototype, so you know the shape of every item below.** Take the Github row: |V| = 37,700 papers, |E| = 144,501 edges, printed average vertex degree 7.7."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Github is an ordinary graph, so every relation joins exactly two vertices and the average edge degree is 2.",
+          "why": "Identify the family first — it fixes one of the two columns outright."
+        },
+        {
+          "md": "Total memberships = 2 × 144,501 = **289,002**.",
+          "why": "Each edge contributes two endpoints, so multiplying by 2 converts edges into endpoint-slots."
+        },
+        {
+          "md": "Spread over the vertices: 289,002 ÷ 37,700 = **7.666…**, which rounds to 7.67.",
+          "why": "This is the predicted vertex degree under the standard convention."
+        },
+        {
+          "md": "Compare with the table: 7.7 printed, 7.67 predicted — a match to the printed precision. **Github is a consistent row.**",
+          "why": "Notice what a match does *not* mean: it does not certify the other nine rows. Each row has to be checked on its own."
+        }
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why is the average edge degree exactly 2 in all four ordinary-graph rows?",
+      "opts": [
+        {
+          "md": "Because those are citation and co-purchase networks, where relations happen to be pairwise",
+          "expl": "Close, but not the reason — the same pairwise property would hold for any graph in the table. The cause is the data structure, not the subject matter of these four datasets."
+        },
+        {
+          "md": "Because in an ordinary graph every edge joins exactly two vertices, so the count of vertices per relation is 2 by definition",
+          "correct": true,
+          "expl": "Correct. Any dataset the paper treats as a plain graph has average edge degree 2 by construction — it is not a measurement, it is what \"graph\" means here."
+        },
+        {
+          "md": "Because the table rounds small averages to 2",
+          "expl": "This would make the column a rounding artefact, but other rows carry fractional values (4.5, 982.2, 31.1), so the column is not being rounded to integers."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In a hypergraph row, what does the |E| column count?",
+      "opts": [
+        {
+          "md": "Hyperedges — each one is a single relation, however many vertices it contains",
+          "correct": true,
+          "expl": "Correct. DBLP-Conf has only 20 of them because each hyperedge swallows hundreds of authors at once. This is exactly why |E| cannot be compared across the graph and hypergraph rows without care."
+        },
+        {
+          "md": "The pairwise edges you would get after expanding every hyperedge into pairs",
+          "expl": "That is the count for the graph version of the same data (Cora's 7,440), not for the hypergraph version (CA-Cora's 970). Expanding inflates the count enormously; the table deliberately reports the unexpanded one."
+        },
+        {
+          "md": "The number of vertices that belong to at least one hyperedge",
+          "expl": "That would be a subset of |V| and could never exceed it — yet DBLP-Conf prints |E| = 20 against |V| = 4,057, so the two columns clearly count different things."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Github: compute 2|E| ÷ |V| = (2 × 144,501) ÷ 37,700. Give two decimals.",
+      "answer": 7.67,
+      "tol": 0.02,
+      "hint": "Multiply first, then divide. If you divided before multiplying you got roughly half the answer — that is the |E| ÷ |V| convention, which is what Amazon-P uses and Github does not.",
+      "sol": "2 × 144,501 = 289,002. Then 289,002 ÷ 37,700 = 7.6663…, which rounds to 7.67. The table prints 7.7, so Github follows the two-endpoints-per-edge convention.",
+      "unit": "dimensionless"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Amazon-P: compute |E| ÷ |V| = 238,163 ÷ 7,650. Give two decimals.",
+      "answer": 31.13,
+      "tol": 0.05,
+      "hint": "Divide straight, without doubling the edges. If you doubled first you got about 62 — that is the convention Github uses, and Amazon-P does not.",
+      "sol": "238,163 ÷ 7,650 = 31.1311…, which rounds to 31.13. The table prints 31.1, so Amazon-P follows the one-endpoint-per-edge convention — the opposite of Github.",
+      "unit": "dimensionless"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "DBLP-Conf: how many total memberships do its hyperedges contain? Compute (average edge degree) × |E| = 982.2 × 20.",
+      "answer": 19644,
+      "tol": 1,
+      "hint": "This is a total, not an average — so the answer is much larger than any single printed column. If you got about 982 or about 4.8 you stopped at one of the columns instead of multiplying them.",
+      "sol": "982.2 × 20 = 19,644 memberships. Divide by the 4,057 authors and you get 4.842…, which rounds to the printed 4.8 — the two columns of DBLP-Conf agree.",
+      "unit": "memberships"
+    },
+    {
+      "t": "choice",
+      "level": "apply",
+      "q": "Cora prints average vertex degree 3.9. Which convention reproduces that number?",
+      "opts": [
+        {
+          "md": "2|E| ÷ |V|, the two-endpoints convention",
+          "expl": "That gives 2 × 7,440 ÷ 2,708 = 5.49. It misses 3.9 by 1.59 — a mismatch far too large to be rounding."
+        },
+        {
+          "md": "|E| ÷ |V|, the one-endpoint convention",
+          "expl": "That gives 7,440 ÷ 2,708 = 2.75. It misses 3.9 by 1.15 — again far too large to be rounding."
+        },
+        {
+          "md": "Neither — the printed 3.9 matches no simple ratio of the other two columns",
+          "correct": true,
+          "expl": "Correct, and this is the important one. Cora's vertex degree is inconsistent with both conventions used elsewhere in the same table, so the row cannot be reproduced from its own |V| and |E|. Telling this row apart from Github's is the whole point of the practice set."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A new dataset is described as an ordinary graph with |V| = 1,000, |E| = 5,000 and average vertex degree 10. Is that description internally consistent?",
+      "opts": [
+        {
+          "md": "No — an ordinary graph must have average vertex degree 2",
+          "expl": "You have carried the edge-degree value into the vertex-degree column. Edge degree is 2 for an ordinary graph; vertex degree is a different quantity and can be much larger."
+        },
+        {
+          "md": "Yes — 2|E| ÷ |V| = 10,000 ÷ 1,000 = 10, which matches the printed value",
+          "correct": true,
+          "expl": "Correct. The two-endpoints convention reproduces the stated degree exactly, so the three numbers could all come from one real graph. This is the test to run on any dataset description before you trust it — including the rows of Table I."
+        },
+        {
+          "md": "It cannot be checked without knowing the number of classes",
+          "expl": "The class count sets the task, not the graph structure. Consistency between |V|, |E| and the degree columns is settled entirely by the incidence structure."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "ModelNet40's hypergraph was built by linking each point to its k nearest neighbours. If the authors rebuilt it with a much larger k, which columns of Table I would change?",
+      "opts": [
+        {
+          "md": "|V| and the class count",
+          "expl": "Neither depends on how relations are drawn: the points and their labels exist before any hyperedge is built. Enlarging k cannot add or remove a vertex."
+        },
+        {
+          "md": "|E| and both degree columns, while |V| stays fixed",
+          "correct": true,
+          "expl": "Correct. Larger k means each hyperedge swallows more neighbours, so the average edge degree rises, the average vertex degree rises (every vertex now sits in relations with more members), and if the construction merges or adds groups then |E| moves too — but the point set does not. This is why the paper's k has to be reported alongside the table: the table is a snapshot of one construction choice, not a property of ModelNet40 itself."
+        },
+        {
+          "md": "Nothing — Table I describes the dataset, and the dataset is fixed",
+          "expl": "The dataset is fixed; its hypergraph is not. Heloc and ModelNet40 are tabular or 3D data turned into hypergraphs by a procedure the authors chose, so the relation columns are outputs of a design decision."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this leads:** the Cora row is not a curiosity — it is one of the ten findings the critique chapter audits, where several rows of Table I turn out to mix conventions. Having done this set, you can check that claim yourself instead of taking it on trust."
+}

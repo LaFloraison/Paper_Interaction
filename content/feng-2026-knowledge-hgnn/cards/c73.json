@@ -1,0 +1,133 @@
+{
+  "id": "73",
+  "kind": "formula",
+  "chapter": "method",
+  "section": "5.14 Equation (9)",
+  "kicker": "5.14 · Equation (9)",
+  "title": "Equation (9): the fusion, and exactly what the Hadamard product buys",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Equation (9) defines the fusion in two steps: first the structure-aware embedding $\\tilde{X}_r = X_s \\odot X_r$, formed by the *expanded* Hadamard product in which the single column $X_s \\in \\mathbb{R}^{N \\times 1}$ is broadcast across all $C_r$ columns of $X_r$; then the knowledge-embedded feature $Z = \\tilde{X}_r \\Vert X_r \\in \\mathbb{R}^{N \\times 2C_r}$.",
+      "plain": "Multiply every vertex's row of rule values by that vertex's single structural number, then place the scaled row and the original row side by side."
+    },
+    {
+      "t": "formula",
+      "tex": "\\tilde{X}_r = X_s \\odot X_r, \\qquad Z = \\tilde{X}_r \\;\\Vert\\; X_r",
+      "note": "The paper writes the two symbols with a diacritic to keep them apart — the input rule embedding and the output structure-aware one. (Their text extraction loses the accent, so a reader working from plain text will see the same letter twice; the figure and the original PDF distinguish them.)",
+      "gloss": [
+        { "sym": "X_s \\in \\mathbb{R}^{N \\times 1}", "md": "the structural embedding from Equation (3) — one number per vertex" },
+        { "sym": "X_r \\in \\mathbb{R}^{N \\times C_r}", "md": "the rule embedding from Equation (8) — $C_r$ numbers per vertex" },
+        { "sym": "\\odot", "md": "the Hadamard product, *expanded*: the one-column operand is broadcast across every column of the other" },
+        { "sym": "\\tilde{X}_r", "md": "the structure-aware embedding — the scaled copy, same width as $X_r$" },
+        { "sym": "\\Vert", "md": "concatenation, giving a vector twice as wide" },
+        { "sym": "Z", "md": "the knowledge-embedded feature that replaces the raw features at the network's input" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Why the paper says plain concatenation would fail.** Its stated reason is the dimension disparity: $X_s$ has one column and $X_r$ has $C_r$, so concatenating them directly would give a vector of $C_r + 1$ entries in which a single structural number has to compete with hundreds of rule entries. The paper's word for the consequence is underfitting — the network can too easily ignore the one entry that carries structure."
+    },
+    {
+      "t": "p",
+      "md": "**What the operation actually does, stated precisely.** Because $X_s$ has a single column, the broadcast means every entry of a vertex's row is multiplied by **the same** scalar: $\\tilde{X}_r[v,c] = X_s[v] \\cdot X_r[v,c]$ for every $c$. So the Hadamard step is a per-vertex rescaling of the entire rule row, not a column-by-column selection. Two consequences follow, and both are worth carrying."
+    },
+    {
+      "t": "list",
+      "items": [
+        "**It cannot make the columns of $X_r$ differ from one another.** One scalar multiplies the whole row, so the relative sizes of a vertex's rule entries are untouched. The structural number cannot say \"this rule matters more to me than that one\" — only \"all of my rule values count for more, or less\".",
+        "**It cannot amplify.** $X_s$ comes out of a sigmoid, so every entry lies strictly in $(0,1)$, and a per-row factor below 1 shrinks the row. High-degree vertices are shrunk *less* than low-degree ones — a reweighting, which is what the design needs, but not the increase the paper's wording suggests."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**And here is what the concatenation buys, which is more than it looks.** Let the network's first linear layer be $\\Theta \\in \\mathbb{R}^{2C_r \\times d}$, split into its top and bottom halves $\\Theta_1, \\Theta_2 \\in \\mathbb{R}^{C_r \\times d}$. Applying it to $Z[v] = (\\tilde{X}_r[v],\\; X_r[v])$ gives $X_s[v]\\,(X_r[v]\\Theta_1) + X_r[v]\\Theta_2$ — **two different linear readings of the same rule row, mixed by the vertex's structural scalar.** So the structure does not enter as an extra piece of information; it enters as a per-vertex weight deciding how much of the first reading to blend into the second. That is a meaningful mechanism, and it is a more precise description of the fusion than \"integrating two types of knowledge\"."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the arithmetic, on two vertices.** Let $C_r = 2$, with rule rows $X_r[A] = (2,\\; 4)$ and $X_r[B] = (2,\\; 4)$ — deliberately identical, so that only the structural number differs."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Give A degree 4 and B degree 1, and take $w = 0.5, b = 1$ from the structural encoder's card. Then $X_s[A] = \\sigma(3) = 0.9526$ and $X_s[B] = \\sigma(1.5) = 0.8176$.",
+          "why": "The two vertices have the same rules and different structure — exactly the case the fusion exists to handle."
+        },
+        {
+          "md": "Scale: $\\tilde{X}_r[A] = (0.9526 \\times 2,\\; 0.9526 \\times 4) = (1.905,\\; 3.810)$ and $\\tilde{X}_r[B] = (0.8176 \\times 2,\\; 0.8176 \\times 4) = (1.635,\\; 3.270)$.",
+          "why": "Both rows shrank, and A's shrank less. Note the ratio *within* each row is still 2:4 — the scaling preserved it, as the first bullet above says."
+        },
+        {
+          "md": "Concatenate: $Z[A] = (1.905,\\; 3.810,\\; 2,\\; 4)$ and $Z[B] = (1.635,\\; 3.270,\\; 2,\\; 4)$.",
+          "why": "The last two entries are identical because the original rows were. The two vertices differ only in the first two entries."
+        },
+        {
+          "md": "Apply one output dimension with $\\Theta_1^{\\mathsf T} = (1, 0)$ and $\\Theta_2^{\\mathsf T} = (0, 1)$. Then the pre-activation is $X_s[v] \\cdot 2 + 4$, giving $5.905$ for A and $5.635$ for B.",
+          "why": "This is the two-readings picture made concrete. The first reading picks out the first rule entry (value 2) and is weighted by the structural scalar; the second picks out the second entry (value 4) unweighted. The structural number moves the result by 0.27 — a small but real effect, and its size is set entirely by $\\Theta_1$, which is learned."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**A check worth running on the design.** Suppose the Hadamard step were removed and $Z = X_r \\Vert X_r$ — the same row placed twice. Then the same computation gives $X_r[v]\\Theta_1 + X_r[v]\\Theta_2 = X_r[v](\\Theta_1 + \\Theta_2)$, which is **one** linear reading, not two. So the scaling is not decoration: without it the concatenation would be exactly redundant, and the network would gain nothing from the doubled width. **The Hadamard product is what makes the second half of $Z$ differ from the first** — and by how much is the structural signal."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does the \"expanded\" in expanded Hadamard product mean here?",
+      "opts": [
+        {
+          "md": "The matrices are expanded in memory before multiplying",
+          "expl": "That describes an implementation, not the operation. The word names a mathematical fact about the shapes involved."
+        },
+        {
+          "md": "The one-column operand is broadcast across all columns of the other, so an ordinary elementwise product becomes defined",
+          "correct": true,
+          "expl": "Correct. An ordinary Hadamard product requires identical shapes; broadcasting the single structural column is what makes the multiplication legal. The paper's Figure 1 legend names the operation this way for exactly that reason."
+        },
+        {
+          "md": "The product is applied to more than two matrices at once",
+          "expl": "It takes two operands. The expansion is across columns, not across factors."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A rule embedding has $C_r = 12$ columns. How many columns does $Z$ have?",
+      "answer": 24,
+      "tol": 0.01,
+      "hint": "The concatenation joins two blocks of the same width.",
+      "sol": "24 — the concatenation of a 12-column block with another 12-column block. Answering 13 gives the width you would get by appending the single structural number as an extra column, which is precisely the arrangement the paper rejected on the grounds that one entry among thirteen would be ignored.",
+      "unit": "columns"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A vertex's rule row is $(2, 4)$ and its structural scalar is $0.5$. After the Hadamard step, what is true of $(1, 2)$?",
+      "opts": [
+        {
+          "md": "The first entry has been reduced more than the second",
+          "expl": "Both entries are multiplied by the same scalar, so they fall in the same proportion: $2 \\to 1$ and $4 \\to 2$ are both halvings. A per-row scalar cannot treat columns differently."
+        },
+        {
+          "md": "Both entries halved, so the ratio between them is unchanged",
+          "correct": true,
+          "expl": "Correct. This is the sharpest limitation of the fusion: because the structural operand has one column, it acts as a single per-vertex weight on the whole row. It can express \"this vertex's rules count for more\" but never \"this rule counts for more than that one\". A richer structural embedding, with a different value per rule slot, would be able to make that distinction — and the paper does not test one."
+        },
+        {
+          "md": "The entries were added to the scalar rather than multiplied",
+          "expl": "Equation (9) is a product, and the arithmetic confirms it: $2 \\times 0.5 = 1$. An additive combination would be a different fusion with different behaviour, and would not preserve the ratio either."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Equation (10), the two-line definition of RD-HGNN and DD-HGNN — after which the method chapter is essentially complete, with only the two variants' justification and the laboratories remaining."
+}

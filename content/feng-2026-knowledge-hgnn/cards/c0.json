@@ -1,0 +1,39 @@
+{
+  "id": "0",
+  "kind": "cover",
+  "chapter": "start",
+  "section": "Cover",
+  "kicker": "Paper_Interaction · Paper #2",
+  "title": "Knowledge-Embedded Hypergraph Neural Networks",
+  "body": [
+    {
+      "t": "p",
+      "md": "Yifan Feng · Yifan Zhang · Shaoyi Du · Shihui Ying · Zongze Wu · Yue Gao — *IEEE TPAMI*, vol. 48, no. 7, 2026, pp. 8613–8625."
+    },
+    {
+      "t": "callout",
+      "md": "**In one sentence:** ordinary hypergraph networks only smooth features along relations. This paper puts a knowledge-extraction stage *in front* of them — one encoder counts how the structure groups each vertex, another harvests the rules a gradient-boosted tree team learned — and fuses both into the features before the hypergraph network ever runs."
+    },
+    {
+      "t": "h3",
+      "md": "By the end of this site you will be able to"
+    },
+    {
+      "t": "list",
+      "ordered": true,
+      "items": [
+        "Explain what a hypergraph is, how it differs from a plain graph, and how to write a dataset as an incidence matrix.",
+        "Explain how a decision tree, and a *team* of boosted trees, can be read as a set of if-then rules — and why anyone would want to.",
+        "Hand-compute both knowledge encoders: the structural one (counting hyperedge memberships) and the rule one (turning tree questions into a 0/1 ledger).",
+        "Read all ten equations, three figures and ten tables, recomputing the average ranks and the headline gains yourself.",
+        "Place the paper in its lineage: what came before it, what it changes, and what it does not answer.",
+        "Assess it critically — this site's critique chapter lists ten places where the paper's numbers do not balance, each with arithmetic you can check."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**What this site assumes:** you are comfortable with university-level mathematics — functions, vectors, matrices, sums. It does **not** assume you have ever seen a graph neural network, a decision tree, or a paper from this subfield. Chapter 2 and its extension sections supply all of that from zero, and every extension section carries a skip quiz so you can jump past whatever you already know."
+    }
+  ]
+}

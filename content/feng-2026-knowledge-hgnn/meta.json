@@ -1,0 +1,22 @@
+{
+  "slug": "feng-2026-knowledge-hgnn",
+  "title": "Knowledge-Embedded Hypergraph Neural Networks",
+  "head_title": "Knowledge-Embedded Hypergraph Neural Networks",
+  "subtitle": "Feng et al. · TPAMI 2026",
+  "authors": "Feng, Zhang, Du, Ying, Wu, Gao",
+  "venue": "IEEE TPAMI, vol. 48, no. 7, 2026, pp. 8613–8625",
+  "year": 2026,
+  "chapters": [
+    { "key": "start", "num": "0", "name": "Start here" },
+    { "key": "title", "num": "1", "name": "Title" },
+    { "key": "pre", "num": "2", "name": "Pre-knowledge" },
+    { "key": "abstract", "num": "3", "name": "Abstract" },
+    { "key": "intro", "num": "4", "name": "Introduction" },
+    { "key": "method", "num": "5", "name": "Method" },
+    { "key": "experiments", "num": "6", "name": "Experiments" },
+    { "key": "conclusion", "num": "7", "name": "Conclusion" },
+    { "key": "wrap", "num": "—", "name": "Wrap-up" },
+    { "key": "references", "num": "—", "name": "References" }
+  ],
+  "kps": []
+}

@@ -1,0 +1,104 @@
+{
+  "kind": "check",
+  "title": "The shared limitation, and can you leave this section?",
+  "what": [
+    {
+      "t": "p",
+      "md": "**The pattern every model in the family follows.** HGNN, HyperGCN, DHGNN, UniGNN, AllSet and HGNN+ differ in how they read the structure and how they aggregate, but underneath all of them is one sentence: **the structure of the hypergraph decides how vertex features are smoothed along it, and nothing else enters the layer.** Features go in; a smoothing pattern fixed by the structure comes out. No model in the list looks at the structure as data to be described, questioned, weighted from evidence, or fed forward as information in its own right."
+    },
+    {
+      "t": "p",
+      "md": "**The degrees are used, but not as features — and the distinction matters.** Degree information does enter the computation: $D_v^{-1/2}$ divides by the square root of each vertex's degree, and $D_e^{-1}$ divides by each hyperedge's size. But it enters as a *fixed scale factor baked into the operator*, chosen when the model is written down and never learned or passed on. A degree of 4 and a degree of 1 are used to set two different scalings; they are not handed to the network as an input column it could reason about. So a hub and a leaf with identical features produce different outputs, yet the network has no way to say *why* — the reason lives in the operator, not in the representation."
+    },
+    {
+      "t": "p",
+      "md": "**This is the gap the paper under study addresses.** It keeps the standard layer of card 1 exactly as it is, and adds a **stage in front of it** whose job is to turn the structure itself into features the layer can read — a structural encoder, in the permutation-invariant multiset form that AllSet formalised. The layer did not change; what arrives at it did. Everything in this section is the ground that makes that addition meaningful: the layer is standard, its input was not."
+    },
+    {
+      "t": "list",
+      "items": [
+        "**What a hypergraph network layer does** — six moves on the incidence matrix: normalise the vertices, gather into hyperedges, average inside each hyperedge, scatter back, normalise again, transform and activate.",
+        "**HGNN** — the standard layer, motivated by the hypergraph Laplacian; it avoids the quadratic and lossy expansion into a graph, and its limitation is that it smooths features along hyperedges and does nothing else.",
+        "**HyperGCN and DHGNN** — two ways to attack the structure instead: reduce each hyperedge to a star of ordinary edges through an existing mediator, or rebuild the hyperedges from the current features during training.",
+        "**UniGNN, AllSet and HGNN+** — the same recipe as two-stage message passing, as a pair of permutation-invariant multiset functions, and widened to typed and weighted relations.",
+        "**The shared limitation** — structure guides smoothing; degrees act only as fixed normalising factors, never as features the network can learn from."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The questions below are the check. The bar is not two of three correct — it is that none of them required hard thought. If the incidence-matrix form of the layer still feels like a string of symbols, or if you cannot yet say what the standard layer *cannot* do, stay with this section: card 1's operator is the backbone the rest of the paper is built around."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**One concrete instance of the limitation.** Take two vertices with identical feature value $8$. One has degree 1, the other degree 4. In the normalisation step each is divided by the square root of its degree:"
+    },
+    {
+      "t": "calc",
+      "md": "degree 1:  8 / √1 = 8 / 1 = 8.0        degree 4:  8 / √4 = 8 / 2 = 4.0"
+    },
+    {
+      "t": "p",
+      "md": "The two vertices are treated differently purely because of their degree — the model does respond to degree. But notice *how*: the factor $1$ and the factor $0.5$ are fixed by the graph before training begins, and no row of the feature matrix ever holds \"this vertex has degree 4\". A downstream layer therefore cannot tell the difference between *this vertex is a hub* and *this vertex's feature was divided by two for an unrelated reason*. Degree is used up inside the operator rather than made available as information."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The mistake to avoid:** concluding that the family \"ignores\" degree. It does not — degree is central to the normalisation. The precise claim is narrower and stronger: degree enters only as a constant scale inside the fixed operator, so it is *used* but never *represented*. Keeping that distinction straight is what makes the paper's added stage look like a genuine contribution rather than a restatement."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which of these reduces the hypergraph to an ordinary graph before any convolution runs?",
+      "opts": [
+        {
+          "md": "HGNN",
+          "expl": "HGNN works on the incidence matrix directly and never builds an ordinary graph. Avoiding exactly that conversion is what it improved on."
+        },
+        {
+          "md": "HyperGCN",
+          "correct": true,
+          "expl": "Correct. HyperGCN chooses a mediator inside each hyperedge and joins it to the other members, producing a plain graph, and then runs an ordinary graph network. DHGNN, by contrast, keeps a hypergraph but recomputes its hyperedges; HGNN keeps it fixed."
+        },
+        {
+          "md": "DHGNN",
+          "expl": "DHGNN keeps hyperedges and rebuilds them from the current features each layer. Rebuilding is not the same as reducing to a graph — the object stays a hypergraph, only a changing one."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "In the layer's first normalisation, a vertex of degree 4 has its feature divided by what factor?",
+      "answer": 0.5,
+      "tol": 0.01,
+      "hint": "The factor is 1 divided by the square root of the degree, not the degree itself.",
+      "sol": "The factor is 1/√4 = 1/2 = 0.5. Answering 0.25 divides by the degree rather than by its square root; answering 2 inverts the factor. This is the fixed scale mentioned above — no learned quantity is involved.",
+      "unit": "factor"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Which statement captures the shared limitation of every model in this section?",
+      "opts": [
+        {
+          "md": "They all require the hypergraph to be expanded into a graph first",
+          "expl": "Only HyperGCN does that, and it is a design choice rather than a limitation of the family. HGNN, DHGNN, UniGNN and AllSet all run on the hypergraph directly."
+        },
+        {
+          "md": "They all smooth vertex features along a structure that is fixed input, and never turn the structure itself into features the layer can read",
+          "correct": true,
+          "expl": "Correct. However the aggregation is chosen, the structure acts as a fixed guide for smoothing. Degree is used only as a constant scale inside the operator, not represented as information. That is the gap the paper under study fills with a stage in front of the unchanged layer, and it is why AllSet's multiset formulation — the abstraction that makes \"a function of structure\" a well-defined object — is its direct ancestor."
+        },
+        {
+          "md": "They all fail because they cannot handle hyperedges of size greater than two",
+          "expl": "The entire point of a hypergraph layer is to handle exactly those. Handling large hyperedges is what the Dₑ⁻¹ averaging is for, and it works."
+        }
+      ]
+    }
+  ],
+  "close": "**You have what the backbone needs.** The paper under study keeps this standard layer and places a structural encoder in front of it; card 4 pointed to AllSet as that encoder's ancestor, and card 1's operator is the layer as the paper writes it. If you skipped this section, you will meet the incidence-matrix layer again in the paper's own equation — come back then."
+}

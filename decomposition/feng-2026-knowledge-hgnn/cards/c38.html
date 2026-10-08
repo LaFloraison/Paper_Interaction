@@ -1,0 +1,48 @@
+<!-- ============ c38 Table II 划分 ============ -->
+<section class="card" data-c="38" data-title-zh="表 II · Transductive 划分" data-title-en="Table II · the transductive split">
+  <div class="card-inner">
+    <div class="card-kicker k-fig"><span class="len">Table II · who studies with what</span><span class="lz">表 II · 谁拿谁的答案复习</span></div>
+    <h2><span class="lz">表 II：传统卷的座位表</span><span class="len">Table II: seating chart of the classic exam</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">第 18 卡的"传统卷"（transductive）落到实处，就是表 II：每个数据集切成三份——<b>训练</b>（带答案、用于学习）、<b>验证</b>（带答案、用于挑模型）、<b>测试</b>（不带答案、用于打分）。</p>
+    <p class="len">Card 18's "classic exam" (transductive) lands in Table II: each dataset splits into three parts — <b>training</b> (with answers, for learning), <b>validation</b> (with answers, for model selection), <b>testing</b> (no answers, for scoring).</p>
+    <p class="lz"><b><span class="hl">表 II 保证的规矩：三份互不重叠，且"无标签点"在训练时可以看到特征与连接（只是没答案）——这正是直推设定的定义。</span></b>另外第 16 卡的老约定在这里沿用：全图 G 仍然参与消息传递。</p>
+    <p class="len"><b><span class="hl">What Table II enforces: the three parts never overlap, and unlabeled points are visible during training (features and links, just not answers) — precisely the transductive definition.</span></b> Card 16's old convention also holds: the full graph G keeps participating in message passing.</p>
+    <div class="figbox">
+      <img data-fig="tab2" alt="Table II of the paper: splitting under the transductive setting">
+      <div class="figcap"><span class="lz">论文表 II 原图（Feng et al., TPAMI 2026）。列：#V 顶点数、#C 类别数、训练/验证/测试三份的人数。</span><span class="len">Original Table II (Feng et al., TPAMI 2026). Columns: #V vertices, #C classes, and the three split sizes.</span></div>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>走查 1（读 Cora 行并自检）：</b>Cora 行：#V = 2,708、#C = 7、训练 1,625、验证 677、测试 406。自检一：1,625 + 677 + 406 = <b>2,708</b> ✓，三份严丝合缝。比例：约 60% / 25% / 15%——每一类都基本按这个比例切（分层抽样），所以小类也不会在测试里缺席。</p>
+    <p class="len"><b>Walk 1 (read Cora's row and self-check):</b> Cora: #V = 2,708, #C = 7, training 1,625, validation 677, testing 406. Check one: 1,625 + 677 + 406 = <b>2,708</b> ✓, a perfect fit. Ratios ≈ 60% / 25% / 15%, applied class by class (stratified), so minority classes never vanish from the test.</p>
+    <p class="lz"><b>走查 2（换一行 + 一处诚实的瑕疵）：</b>Heloc 行：10,459 = 6,275 + 2,615 + 1,569 ✓，同样严丝合缝。但要如实指出：<b>有三行的三份加起来比 #V 多 1 或少 1</b>——Amazon-P：4,590 + 1,913 + 1,148 = 7,651，而 #V = 7,650；Tencent：1,288 + 537 + 322 = 2,147 vs 2,146；ModelNet40：7,387 + 3,078 + 1,847 = 12,312 vs 12,311。这是按百分比切分后四舍五入的常见产物（差 1 个样本），不影响结论——但读表时值得知道：<b>表里的数字不是全部自洽的，验算是最便宜的照妖镜。</b>（第 48 批判卡会把这笔账汇总。）</p>
+    <p class="len"><b>Walk 2 (another row + an honest blemish):</b> Heloc: 10,459 = 6,275 + 2,615 + 1,569 ✓, equally tight. But honesty requires noting: <b>three rows sum to one above or below #V</b> — Amazon-P: 4,590 + 1,913 + 1,148 = 7,651 vs #V = 7,650; Tencent: 1,288 + 537 + 322 = 2,147 vs 2,146; ModelNet40: 7,387 + 3,078 + 1,847 = 12,312 vs 12,311. Classic rounding artifacts of percentage splits (one sample off) that do not affect conclusions — yet worth knowing: <b>tables are not automatically consistent, and arithmetic is the cheapest detector.</b> (Card 48 gathers these accounts.)</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">训练/验证/测试三份各用什么？</span><span class="len">What is each of the three splits used for?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="测试集没有答案——它只用来最后打分，用它挑模型就等于考前偷看试卷。"><span class="lz">三份都用来训练，只是先后不同</span><span class="len">All three train the model, just in sequence</span></button>
+        <button class="opt" data-correct="1" data-expl="对！训练学参数、验证挑模型、测试最后打分——测试答案全程锁着。这是全站所有"考试"的共同规矩。"><span class="lz">训练学参数；验证挑模型；测试最后打分（答案全程保密）</span><span class="len">Training learns parameters; validation picks the model; testing scores at the end (answers sealed throughout)</span></button>
+        <button class="opt" data-expl="验证集也带答案——它不"烤"模型，只做选择；不带答案的是测试集。"><span class="lz">验证集不带答案，用来模拟考试</span><span class="len">Validation carries no answers; it simulates the exam</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="5655" data-tol="0.5" data-hint="翻到表 II 原图，找 Github 行最右一列（#Testing）。" data-sol="Github 行：训练 22,620 + 验证 9,425 + 测试 5,655 = 37,700 ✓。答案 5,655——顺带完成一次自检。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：表 II 里 Github 的测试集有多少个顶点？</span><span class="len">Numeric: how many vertices are in Github's test split in Table II?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：为什么测试集的"人"训练时就摆在模型眼前（特征可见），成绩却仍然算数？</span><span class="len">Transfer: test points sit visibly in front of the model during training (features seen) — why do their scores still count?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="答案锁着就没法背——模型能看的是"谁是谁、谁连着谁"，看不到"他属于哪类"。直推的合法性全在这把锁上。"><span class="lz">因为测试集的特征其实也是加密的</span><span class="len">Because test features are also encrypted</span></button>
+        <button class="opt" data-correct="1" data-expl="对！可见的只有特征与连接（第 18 卡的"见过考题"），标签全程锁着——模型无法把答案背下来，只能靠规律推断。"><span class="lz">标签锁着，模型只能看到特征与连接、背不到答案</span><span class="len">Labels stay sealed; the model sees features and links but cannot memorize answers</span></button>
+        <button class="opt" data-expl="论文没有这种特殊处理——统计上"见过特征"确实会让直推成绩偏高（这也是第 19 卡 production 卷存在的原因）。"><span class="lz">因为论文为测试集单独训练了一个小模型</span><span class="len">Because a separate small model trains on the test set</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>
+
+<!-- NEXT-CARD -->

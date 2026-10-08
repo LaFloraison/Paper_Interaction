@@ -1,0 +1,134 @@
+{
+  "kind": "extension",
+  "title": "The neuron and the layer: a matrix multiply, a bias, and a bend",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **layer** maps an input vector $\\mathbf{x} \\in \\mathbb{R}^{d_{in}}$ to an output vector $\\mathbf{h} \\in \\mathbb{R}^{d_{out}}$ by three steps: multiply by a weight matrix $\\mathbf{W} \\in \\mathbb{R}^{d_{out} \\times d_{in}}$, add a bias vector $\\mathbf{b} \\in \\mathbb{R}^{d_{out}}$, and apply a fixed nonlinearity $\\phi$ to each coordinate: $\\mathbf{h} = \\phi(\\mathbf{W}\\mathbf{x} + \\mathbf{b})$. Each of the $d_{out}$ rows of $\\mathbf{W}$ is the weight vector of one **neuron**, so one layer is $d_{out}$ neurons evaluating in parallel on the same input.",
+      "plain": "A layer is a bank of neurons that all read the same input. Each neuron is a weighted sum plus a constant, and then the same bend is applied to every neuron's result. The whole bank is one matrix times the input, plus one bias vector, plus one bend."
+    },
+    {
+      "t": "p",
+      "md": "**Read the shapes and the layer explains itself.** If the input has $d_{in}$ numbers and the layer produces $d_{out}$, then $\\mathbf{W}$ has $d_{out}$ rows and $d_{in}$ columns, and $\\mathbf{b}$ has $d_{out}$ entries. Row $i$ of $\\mathbf{W}$ dotted with $\\mathbf{x}$ gives the $i$-th neuron's weighted sum; adding $b_i$ offsets it; $\\phi$ bends it. The matrix is not a mathematical convenience bolted on afterwards — it is the statement *apply $d_{out}$ separate weighted sums at once*, and the rows are the neurons."
+    },
+    {
+      "t": "p",
+      "md": "**Why the nonlinearity is load-bearing.** Drop $\\phi$ and a layer becomes a purely linear map. Now suppose you stack two of them: the second layer receives $\\mathbf{W}_1\\mathbf{x}+\\mathbf{b}_1$ and outputs $\\mathbf{W}_2(\\mathbf{W}_1\\mathbf{x}+\\mathbf{b}_1)+\\mathbf{b}_2$. Expand the brackets: $\\mathbf{W}_2\\mathbf{W}_1\\mathbf{x} + \\mathbf{W}_2\\mathbf{b}_1 + \\mathbf{b}_2$. The product $\\mathbf{W}_2\\mathbf{W}_1$ is a single matrix and $\\mathbf{W}_2\\mathbf{b}_1+\\mathbf{b}_2$ a single vector, so the two layers together equal one linear layer with weight matrix $\\mathbf{W}_2\\mathbf{W}_1$. The argument repeats for any number of layers. **Without a bend between them, depth changes the parameterisation and nothing else.**"
+    },
+    {
+      "t": "formula",
+      "tex": "\\mathbf{h} = \\phi\\!\\left(\\mathbf{W}\\mathbf{x} + \\mathbf{b}\\right)",
+      "note": "The layer, in one line. $\\mathbf{W}\\mathbf{x}$ is $d_{out}$ weighted sums of the input; $+\\,\\mathbf{b}$ shifts each; $\\phi$ bends each — and because $\\phi$ is applied entry by entry, it cannot be absorbed into the matrix, which is exactly why the stack escapes being a single linear map.",
+      "gloss": [
+        { "sym": "\\mathbf{x}", "md": "the input vector, with $d_{in}$ entries" },
+        { "sym": "\\mathbf{W}", "md": "the weight matrix, $d_{out}$ rows by $d_{in}$ columns; row $i$ is neuron $i$'s weights" },
+        { "sym": "\\mathbf{b}", "md": "the bias vector, one entry per neuron — the constant added to each weighted sum" },
+        { "sym": "\\phi", "md": "the elementwise nonlinearity; applied to every coordinate independently (card 3 lists the common choices)" },
+        { "sym": "\\mathbf{h}", "md": "the layer's output — the feature vector handed to the next layer, with $d_{out}$ entries" }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "A common misreading: that each neuron 'sees' only part of the input. It does not. Every neuron in a layer reads the **whole** input vector; what differs between neurons is the weights they apply. Conversely, applying one neuron to every input in a dataset is again just a matrix multiply — the matrix rows are the examples."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — one layer, evaluated by hand.** Take a layer with weight matrix $\\mathbf{W} = \\begin{pmatrix} 2 & -1 \\\\ 1 & 3 \\end{pmatrix}$, bias $\\mathbf{b} = (1, 0)$, and the nonlinearity ReLU, so $\\phi(z) = \\max(0, z)$. Feed it the input $\\mathbf{x} = (1, 2)$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "First neuron: $2 \\cdot 1 + (-1) \\cdot 2 = 2 - 2 = 0$.",
+          "why": "Row 1 of $\\mathbf{W}$ dotted with $\\mathbf{x}$. A dot product is a weighted sum — the neuron's raw opinion before the bias and the bend."
+        },
+        {
+          "md": "Second neuron: $1 \\cdot 1 + 3 \\cdot 2 = 1 + 6 = 7$. So $\\mathbf{W}\\mathbf{x} = (0, 7)$.",
+          "why": "Row 2 is a different weighted summary of the *same* input. Both neurons read every entry of $\\mathbf{x}$; they differ only in their weights."
+        },
+        {
+          "md": "Add the bias: $(0 + 1,\\; 7 + 0) = (1, 7)$.",
+          "why": "The bias shifts each neuron's output independently — here it lifts the first neuron off zero. Without a bias a neuron whose weighted sum happened to be zero could never be switched on."
+        },
+        {
+          "md": "Apply ReLU entry by entry: $\\phi(1) = 1$, $\\phi(7) = 7$, so $\\mathbf{h} = (1, 7)$.",
+          "why": "Here both entries were positive so ReLU did nothing. Had the first entry been negative the bias would have been the only thing keeping it alive. The bend acts on each coordinate separately."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — two layers that collapse into one.** Let $\\mathbf{A}_1 = \\begin{pmatrix} 1 & 2 \\\\ 0 & 1 \\end{pmatrix}$ and $\\mathbf{A}_2 = \\begin{pmatrix} 2 & 0 \\\\ 1 & 1 \\end{pmatrix}$, and ignore biases for clarity. Feed the input $\\mathbf{x} = (1, 1)$ through both, in order."
+    },
+    {
+      "t": "list",
+      "items": [
+        "Through the first layer alone: $\\mathbf{A}_1\\mathbf{x} = (1\\cdot 1 + 2\\cdot 1,\\; 0\\cdot 1 + 1\\cdot 1) = (3, 1)$.",
+        "Then through the second: $\\mathbf{A}_2(3, 1) = (2\\cdot 3 + 0 \\cdot 1,\\; 1\\cdot 3 + 1\\cdot 1) = (6, 4)$.",
+        "The combined matrix: $\\mathbf{A}_2\\mathbf{A}_1 = \\begin{pmatrix} 2 & 4 \\\\ 1 & 3 \\end{pmatrix}$, since the first row is $(2\\cdot 1 + 0 \\cdot 0,\\; 2\\cdot 2 + 0\\cdot 1) = (2, 4)$ and the second is $(1\\cdot 1 + 1\\cdot 0,\\; 1\\cdot 2 + 1\\cdot 1) = (1, 3)$.",
+        "Directly: $(\\mathbf{A}_2\\mathbf{A}_1)\\mathbf{x} = (2\\cdot 1 + 4\\cdot 1,\\; 1\\cdot 1 + 3\\cdot 1) = (6, 4)$ — identical."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "The two layers and the single matrix give the same answer, to the last digit. That is the collapse card 1 warned about, seen concretely. Insert any nonlinearity between the layers and the fourth line breaks: $\\phi$ is not a matrix, so $\\phi(\\mathbf{A}_1\\mathbf{x})$ cannot be written as a single matrix times $\\mathbf{x}$. **The bend is the only thing standing between a deep network and an expensive copy of a shallow one.**"
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "A layer maps $\\mathbb{R}^{5}$ to $\\mathbb{R}^{3}$. What are the shapes of its weight matrix and bias vector?",
+      "opts": [
+        {
+          "md": "$\\mathbf{W}$ is $3 \\times 5$ and $\\mathbf{b}$ has 3 entries",
+          "correct": true,
+          "expl": "Correct. There are 3 neurons, each with 5 weights, so the matrix is $d_{out}\\times d_{in} = 3\\times 5$; the bias has one entry per neuron, so 3. The output has 3 entries no matter how large the input is."
+        },
+        {
+          "md": "$\\mathbf{W}$ is $5 \\times 3$ and $\\mathbf{b}$ has 5 entries",
+          "expl": "This transposes the layer: it would map 3 numbers to 5, the opposite direction. The row count is the output dimension, not the input dimension."
+        },
+        {
+          "md": "$\\mathbf{W}$ is $5 \\times 5$ and $\\mathbf{b}$ has 3 entries",
+          "expl": "A square matrix is not required. The input and output dimensions are independent, and the matrix is rectangular whenever they differ."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A layer maps $\\mathbb{R}^{4}$ to $\\mathbb{R}^{3}$. Counting weights only (not the bias), how many parameters does its weight matrix contain?",
+      "answer": 12,
+      "tol": 0.01,
+      "hint": "The number of weights is the number of neurons times the number of inputs each neuron reads.",
+      "sol": "The weight matrix has $d_{out} = 3$ rows and $d_{in} = 4$ columns, so it holds $3 \\times 4 = 12$ weights. The bias adds a further $3$ entries, for $15$ parameters in total — but the question asked for the weights alone.",
+      "unit": "weights"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why does removing the nonlinearity between layers make a deep stack equivalent to one layer?",
+      "opts": [
+        {
+          "md": "Because the biases cancel out when there is no nonlinearity",
+          "expl": "The biases do not cancel; they fold into a single combined bias. The collapse is about the weight matrices, not the biases."
+        },
+        {
+          "md": "Because the product of the weight matrices is itself a single matrix, so the composition is one linear map",
+          "correct": true,
+          "expl": "Correct. $\\mathbf{W}_2(\\mathbf{W}_1\\mathbf{x}+\\mathbf{b}_1)+\\mathbf{b}_2$ expands to one matrix times $\\mathbf{x}$ plus one vector. A nonlinearity applied entry by entry cannot be folded into a matrix, which is why it is the only thing that preserves depth's expressive value."
+        },
+        {
+          "md": "Because the second layer cannot read the first layer's output",
+          "expl": "It reads it perfectly well — the output of layer 1 is exactly the input to layer 2. The problem is what can be *done* with that input when the only operation available is another linear map."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the layer form $\\phi(\\mathbf{W}\\mathbf{x}+\\mathbf{b})$ is the atom from which the paper's Equation (1) is assembled, with the matrix multiply replaced by a hypergraph-aware operation. Card 3 fixes what $\\phi$ should be."
+}

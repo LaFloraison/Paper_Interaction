@@ -1,0 +1,172 @@
+{
+  "kind": "extension",
+  "title": "The modern implementations: XGBoost, LightGBM, CatBoost",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**XGBoost**, **LightGBM** and **CatBoost** are three software implementations of the *same* gradient-boosting algorithm of card 4. They differ not in what the algorithm computes but in three engineering choices layered on top: how the tree is regularised and scored (XGBoost), how features are discretised and how the tree is grown (LightGBM), and how categorical features are encoded without leaking the target (CatBoost).",
+      "plain": "These are not three different kinds of model. They are three optimised builds of the same boosted-tree idea, each adding one or two tricks that make it faster, more accurate, or easier to use on awkward data. Knowing which trick belongs to which library is enough to read a methods section that cites one of them."
+    },
+    {
+      "t": "p",
+      "md": "**XGBoost: a regularised objective and second-order splits.** XGBoost rewrites the loss as a sum of a per-row gradient $g_i$ and a per-row curvature $h_i$ (the second derivative), plus an explicit penalty on the trees themselves, $\\Omega(f) = \\gamma T + \\frac{1}{2}\\lambda\\sum_j w_j^2$, where $T$ is the number of leaves and $w_j$ the value of leaf $j$. The penalty is what its name denotes: $\\gamma$ charges a price for every extra leaf, and $\\lambda$ shrinks leaf values toward zero, taming trees that would otherwise fit noise. With the curvature term available, XGBoost chooses splits by a **gain** that no longer needs the residual to be the whole story:"
+    },
+    {
+      "t": "formula",
+      "tex": "\\text{Gain} = \\frac{1}{2}\\left[\\frac{G_L^2}{H_L + \\lambda} + \\frac{G_R^2}{H_R + \\lambda} - \\frac{(G_L + G_R)^2}{H_L + H_R + \\lambda}\\right] - \\gamma",
+      "note": "The three fractions compare a candidate split's left leaf, right leaf, and unsplit parent: the gain is how much loss the split removes, minus the $\\gamma$ charge for the leaf it creates. A split is taken only when this is positive. The leaf value itself is $w^{\\star} = -G/(H + \\lambda)$.",
+      "gloss": [
+        {
+          "sym": "G_L, G_R",
+          "md": "sums of the per-row gradients in the left and right child"
+        },
+        {
+          "sym": "H_L, H_R",
+          "md": "sums of the per-row curvatures in the left and right child"
+        },
+        {
+          "sym": "\\lambda",
+          "md": "the L2 penalty on leaf values — larger means more shrinkage"
+        },
+        {
+          "sym": "\\gamma",
+          "md": "the penalty added for each extra leaf — larger means fewer, coarser splits"
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "XGBoost also handles missing values with a **sparsity-aware split**: when it evaluates a candidate split it assigns missing entries to whichever side gives the larger gain, learning a default direction per split rather than imputing the gaps. A commonly used default configuration is a learning rate of $0.3$ and a maximum depth of $6$."
+    },
+    {
+      "t": "p",
+      "md": "**LightGBM: histogram binning and leaf-wise growth.** Its central speed trick is to bin every feature into a small number of buckets — the default is at most $255$ — before any tree is built. Splitting then only ever compares bin boundaries, so the cost of finding the best split falls from the number of distinct feature values to a few hundred. On a feature with a million distinct values that is a reduction of roughly a factor of $3921$ in the work per candidate split. The second trick is to grow the tree **leaf-wise** rather than level-wise: level-wise growth expands every leaf on the current level and a tree of depth $d$ always ends with exactly $2^d$ leaves, whereas leaf-wise growth always expands whichever leaf would reduce the loss the most and stops at a fixed leaf budget, which is $31$ by default. Leaf-wise growth reaches a given loss with fewer leaves, at the cost of bushy, deeper trees that overfit more easily on small data."
+    },
+    {
+      "t": "p",
+      "md": "**CatBoost: ordered target statistics.** Plain target encoding replaces a category by the average target of its rows — which leaks the row's own target back into its own feature and inflates its apparent usefulness, a failure called **prediction shift**. CatBoost's fix is to compute each row's category statistic from only the rows that *precede* it in a random permutation of the data, so a row never sees itself. The estimate for a category is a smoothed average $(\\sum y + a\\,P)/(\\text{count} + a)$: $P$ is a prior such as the global mean, and the smoothing weight $a$ pulls small categories back toward that prior so that a category seen twice is not trusted as much as one seen a thousand times."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Library",
+        "What it added to the boosting loop",
+        "Effect"
+      ],
+      "rows": [
+        [
+          "XGBoost",
+          "Regularised objective; second-order (gradient and curvature) split gain; sparsity-aware default directions",
+          "Penalises complex trees; uses curvature to score splits; handles missing values natively"
+        ],
+        [
+          "LightGBM",
+          "Histogram binning of features (at most 255 bins); leaf-wise growth",
+          "Finds splits far faster; reaches a target loss with fewer leaves"
+        ],
+        [
+          "CatBoost",
+          "Ordered target statistics for categorical features",
+          "Encodes high-cardinality categoricals without leaking the target"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Common misconception.** \"XGBoost, LightGBM and CatBoost are three different algorithms, so which one is used changes the model family.\" They are one family — gradient-boosted decision trees — with different regularisation and engineering. A paper that reports GBDT results with any of the three is reporting the same class of model; what differs is the training cost, the default hyperparameters and the handling of categorical or missing data."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a leaf value and a split gain by hand.** Take a candidate split with gradient sums $G_L = 4$, $G_R = -2$, curvature sums $H_L = 2$, $H_R = 2$, penalty $\\lambda = 1$, and leaf charge $\\gamma = 0$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Left leaf term: $G_L^2/(H_L + \\lambda) = 4^2/(2+1) = 16/3 = 5.333$.",
+          "why": "Numerator is the squared gradient sum, denominator the curvature sum plus the leaf penalty. A large gradient caught by a low-curvature leaf scores high — that is a leaf doing useful work."
+        },
+        {
+          "md": "Right leaf term: $G_R^2/(H_R + \\lambda) = (-2)^2/(2+1) = 4/3 = 1.333$.",
+          "why": "The square removes the sign, so a leaf with a large negative gradient sum is just as valuable as one with a large positive sum."
+        },
+        {
+          "md": "Parent term: $(G_L + G_R)^2/(H_L + H_R + \\lambda) = (4 - 2)^2/(2+2+1) = 4/5 = 0.8$.",
+          "why": "This is the score *before* splitting, when both groups share one leaf. Subtracting it turns the three terms into the improvement a split actually buys."
+        },
+        {
+          "md": "Gain $= \\frac{1}{2}(5.333 + 1.333 - 0.8) - 0 = \\frac{1}{2}(5.867) = 2.933$. Positive, so the split is worth taking.",
+          "why": "A positive gain means the split removes more loss than the $\\gamma$ charge costs. Had $\\gamma$ been, say, $3$, the gain would be $-0.067$ and XGBoost would refuse the split — the regularisation doing its job."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — a leaf value, a bin ratio, and a CatBoost statistic.** Three one-line computations that show the scale of each library's trick."
+    },
+    {
+      "t": "list",
+      "items": [
+        "XGBoost leaf value: with $G = -3$, $H = 2$, $\\lambda = 1$, the optimal leaf value is $w^{\\star} = -G/(H + \\lambda) = -(-3)/(2+1) = 3/3 = 1.0$. The data wants to push that leaf up by a full unit, and the $\\lambda$ penalty is what decides how much of that push survives.",
+        "LightGBM binning: one million distinct values compressed into $255$ bins is a ratio of $1000000 / 255 = 3921.6$ — every split search now examines at most $255$ candidate cut points instead of up to a million. LightGBM's default leaf budget of $31$ leaves sits just under the $32$ leaves a level-wise tree would have at depth $5$.",
+        "CatBoost ordered statistic: a category appearing $10$ times whose targets sum to $6$, with prior $P = 0.5$ and smoothing $a = 1$, gets the value $(6 + 0.5\\times 1)/(10 + 1) = 6.5/11 = 0.591$. Without smoothing it would be $6/10 = 0.6$ — close, because this category is well-populated; raise the smoothing to $a = 10$ and the value moves to $(6 + 0.5\\times 10)/(10 + 10) = 11/20 = 0.55$, visibly pulled toward the prior. Smoothing matters most for the rare categories, where an unsmoothed average is pure noise."
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does XGBoost's second-order approximation add that plain gradient boosting does not use?",
+      "opts": [
+        {
+          "md": "It replaces residuals with the raw target values",
+          "expl": "That is not an approximation — it is a different (and wrong) algorithm. The trees are still fitted to gradient information, just a richer kind."
+        },
+        {
+          "md": "It uses each row's curvature (second derivative) as well as its gradient, which yields a leaf value $-G/(H+\\lambda)$ and a curvature-aware split gain",
+          "correct": true,
+          "expl": "Correct. The hessian H measures how sharply the loss curves at the current prediction, so a split's score responds to curvature, not just to the size of the residual. The leaf penalty lambda then shrinks the value that survives."
+        },
+        {
+          "md": "It fits a neural network instead of a tree at each round",
+          "expl": "The base learner is still a decision tree. XGBoost changes how the loss is approximated and regularised, not the learner."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "In the example, a candidate split has left gradient sum $G_L = 4$, right gradient sum $G_R = -2$, curvature sums $H_L = H_R = 2$, penalty $\\lambda = 1$, and leaf charge $\\gamma = 0$. What is the split's gain? Give your answer to two decimal places.",
+      "answer": 2.9333,
+      "tol": 0.02,
+      "hint": "Score the left leaf, the right leaf, and the unsplit parent with the same formula G^2/(H + lambda), then combine them.",
+      "sol": "Left term 4^2/3 = 5.333, right term (-2)^2/3 = 1.333, parent term (4-2)^2/5 = 0.8. Gain = (1/2)(5.333 + 1.333 - 0.8) - 0 = (1/2)(5.867) = 2.933. A positive gain means the split lowers the regularised objective; if gamma exceeded 2.933 the split would be rejected.",
+      "unit": "gain"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "LightGBM grows trees leaf-wise and reaches a target loss with fewer leaves than a level-wise tree. Why can this growth strategy be riskier on a small dataset?",
+      "opts": [
+        {
+          "md": "Leaf-wise growth cannot use the learning rate",
+          "expl": "The learning rate is unaffected by the growth order — gradient boosting's update is the same either way."
+        },
+        {
+          "md": "Because it always expands the single most promising leaf, it can spend its whole leaf budget deepening one narrow, noisy region rather than balancing across the data",
+          "correct": true,
+          "expl": "Correct. Level-wise growth expands all leaves uniformly, which acts as a mild regulariser; leaf-wise growth is greedier and can carve a deep, data-specific structure that fits noise. On small data the level-wise bias is often safer, and LightGBM exposes a maximum-depth limit to clamp this risk."
+        },
+        {
+          "md": "Because leaf-wise trees have exactly $2^d$ leaves at depth $d$, which is more than level-wise trees",
+          "expl": "That is backwards — it is the level-wise tree that has exactly 2^d leaves at depth d. Leaf-wise growth is notable precisely for ending with fewer leaves for a given depth."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** these are the tools; the paper's method sits on one of them. The final card reads the other side of the coin — the situations where a boosted tree ensemble is the wrong choice altogether — and closes the section with a skip check."
+}

@@ -1,0 +1,72 @@
+<!-- ============ c50 终测 ============ -->
+<section class="card" data-c="50" data-title-zh="后测 · 七题终章" data-title-en="Final test · seven questions">
+  <div class="card-inner">
+    <div class="card-kicker k-check"><span class="len">Final test · 7 questions</span><span class="lz">后测 · 7 题</span></div>
+    <h2><span class="lz">七道题，检验你脑子里装了整条流水线没有</span><span class="len">Seven questions to prove the pipeline is in your head</span></h2>
+    <p class="lz">每道题对着一个关键环节，从超图一直问到实验选型。允许翻回任何一卡——真正的理解不是背数字，是知道"这个数该到哪张表去查、为什么长这样"。</p>
+    <p class="len">One question per key link, from hypergraphs all the way to model selection. Flip back to any card — real understanding is knowing where a number lives and why it looks that way, not memorizing it.</p>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">Q1 · 超图</span><span class="lz">论文把 Cora 的 7,440 条引用边改写成 970 条超边，这说明了什么？</span><span class="len">The paper rewrites Cora's 7,440 citation edges into 970 hyperedges — what does that show?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="点数没变——都是 2,708 篇论文；变的只是关系的组织方式（第 8 卡走查过同一对数据集）。"><span class="lz">超图的顶点数比图少</span><span class="len">Hypergraphs hold fewer vertices</span></button>
+        <button class="opt" data-correct="1" data-expl="对！同一批点，用更少的关系装下同样的群体结构（超边一次圈一群，两两边只能两两记）——这就是超图省关系的本钱，也是论文选它的原因。"><span class="lz">同样的顶点，超边用更少的关系条数装载同样的群体结构</span><span class="len">Same vertices; hyperedges pack the same group structure into far fewer relations</span></button>
+        <button class="opt" data-expl="两种表达表达的是同一张关系网——不是“丢失”数据，是换了一种写法（第 8 卡）。"><span class="lz">改写成超边会丢失一部分关系</span><span class="len">Rewriting as hyperedges loses relations</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="0.982" data-tol="0.002" data-hint="数出参加条数 → 乘 2 → 用 σ = 1÷(1+e⁻ˣ) 压到 0–1（第 25 卡的口径）。" data-sol="σ(2×2) = σ(4) = 1 ÷ (1 + e⁻⁴) = 1 ÷ (1 + 0.0183) ≈ 0.9820——参加 2 条超边的存档值。对照第 25 卡：0 条得 0.5、3 条得 0.9975，条数越大越贴近 1。">
+      <p class="quiz-q"><span class="ex-tag">Q2 · HOI</span><span class="lz">数值题：某顶点参加 2 条超边，ρ(x) = σ(2x)。它的结构存档值是多少（四位小数）？</span><span class="len">Numeric: a vertex joins 2 hyperedges, ρ(x) = σ(2x). Its structural archive value (four decimals)?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">Q3 · μc 约定</span><span class="lz">某顶点满足"x₂ ≥ 2"这条规则，内容登记记什么？为什么这样设计？</span><span class="len">A vertex satisfies the rule "x₂ ≥ 2" — what does the content registry record, and why so?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="反了——满足记 0（第 29 卡反复点破过的反直觉约定）。"><span class="lz">记 1：表示命中</span><span class="len">Record 1: a hit</span></button>
+        <button class="opt" data-correct="1" data-expl="对！记 0——整本账读作“未被解释的程度”：0 = 这条规则把该顶点解释清楚了，不留悬账；1 = 规则管不住它，按位置分记一笔悬账。"><span class="lz">记 0：账本统一读作"未被解释的程度"，被解释的格子归零</span><span class="len">Record 0: the ledger reads uniformly as "degree of being unexplained"; explained slots zero out</span></button>
+        <button class="opt" data-expl="内容登记只有 0/1 两种——“视情况而定”的是位置分（下一环节），不是内容。"><span class="lz">记该顶点离阈值的距离</span><span class="len">Record the distance to the threshold</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="1.0" data-tol="0.01" data-hint="位置公式 μp = α ÷ (d + β)：把 α=9、β=8、层号 d=1 代进去。" data-sol="μ<sub>p</sub> = 9 ÷ (1 + 8) = 9 ÷ 9 = 1.0——第 1 层规则的权重。对照第 30 卡：层号越大权重越小（第 0 层 1.125 > 第 1 层 1.0 > 第 2 层 0.9）。">
+      <p class="quiz-q"><span class="ex-tag">Q4 · μp</span><span class="lz">数值题：α = 9、β = 8 时，第 1 层规则的权重是多少？</span><span class="len">Numeric: with α = 9, β = 8, what is a layer-1 rule's weight?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">Q5 · MDK-Fusion</span><span class="lz">为什么两本账合订时先做 ⊙（逐位相乘）而不是直接拼接？</span><span class="len">Why multiply (⊙) the ledgers before concatenating instead of pasting them directly?</span></p>
+      <div class="opts">
+        <button class="opt" data-correct="1" data-expl="对！直接拼会让 1 格结构信息淹没在 5 格规则信息里（论文原话：结构知识利用不足）。⊙ 把结构分“渗”进规则账的每一格——结构知识不再是一格孤岛，而是整列的秤。"><span class="lz">避免薄账被稀释：⊙ 把结构分渗进规则账每一格，让结构的声音遍布全列</span><span class="len">To keep the thin ledger from diluting: ⊙ seeps the structural score into every rule slot, spreading its voice across the column</span></button>
+        <button class="opt" data-expl="位数不省——10 格比 6 格还多；理由是"信息怎么放"，不是"放多少"。"><span class="lz">为了减少总位数</span><span class="len">To reduce total width</span></button>
+        <button class="opt" data-expl="⊙ 是可解释的固定操作（乘法），不是训练出来的——"更聪明的融合"说不通。"><span class="lz">为了让网络自己学到更好的融合方式</span><span class="len">So the network learns a smarter fusion</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">Q6 · 选型</span><span class="lz">一个推荐系统场景：用户-商品特征丰富，用户之间几乎没有组关系。选 RD 还是 DD，依据是什么？</span><span class="len">A recommender: rich user-item features, almost no group relations. RD or DD — on what grounds?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="DD 的主场是"结构重"的场景——关系稀疏时它多带的那路结构信息几乎没货，还可能拖累（图数据集上 DD 一律略输的同一道理，第 36 卡）。"><span class="lz">DD：多一路信息总不吃亏</span><span class="len">DD: an extra stream never hurts</span></button>
+        <button class="opt" data-correct="1" data-expl="正确！依据是"结构有多重"（第 36 卡的选型口诀）：组关系稀疏 → 结构账信息稀薄 → 拿 RD 轻装上阵。论文明说 RD 适合推荐、信用评分这类特征主导场景。"><span class="lz">RD：结构稀疏意味着结构账没货可喂，轻装上阵更好</span><span class="len">RD: sparse structure means the structural ledger has nothing to feed — travel light</span></button>
+        <button class="opt" data-expl="两个型号机器同款、训练同款——差别只在"料"，不存在"训练更简单"一说（第 34 卡）。"><span class="lz">DD：它的训练过程更简单，风险更低</span><span class="len">DD: simpler, lower-risk training</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">Q7 · 读实验</span><span class="lz">有人引用"本文在 Cora 上提升 7.3%"来推销方法。按本站教你的复算习惯，你要先问什么？</span><span class="len">Someone pitches "a 7.3% gain on Cora". Following this site's habit, what do you ask first?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="这是本站最想让你养成的反条件反射——凡遇数字先问口径，再问数值。"><span class="lz">"Cora 是哪篇论文里的 Cora？"</span><span class="len">"Which paper's Cora is this?"</span></button>
+        <button class="opt" data-correct="1" data-expl="对！7.30 来自表 VI 的 Cora 直推行（RD 88.89 − HGNN 81.59），而表 V 同一对比只有 6.83——**先问"和谁比、在哪张表、哪个设定"**。这正是第 41-42 卡和第 48 批判卡训练出的口径意识。"><span class="lz">"和哪个基线比、在哪张表哪个设定下？"（口径先定，数值才可谈）</span><span class="len">"Against which baseline, in which table, under which setting?" (settle the convention first)</span></button>
+        <button class="opt" data-expl="问出处是基本礼貌，但本站训练的是更硬的一步：先钉口径——同一个"7.3%"在两张表里有两个"都对"的数，不问口径就无从引用。"><span class="lz">"这个数字是谁算的？"</span><span class="len">"Who computed it?"</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout good">
+      <b><span class="lz">七题全过？你已经出师了。</span><span class="len">All seven? You have graduated.</span></b>
+      <span class="lz">最后一卡是知识地图——把整条流水线和全部数字折叠成一页备查。</span>
+      <span class="len">The last card is the knowledge map — the whole pipeline and every number folded onto one page.</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>
+
+<!-- NEXT-CARD -->

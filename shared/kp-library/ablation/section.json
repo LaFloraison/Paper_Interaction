@@ -1,0 +1,7 @@
+{
+  "key": "ablation",
+  "name": "Ablation studies",
+  "title": "Ablation studies: how removing one thing becomes evidence",
+  "blurb": "An ablation is the experiment a paper runs to support the sentence \"this component is what makes the model better\": remove the component, hold everything else fixed, and measure the difference. This section covers the logic of that contrast, the controls that make it valid, and how to read an ablation table — including the two failure shapes that make such a table look informative while proving nothing. The paper's experimental chapter runs ablations over a module, a tree count and a layer count, so a later chapter judges those tables by exactly these rules.",
+  "skip_hint": "If you can state what makes an ablation valid, judge an effect against run-to-run spread rather than against zero, and tell an ablation apart from a hyperparameter sweep, skip this section."
+}

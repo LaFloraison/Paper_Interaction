@@ -1,0 +1,137 @@
+{
+  "id": "94",
+  "kind": "table",
+  "chapter": "experiments",
+  "section": "6.4 Table V · main results",
+  "kicker": "6.4 · Table V",
+  "title": "Table V: the main results, recomputed cell by cell",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Table V reports vertex-classification accuracy under the transductive setting for seven methods across ten datasets, each cell being the mean over five random seeds with the standard deviation alongside. The final row gives each method's average rank across the ten datasets, where a method's rank on a dataset is its position among the seven, and ties are broken by assigning the best of the tied positions.",
+      "plain": "Seven methods, ten datasets, one accuracy each. The bottom row turns those seventy numbers into one rank per method — and that row is the one this card is about."
+    },
+    {
+      "t": "p",
+      "md": "**The columns, named once.** MLP and GBDT see only vertex features. GCN and HGNN see the structure — a graph convolution and a hypergraph convolution respectively. TLF combines boosted trees with a network, and is the nearest relative of this paper's own rule encoder. RD-HGNN and DD-HGNN are the paper's two models. Bold marks the best entry in each row; on four of the ten rows the bold entry is a baseline rather than a proposed model."
+    },
+    {
+      "t": "figure",
+      "src": "tab5.png",
+      "alt": "Table V of the paper: experimental results on ten datasets under the transductive setting",
+      "cap": "Original Table V (Feng et al., TPAMI 2026): accuracies under the transductive setting, mean ± standard deviation over five seeds, with the average-rank row beneath."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the average-rank row, reproduced from the cells above it.** This is the paper's own headline statistic, so it is worth computing rather than reading. Rank the seven methods on each dataset, keeping ties, then average each method's ten ranks."
+    },
+    {
+      "t": "table",
+      "head": ["Method", "Rank recomputed here", "Rank printed in Table V", "Match?"],
+      "rows": [
+        ["MLP", "6.00", "5.8", "differs by 0.2"],
+        ["GCN", "3.90", "3.9", "**exact**"],
+        ["GBDT", "5.30", "5.1", "differs by 0.2"],
+        ["HGNN", "3.40", "3.3", "differs by 0.1"],
+        ["TLF", "6.20", "6.1", "differs by 0.1"],
+        ["**RD-HGNN**", "**1.70**", "**1.7**", "**exact**"],
+        ["**DD-HGNN**", "**1.50**", "**1.5**", "**exact**"]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "The discrepancies are not errors in the table — they are a tie convention. Two rows contain ties: on Tencent, MLP, GBDT and TLF all score 92.85; on Heloc, MLP, GBDT and HGNN all score 71.61. Averaging the tied positions gives each of them a middling rank; assigning the **best** of the tied positions gives each of them a lower number.",
+          "why": "Recomputing under the best-of-ties convention reproduces the printed row exactly for all seven methods. The table is internally consistent; it simply does not state which convention it uses."
+        },
+        {
+          "md": "Because RD and DD are never tied with anything on any of the ten datasets, their ranks are unaffected by the convention: RD sums to 17 and DD to 15, giving 1.70 and 1.50.",
+          "why": "This is the important consequence. The two numbers the paper cares about most are convention-independent — so they can be verified without resolving the ambiguity."
+        },
+        {
+          "md": "Now compare with what the paper's own text says: \"our methods, RD-HGNN and DD-HGNN, demonstrated exceptional performance with average rankings of **1.9 and 1.7**\".",
+          "why": "Neither 1.9 nor 1.7 reproduces under any tie convention — and as just established, no convention could affect them, because these two methods never tie. **The table prints 1.7/1.5; the text quotes 1.9/1.7.** The text's numbers read like the table's row shifted along by one method."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — the two average gains the text quotes.** Section V-B says the methods beat GBDT and HGNN \"with average gains of 5.86 and 2.28, respectively\". Computing from the cells:"
+    },
+    {
+      "t": "table",
+      "head": ["Comparison", "Recomputed from Table V", "Quoted in the text", "Gap"],
+      "rows": [
+        ["DD-HGNN mean − GBDT mean", "$87.648 - 81.992 = 5.656$", "5.86", "0.20"],
+        ["DD-HGNN mean − HGNN mean", "$87.648 - 85.529 = 2.119$", "2.28", "0.16"],
+        ["DD-HGNN mean − RD-HGNN mean", "$87.648 - 87.602 = 0.046$", "not quoted", "—"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Both quoted gains come out roughly 0.2 too high, and the discrepancy is systematic rather than random** — which usually means a different column of numbers is being used rather than a slip of arithmetic. One plausible source is a slightly different value in one or two cells; the table region is small and densely set. The honest position is: **from the cells as printed, the gains are 5.66 and 2.12, not 5.86 and 2.28.** If your reading of a cell differs from this card's, the arithmetic can be redone in a minute — which is precisely why the site gives you the cells and not just the conclusion."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**The third row of that table is worth a moment.** DD's mean exceeds RD's by **0.046 of a percentage point** — a difference far inside any of the reported standard deviations — yet DD's average rank is better, 1.50 against 1.70. The two statistics disagree because a rank discards the margin: winning by 0.01 and by 10 both count as winning. This is the single cleanest illustration of why a paper reports both, and of why a rank can look decisive where the underlying gap is not."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does the average-rank row measure?",
+      "opts": [
+        {
+          "md": "The mean accuracy of each method across the ten datasets",
+          "expl": "That is a different quantity, and the two disagree here — DD's mean exceeds RD's by 0.046 while DD's rank is better by 0.20. The rank rows are below the accuracy rows for exactly this reason."
+        },
+        {
+          "md": "How a method places on each dataset, averaged — a scale-free summary that ignores the size of the gaps",
+          "correct": true,
+          "expl": "Correct. It exists because accuracies on different datasets are not comparable: 95% on one task and 72% on another cannot be averaged meaningfully. Ranks make them comparable at the cost of discarding margins, which is why both rows are printed."
+        },
+        {
+          "md": "The number of datasets on which each method was best",
+          "expl": "That would be a count, not a rank. MLP's count is zero and its average rank is 5.8 — a count of wins carries far less information than a full ranking."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "From the printed cells, what is DD-HGNN's average accuracy across the ten datasets? Give three decimals.",
+      "answer": 87.648,
+      "tol": 0.02,
+      "hint": "Add the ten DD-HGNN cells and divide by ten.",
+      "sol": "The ten DD-HGNN cells sum to $876.48$, so the mean is $87.648$. The paper never prints this number, yet both of its quoted gains are differences of such means — which is why the means have to be computed before the gains can be checked.",
+      "unit": "accuracy"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The paper's text quotes average ranks of 1.9 and 1.7 for its two models, while its own table prints 1.7 and 1.5. What is the most defensible conclusion?",
+      "opts": [
+        {
+          "md": "The table is wrong because the text is more recent",
+          "expl": "There is no reason to prefer the prose. The table's ranks are reproducible from the table's own accuracies — that is, the table is internally consistent — while the quoted pair reproduces from nothing."
+        },
+        {
+          "md": "The table's numbers are verifiable from the table's own cells and reproduce exactly, so they should be trusted over the unmatched prose figures",
+          "correct": true,
+          "expl": "Correct, and the reasoning is the transferable part: **prefer whichever stated number you can reproduce from other stated numbers.** Here the diagnostic is unusually strong, because RD and DD never tie, so no tie convention can move their ranks — 1.7 and 1.5 are the only values their own results support."
+        },
+        {
+          "md": "The difference is small enough to ignore",
+          "expl": "A 0.2 shift in an average rank across ten datasets is a real difference in placement, and the rank is this paper's headline summary statistic. Small numbers in a headline are not small. What makes this instance mild is that correcting it does not change the conclusion — not that the correction does not matter."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Table VI, the same comparison under the production setting — where the test vertices are no longer visible during training, and where several of the paper's quoted figures appear to come from."
+}

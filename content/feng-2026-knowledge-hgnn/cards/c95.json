@@ -1,0 +1,141 @@
+{
+  "id": "95",
+  "kind": "table",
+  "chapter": "experiments",
+  "section": "6.5 Table VI · production results",
+  "kicker": "6.5 · Table VI",
+  "title": "Table VI: the production setting, and what the delta columns are actually measuring",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Table VI repeats the comparison under the production setting. Each dataset occupies three rows — Production, Transductive and Inductive — and four methods are reported (GBDT, HGNN, RD-HGNN, DD-HGNN) together with two difference columns, $\\Delta_{GBDT}$ and $\\Delta_{HGNN}$. The footer row is labelled \"Avg. Rank/Avg.\" and carries average ranks for the four methods and average differences for the two delta columns.",
+      "plain": "Same ten datasets, but now each is tested three ways: the combined production task, its transductive part, and its inductive part. Two extra columns report how much better the proposed models are than the two baselines."
+    },
+    {
+      "t": "p",
+      "md": "**The three settings per dataset, and how they relate.** The production setting combines the two test sets, so its score is the headline. The transductive and inductive rows split that test set: transductive vertices were visible during training with their labels withheld, inductive ones were not present at all. A reader should therefore read the production row as a *blend* and the other two as its ingredients — and should not expect the production row to equal either one of them."
+    },
+    {
+      "t": "figure",
+      "src": "tab6.png",
+      "alt": "Table VI of the paper: experimental results on ten datasets under the production setting",
+      "cap": "Original Table VI (Feng et al., TPAMI 2026): three settings per dataset, four methods, and two difference columns."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the delta columns, and which model they use.** This is the part a reader cannot guess, so it has to be worked out. Take the Cora Production row: GBDT $74.30$, HGNN $81.91$, RD-HGNN $88.25$, DD-HGNN $86.48$, with printed deltas $\\Delta_{GBDT} = +13.95$ and $\\Delta_{HGNN} = +6.34$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Test DD against the baselines: $86.48 - 74.30 = 12.18$ and $86.48 - 81.91 = 4.57$. Neither matches the printed deltas.",
+          "why": "So the DD column is not the source, despite it being one of the paper's own models."
+        },
+        {
+          "md": "Test RD: $88.25 - 74.30 = 13.95$ and $88.25 - 81.91 = 6.34$. **Both match exactly.**",
+          "why": "So the deltas are computed from RD-HGNN on this row — which is also the bolded entry, since RD edges out DD on Cora."
+        },
+        {
+          "md": "Now try a hypergraph dataset where DD wins. CA-Cora Production: GBDT $71.69$, HGNN $75.82$, RD $79.85$, DD $80.14$, printed $\\Delta_{GBDT} = +8.45$.",
+          "why": "DD − GBDT $= 8.45$ exactly, while RD − GBDT $= 8.16$. **Here the deltas are computed from DD.** So the column is not tied to one model."
+        },
+        {
+          "md": "Check the rule on all thirty rows: the deltas equal (the **better** of RD and DD) minus the baseline.",
+          "why": "It holds on twenty-nine of the thirty rows, to within the rounding of the printed cells. **The delta columns therefore report the proposed method's best available number against each baseline, switching model from row to row without saying so** — which is a legitimate way to present results, but it means the deltas are not measuring one model's performance and cannot be averaged as if they were."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — the one row that does not reconcile.** Github, Production: GBDT $85.69$, HGNN $86.05$, RD $85.93$, DD $85.96$. The printed $\\Delta_{HGNN}$ is $+0.00$."
+    },
+    {
+      "t": "table",
+      "head": ["Candidate", "Computation", "Value"],
+      "rows": [
+        ["RD against HGNN", "$85.93 - 86.05$", "$-0.12$"],
+        ["DD against HGNN (the better of the two here)", "$85.96 - 86.05$", "$-0.09$"],
+        ["**Printed in Table VI**", "—", "**$+0.00$**"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**This is the paper's cleanest numerical anomaly, and it is a sign error rather than a rounding error.** Both of the proposed models lose to the plain HGNN baseline on this row, by 0.12 and 0.09 points — small, but negative. Printing $+0.00$ removes the sign. The dedicated transductive and inductive rows for the same dataset behave differently ($+0.14$ and $-0.40$), so the anomaly is confined to this one cell. **Nothing about the paper's overall conclusion turns on it — but its position matters: it sits in the column that summarises how much better the proposed models are, and it converts a loss into a draw.**"
+    },
+    {
+      "t": "p",
+      "md": "**Walk 3 — the footer row.** The footer is labelled \"Avg. Rank/Avg.\" and reads $4.0$, $2.8$, $1.7$, $1.5$ for the four methods and $+6.31$, $+2.53$ for the two delta columns."
+    },
+    {
+      "t": "table",
+      "head": ["Quantity", "Recomputed here", "Printed", "Verdict"],
+      "rows": [
+        ["Average rank, RD / DD", "$1.70$ / $1.50$", "$1.7$ / $1.5$", "**matches** (and matches Table V's identical row)"],
+        ["Mean $\\Delta_{HGNN}$ over the ten Production rows", "$+2.53$", "$+2.53$", "**matches exactly**"],
+        ["Mean $\\Delta_{GBDT}$ over the ten Production rows", "$+5.94$", "$+6.31$", "does not match"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Note the label before the numbers: the same row mixes two different units.** Four entries are *average ranks* and two are *average point differences*, under a single heading. That is a presentational choice worth knowing about, because a reader skimming the bottom row will read six numbers as one family. And the two averages are not mutually consistent either: the $+2.53$ reproduces as the Production-row mean against HGNN using RD, while the $+6.31$ reproduces under no aggregation tried here — the same computation gives $5.94$."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which model do Table VI's $\\Delta$ columns compare against the baselines?",
+      "opts": [
+        {
+          "md": "DD-HGNN throughout, since it is the paper's full model",
+          "expl": "It is on some rows and not others. On Cora Production the deltas come from RD; on CA-Cora Production they come from DD. A single fixed model would give $12.18$ on Cora, not the printed $13.95$."
+        },
+        {
+          "md": "Whichever of RD and DD scores higher on that row",
+          "correct": true,
+          "expl": "Correct — verified on twenty-nine of the thirty rows. So the delta columns report the best of the two proposed models per row. That is defensible as a summary of \"how much better is this paper\", but it is not a fixed model's performance and cannot be averaged as one."
+        },
+        {
+          "md": "The average of RD and DD",
+          "expl": "Averaging the two on Cora Production gives $13.07$, not the printed $13.95$; the columns track the maximum, not the mean."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "For Github under the production setting, what is the correct $\\Delta_{HGNN}$ from the printed cells? Give two decimals, with the sign.",
+      "answer": -0.09,
+      "tol": 0.02,
+      "hint": "Use the better of the two proposed models on that row, and subtract the HGNN column.",
+      "sol": "RD scores $85.93$ and DD $85.96$, so the better of the two is DD; $85.96 - 86.05 = -0.09$. The table prints $+0.00$. The magnitude is negligible but the sign is not: it is the difference between the proposed method edging past the baseline and failing to.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A results table has an extra column reporting the improvement of \"our method\" over a baseline. What is the first thing to establish?",
+      "opts": [
+        {
+          "md": "Whether the improvement is large enough to matter",
+          "expl": "Magnitude comes second. Until you know which quantity the column measures, the magnitude is not interpretable — a 6-point gap in one model's accuracy and a 6-point gap in the better of two models are different claims."
+        },
+        {
+          "md": "Which model the column actually refers to, and whether it stays the same down the column",
+          "correct": true,
+          "expl": "Correct. Here the reference model switches row by row, so the column is a per-row best rather than a measurement of one system. That is exactly the kind of thing a reader cannot infer from the header, and exactly what recomputing one cell reveals."
+        },
+        {
+          "md": "Whether the baseline was tuned fairly",
+          "expl": "An important question, and a different one — it concerns the baseline column, not the derived column. Both matter, and neither substitutes for the other."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Table IV's hyperparameter configurations, and then the ablation tables — where the paper's own claims about which component does the work get tested."
+}

@@ -1,0 +1,129 @@
+{
+  "id": "93",
+  "kind": "table",
+  "chapter": "experiments",
+  "section": "6.3 Table IV · hyperparameters",
+  "kicker": "6.3 · Table IV",
+  "title": "Table IV: the hyperparameters, and the model size they imply",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Table IV lists, for each of the ten datasets, the six settings that determine the model's configuration: the learning rate, the number of trees in the pre-trained ensemble, the dimension of the hidden layer, each tree's maximum depth, and the two position-mapping coefficients $\\alpha$ and $\\beta$.",
+      "plain": "Six numbers per dataset. Read together they describe not just a training recipe but the size of the model — which is what this card works out."
+    },
+    {
+      "t": "p",
+      "md": "**The two columns that determine the rule embedding's width.** The number of trees and the maximum depth are the inputs to the arithmetic from Equation (8)'s card: a full binary tree of depth $d$ contains $2^d - 1$ inner nodes, so the rule embedding's width $C_r$ is at most (trees $\\times$ inner nodes per tree). Everything else in the table affects training; these two affect what the model *is*."
+    },
+    {
+      "t": "table",
+      "head": ["Configuration", "Trees", "Max depth", "Inner nodes per tree", "$C_r$ upper bound", "Fused width $2C_r$"],
+      "rows": [
+        ["Heloc, Tencent", "20", "3", "7", "140", "280"],
+        ["CC-Cora", "140", "3", "7", "980", "1,960"],
+        ["DBLP-Conf", "160", "3", "7", "1,120", "2,240"],
+        ["CA-Cora", "40", "5", "31", "1,240", "2,480"],
+        ["Amazon-P, ModelNet40", "190", "3", "7", "1,330", "2,660"],
+        ["Amazon-C", "190", "4", "15", "2,850", "5,700"],
+        ["**Github**", "**150**", "**7**", "**127**", "**19,050**", "**38,100**"]
+      ]
+    },
+    {
+      "t": "formula",
+      "tex": "C_r \\le K \\times (2^{d_{\\max}} - 1) \\qquad\\Longrightarrow\\qquad \\dim(Z) \\le 2K(2^{d_{\\max}} - 1)",
+      "note": "Two of the table's six columns feed straight into this inequality. The bound is an upper limit because trees are often grown shallower than the maximum depth allowed; the paper does not report realised depths, so the true widths lie between this bound and roughly $K$ times the depth actually reached.",
+      "gloss": [
+        { "sym": "K", "md": "the number of trees, the table's second column" },
+        { "sym": "d_{\\max}", "md": "the maximum depth, the table's fifth column" },
+        { "sym": "C_r", "md": "the rule embedding's width — the total number of questions across the ensemble" },
+        { "sym": "\\dim(Z)", "md": "the fused width, twice $C_r$ by Equation (9)" }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Look at where the largest configuration lands.** Github — a plain graph dataset with 37,700 vertices — is given 150 trees at depth 7, an order of magnitude heavier than any other setting. The configuration is largest exactly where, according to the results tables, the method gains least. That is not an error, and it may simply be what validation selected; but it is the kind of fact that makes you want to see the per-dataset tuning curves, which the paper does not show."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — read the table as a model description.** Take Cora: learning rate $0.6$, $60$ trees, hidden dimension $128$, maximum depth $4$, $\\alpha = 10$, $\\beta = 6$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Compute the rule embedding's width bound: a depth-4 full binary tree has $2^4 - 1 = 15$ inner nodes, so $C_r \\le 60 \\times 15 = 900$ questions per vertex, and the fused vector is at most $1{,}800$ entries wide.",
+          "why": "Compare that with the raw feature dimension: Cora has 1,433 features. So the knowledge embedding is of the same order of magnitude as the original features — neither negligible nor dominant."
+        },
+        {
+          "md": "Now check the $\\alpha$, $\\beta$ pair against the search range: $10$ and $6$, both inside $\\{6,\\dots,10\\}$.",
+          "why": "The pair is at a corner of the grid — the largest $\\alpha$ and the smallest $\\beta$ available. From Equation (6)'s card, $\\beta = 6$ gives the sharpest decay the grid allows, so Cora receives the strongest position weighting in the whole table."
+        },
+        {
+          "md": "Note that the hidden dimension is $128$ for every one of the ten datasets.",
+          "why": "**One width for datasets spanning 2,708 to 37,700 vertices.** A single fixed capacity across a fourteen-fold range of scale is a deliberate simplification, and it is the sort of setting you would expect a reviewer to ask about — a larger dataset might benefit from a wider layer, and a small one might overfit a wide one."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**What the table documents and what it does not.** Documented: every setting it names, per dataset, and the $\\alpha$/$\\beta$ search range in the text. Not documented: the search space for the learning rate, the tree count or the depth; how many seeds the search was run with; the training time or memory; and whether the baseline methods received comparable tuning effort. **The last omission is the one that matters most for interpreting the results** — an untuned baseline makes any proposal look better, and no column of this table reveals how much care each column of Table V received."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which two columns of Table IV determine the rule embedding's width?",
+      "opts": [
+        {
+          "md": "Learning rate and hidden dimension",
+          "expl": "The learning rate affects how training proceeds, not the model's shape. The hidden dimension is the width of the network's internal layer, which is a different quantity from the input width that $C_r$ sets."
+        },
+        {
+          "md": "Number of trees and maximum depth",
+          "correct": true,
+          "expl": "Correct. Each tree contributes one block of coordinates, and a tree's block length is its inner-node count, bounded by $2^d - 1$. So the width is bounded by (trees) × (inner nodes per tree), and both factors are in this table."
+        },
+        {
+          "md": "$\\alpha$ and $\\beta$",
+          "expl": "Those set the *values* inside the embedding, not its length. Changing $\\alpha$ rescales every coordinate; it does not add or remove one."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Table IV gives Heloc 20 trees at maximum depth 3. What is the upper bound on $C_r$ for Heloc?",
+      "answer": 140,
+      "tol": 0.5,
+      "hint": "Count the inner nodes of one full binary tree of that depth, then multiply by the number of trees.",
+      "sol": "A depth-3 full binary tree has $2^3 - 1 = 7$ inner nodes, so $C_r \\le 20 \\times 7 = 140$, and the fused vector is at most $280$ entries. Compare with Github's $19{,}050$: the two configurations differ by a factor of 136, which is why the cost of the method is not a single number but a per-dataset one.",
+      "unit": "entries"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The hidden dimension is 128 for all ten datasets, whose vertex counts span 2,708 to 37,700. What is the appropriate response?",
+      "opts": [
+        {
+          "md": "It is a defect — capacity should scale with dataset size",
+          "expl": "Not necessarily. A single width may have been chosen for comparability across datasets, which is a legitimate goal — and it is what makes the ablation tables comparable at all."
+        },
+        {
+          "md": "It is a reasonable simplification for comparability, and simultaneously a setting whose sensitivity is untested",
+          "correct": true,
+          "expl": "Correct, and both halves matter. Holding a parameter fixed across datasets makes the comparison cleaner; it also means nobody knows whether the results would improve or degrade at another width. The question to ask is not \"should it scale\" but \"was it varied\" — and Table IV shows one value, so it was not varied in the reported runs."
+        },
+        {
+          "md": "It cannot be assessed without knowing the feature dimensions",
+          "expl": "Useful context, but the assessment does not change. Whatever the feature dimensions, a single hidden width was used for all ten datasets and its sensitivity is unreported."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the ablation tables — where the paper tests its own claims about which component does the work."
+}

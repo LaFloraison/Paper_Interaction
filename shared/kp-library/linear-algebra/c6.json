@@ -1,0 +1,97 @@
+{
+  "kind": "check",
+  "title": "Skip check: can you leave this section?",
+  "what": [
+    {
+      "t": "p",
+      "md": "This section taught the five operations and objects that Equation (1) and Equation (9) are built from. If you can do all five unaided, skip ahead."
+    },
+    {
+      "t": "list",
+      "items": [
+        "State when a matrix product is defined and what shape it produces.",
+        "Say what a transpose does, and why $H H^{\\mathsf T}$ has degrees on its diagonal.",
+        "Tell the Hadamard product from the dot product from the matrix product — including their shapes.",
+        "Say what concatenation preserves that addition destroys, and what it costs.",
+        "Explain why degree normalisation uses $\\sqrt{d}$ rather than $d$."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The bar is not \"two out of four\". The bar is that none of the five made you stop and think. If the Hadamard product and concatenation are the ones you hesitate on, stay for card 4 — those two operations are the whole of Equation (9), and Chapter 5's laboratory will ask you to compute both by hand."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which operation takes two vectors of length 5 and returns a vector of length 5?",
+      "opts": [
+        {
+          "md": "Concatenation",
+          "expl": "That returns length 10 — the dimensions add. Concatenation is the widening operation, which is why it is the one that announces itself in a paper's reported dimensions."
+        },
+        {
+          "md": "The Hadamard product",
+          "correct": true,
+          "expl": "Correct. Element-wise operations preserve shape; that is what makes them usable as switches and gates. Concatenation widens, matrix products reshape, and the dot product collapses to a scalar."
+        },
+        {
+          "md": "The dot product",
+          "expl": "That returns a single number, not a vector of length 5."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A knowledge vector has 12 entries and is concatenated with another vector of 12 entries. How many entries does the result have?",
+      "answer": 24,
+      "tol": 0.01,
+      "hint": "Concatenation adds the lengths.",
+      "sol": "$12 + 12 = 24$. This is the paper's $2C_r$: if the rule ledger has 12 entries per vertex, the fused vector entering the network has 24. Chapter 7 raises the practical consequence — this doubling happens again for every encoder that gets added.",
+      "unit": "entries"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why does the paper normalise by $1/\\sqrt{d}$ on *both* sides of the adjacency-like operator?",
+      "opts": [
+        {
+          "md": "To halve the values so they fit in memory",
+          "expl": "Normalisation changes relative magnitudes, not the storage footprint. The factors here are per-vertex constants, not a global rescaling."
+        },
+        {
+          "md": "To obtain the symmetric weight $1/\\sqrt{d_u d_v}$, which is the same in both directions",
+          "correct": true,
+          "expl": "Correct. Dividing once gives $1/d_v$-type weights, which make the operator asymmetric and its repeated application unstable. Splitting the exponent across both endpoints restores symmetry — the same construction used by GCN, and the one you will see again inside Equation (1)."
+        },
+        {
+          "md": "To make the operator stochastic, with rows summing to one",
+          "expl": "Row sums here are $\\sqrt{d}$-ish, not 1. Deliberately making rows sum to one is the *other* normalisation convention (divide by the full degree), and it is rejected precisely because it breaks symmetry."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You are handed an unfamiliar equation containing both $\\odot$ and $\\Vert$. Without knowing anything else about it, what can you say?",
+      "opts": [
+        {
+          "md": "It computes a similarity between two vectors",
+          "expl": "Similarity measures collapse to a scalar — a dot product or a cosine. Neither symbol here does that; both keep a vector."
+        },
+        {
+          "md": "One operand is being used to select or suppress part of another, and the result is then widened by keeping both versions",
+          "correct": true,
+          "expl": "Correct, and this is a genuinely useful reading skill: the symbols constrain the design. A gate followed by a concatenation means the model both filters one source by another *and* retains the unfiltered version for later layers to use. That is a design claim you can check against the paper's own description — and in this case it matches."
+        },
+        {
+          "md": "The two vectors have different lengths",
+          "expl": "The opposite is forced: $\\odot$ requires identical shapes, so the equation could not be written this way if the lengths differed."
+        }
+      ]
+    }
+  ],
+  "close": "**You are ready for the paper's own objects.** The hypergraph pair follows, and then Equation (1) — which you will be able to read as a sequence of operations you have already performed by hand."
+}

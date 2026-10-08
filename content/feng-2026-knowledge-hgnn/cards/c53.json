@@ -1,0 +1,116 @@
+{
+  "id": "53",
+  "kind": "intro",
+  "chapter": "intro",
+  "section": "4.4 How the case is made",
+  "kicker": "4.4 · The introduction",
+  "title": "How the authors make their case: five rhetorical moves",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Rhetorical moves in a scientific introduction are the conventions by which a claim is made persuasive without being proved: an application list establishes relevance, a naming scheme signals a coherent contribution, a novelty adjective marks a contrast with prior work, and an evaluative flourish closes the paragraph. Each is legitimate in its place; each also conceals a specific obligation.",
+      "plain": "Introductions persuade as well as inform. Here are the five moves this one makes — and what each would have to be true to be deserved."
+    },
+    {
+      "t": "table",
+      "head": ["Move", "Where it appears", "What it would take to earn it"],
+      "rows": [
+        ["**The application roll-call**", "Brain networks, recommendation, social analysis, computer vision — each with citations", "That the listed applications genuinely involve higher-order relations, not just pairwise ones. Chapter 2's arity test settles this for each: group scenarios qualify, pairwise ones do not"],
+        ["**The paradigm compression**", "\"existing HGNN approaches adopt a similar paradigm where high-order structural information guides the smoothing of vertex features\"", "That the prior methods really are this uniform. A single counterexample would weaken the whole argument, so this is the sentence in the introduction most worth checking against the literature"],
+        ["**The novelty adjective**", "\"patterns that are **typically overlooked** by standard HGNNs\"", "That the overlooked quantity is genuinely absent from prior methods — which chapter 5 can verify symbol by symbol, since the prior layer is written out there in full"],
+        ["**The bridging metaphor**", "Fusion \"bridges semantic and dimensional gaps\"", "That one operation really does address two different kinds of gap. Two claims attached to one mechanism is the pattern to watch"],
+        ["**The coherence naming**", "Knowledge HGNN, HOI-Encoder, TDR-Encoder, MDK-Fusion, RD-HGNN, DD-HGNN", "Nothing — naming is free. But notice its *effect*: six acronyms make a three-module paper read as a system, and a system sounds larger than a module"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The naming move deserves a second look, because it is the most effective and the least substantive.** Acronyms are not evidence of anything. Their function is to make the paper's parts feel like members of an architecture rather than separate design decisions — and readers who have learned six acronyms find it harder to conclude that two of the six are the same idea wearing different names. Chapter 5 tests exactly that suspicion about the two variants."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**What is conspicuously absent from the introduction.** Across several pages setting out why the previous paradigm is inadequate, there is no statement of what the proposed method costs. Adding a pre-training stage means training a boosted tree ensemble per dataset before the network runs at all, and the fused feature vector is longer than the original. Neither the training time nor the memory appears in the introduction. As card 43 noted for the abstract, this is where a limitation would have gone."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — dissect the novelty adjective.** The abstract and introduction both say the structural patterns the HOI-Encoder captures are \"typically overlooked by standard HGNNs\"."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Ask what \"overlooked\" would have to mean. Two possibilities: prior methods never compute the quantity, or they compute it but do not use it as a feature.",
+          "why": "The first is a strong claim about the literature; the second is a claim about how the quantity is used. They have very different implications for how novel the encoder is."
+        },
+        {
+          "md": "The relevant quantity is the vertex degree — how many hyperedges contain each vertex. Chapter 2 established that this is the row sum of the incidence matrix.",
+          "why": "Once you know the quantity's identity, the claim becomes checkable against a specific formula rather than against a vague impression."
+        },
+        {
+          "md": "Now note something: the standard hypergraph convolution normalises by exactly those degrees. The quantity is therefore not overlooked in the sense of being unknown — it is used, but consumed *inside* the normalisation rather than exposed as a feature.",
+          "why": "This makes the accurate version of the claim the weaker second one: prior methods use the degree but do not hand it to the network as input. That is still a real difference — and it is exactly the difference the paper's ablation measures. The word \"overlooked\" overstated it slightly, and checking cost you three steps."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "This is the payoff of the whole chapter. A single adjective, checked, becomes a specific and modest claim about where a number is used — a claim you can now verify by reading Equation (1) and Equation (3) side by side. **Rhetoric becomes tractable the moment you restate it as a question about formulas.**"
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is the *function* of an acronym scheme like HOI / TDR / MDK in an introduction?",
+      "opts": [
+        {
+          "md": "To demonstrate that the modules are technically distinct",
+          "expl": "Distinct acronyms prove nothing about distinctness of content. Two names can cover one idea, and one name can cover several."
+        },
+        {
+          "md": "To make the parts cohere into a system, which reads as a larger contribution than a list of modules",
+          "correct": true,
+          "expl": "Correct. The effect is real and is not a trick — a modular architecture genuinely is a system. The thing to guard against is letting the vocabulary substitute for counting what was actually built, which card 52 did."
+        },
+        {
+          "md": "To help reviewers remember the paper",
+          "expl": "Memorability is a side effect. The persuasive function is about perceived scale and coherence."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "The introduction uses how many distinct acronyms for its components and variants?",
+      "answer": 6,
+      "tol": 0.01,
+      "hint": "One for the framework, three for modules, two for model variants.",
+      "sol": "Six: Knowledge HGNN (the framework), HOI-Encoder, TDR-Encoder, MDK-Fusion, RD-HGNN and DD-HGNN. Against three actual modules. The ratio of names to things is a rough but useful indicator of how much of a paper's apparent structure is vocabulary — here it is two to one.",
+      "unit": "acronyms"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The introduction says the structural patterns are \"typically overlooked\" by standard methods, but the standard convolution normalises by exactly those degrees. What is the correct conclusion?",
+      "opts": [
+        {
+          "md": "The claim is false",
+          "expl": "Too harsh. The degree really is not supplied to the network as a feature in the prior architecture — it is folded into the normalisation and disappears. \"Overlooked\" overstates a real difference; it does not invent one."
+        },
+        {
+          "md": "The claim is an overstatement of a real distinction: the quantity is used internally, not exposed as an input",
+          "correct": true,
+          "expl": "Correct, and this is the most common form of overstatement in machine-learning writing: a genuine architectural difference described with a word that implies a greater one. It costs nothing to check — the prior layer's formula is written out in the paper — and the corrected version is still an argument for the method."
+        },
+        {
+          "md": "The claim cannot be evaluated without running the authors' code",
+          "expl": "It can be settled on paper. Whether a quantity appears as a feature or inside a normalisation is visible in the equations, and the paper prints both — its own Equation (3) and the prior convolution it builds on."
+        }
+      ]
+    }
+  ],
+  "close": "**Next, the last card of this chapter:** the citations. Every reference in the introduction and related work is doing a job, and the jobs fall into a small number of kinds."
+}

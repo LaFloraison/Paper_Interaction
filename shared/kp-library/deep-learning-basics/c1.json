@@ -1,0 +1,142 @@
+{
+  "kind": "extension",
+  "title": "From a line to a curve: why one nonlinearity changes everything",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **linear model** predicts a target from an input by a weighted sum plus a constant: with one input, $y = wx + b$; with $d$ inputs, $y = w_1 x_1 + \\dots + w_d x_d + b = \\mathbf{w}^\\top \\mathbf{x} + b$. The weight $w$ sets the slope and the bias $b$ sets the height. Its signature is that the output is a *flat* function of the input — a straight line in one dimension, a flat plane in two, a hyperplane in more.",
+      "plain": "A linear model draws a single straight line through the data and reads its answers off that line. It owns exactly two knobs — how steep the line is, and how high it sits — and a straight line is all two knobs can buy."
+    },
+    {
+      "t": "p",
+      "md": "**The problem with one line.** Suppose you measure something that first rises and then falls: the height of a thrown ball against time, or the accuracy of a model as you add layers, which climbs and then falls again. Plot the measurements and the points bend. A line cannot bend. Whatever slope and height you choose, the shape is fixed — straight. You can tilt the line and lift it, and there is no third knob. On a bending dataset the best line is a compromise that is wrong everywhere at once, and collecting more data does not conjure the knob the line lacks."
+    },
+    {
+      "t": "p",
+      "md": "**The fix: bend the computation, then bend it again.** Instead of one line, build several, evaluate them all, and pass each result through a **nonlinearity** — a fixed function that bends its input, such as the ramp $\\mathrm{ReLU}(z) = \\max(0, z)$, which is zero for negative inputs and equal to the input for positive ones. A weighted sum of these bent pieces can trace a curve. Repeat the operation — form linear combinations, bend, combine the results — and each round adds another input location at which the composite function may change direction. That is the whole idea of a **neural network**: many simple bends, summed and re-bent, until the total shape can follow the data."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "The nonlinearity is not decoration. Remove it and a composition of linear maps is still a linear map — card 2 proves this in one line of matrix algebra — so a thousand-layer network with no nonlinearities is exactly one linear model wearing a thousand coats."
+    },
+    {
+      "t": "formula",
+      "tex": "y = \\mathbf{W}_2\\, \\phi\\!\\left(\\mathbf{W}_1 \\mathbf{x} + \\mathbf{b}_1\\right) + \\mathbf{b}_2",
+      "note": "A two-layer network written out. The inner piece $\\mathbf{W}_1\\mathbf{x}+\\mathbf{b}_1$ is a stack of linear models; $\\phi$ bends each of their outputs; the outer weights $\\mathbf{W}_2$ and bias $\\mathbf{b}_2$ combine the bent pieces into the final answer. The bend is what the next layer gets to work with, and it is why the second layer is not redundant with the first.",
+      "gloss": [
+        { "sym": "\\mathbf{x}", "md": "the input vector — the raw measurements for one example" },
+        { "sym": "\\mathbf{W}_1, \\mathbf{b}_1", "md": "the first layer's weights and bias: a stack of linear models applied to $\\mathbf{x}$" },
+        { "sym": "\\phi", "md": "the fixed nonlinearity applied independently to every output of the inner sum" },
+        { "sym": "\\mathbf{W}_2, \\mathbf{b}_2", "md": "the second layer, combining the bent inner outputs into the final prediction $y$" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**What universal approximation promises — and what it does not.** A theorem says that a network with a single hidden layer and enough units can approximate any continuous function on a bounded region to any accuracy you name. Read it precisely, because it promises less than it sounds. It says *some such network exists*: it says nothing about how wide that network must be, and the required width can be astronomically large. It does not say that gradient descent (card 5) will find that network from data, nor that a finite dataset determines it. And it says nothing about generalisation — a wide-enough network can fit every training point and still be useless on new ones (card 7). Universal approximation is a claim about **what is representable**, not about what is learnable."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — where one line fails.** Three measurements. At $x = 0$ the target is $0$; at $x = 1$ it is $1$; at $x = 2$ it is $0$ again."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Fit the best straight line by least squares. The three $x$ values average to $\\bar x = 1$ and the three $y$ values to $\\bar y = \\tfrac13$. The covariance numerator is $\\sum (x-\\bar x)(y-\\bar y) = (-1)(-\\tfrac13) + (0)(\\tfrac23) + (1)(-\\tfrac13) = 0$.",
+          "why": "A zero numerator means the best slope is $0$. The fit has given up on the shape and is reporting a single average — the straight line with the smallest possible total error here is flat."
+        },
+        {
+          "md": "With slope $0$, the intercept is the mean, $b = \\tfrac13$. So the best line predicts $\\tfrac13$ at every input.",
+          "why": "Predictions at $x = 0, 1, 2$ are all $0.333$, against targets $0, 1, 0$. The line is too low at both ends and too low in the middle."
+        },
+        {
+          "md": "Residuals: $0 - \\tfrac13 = -\\tfrac13$, $1 - \\tfrac13 = +\\tfrac23$, $0 - \\tfrac13 = -\\tfrac13$. Squared and averaged, $(\\tfrac19 + \\tfrac49 + \\tfrac19)/3 = \\tfrac{2}{9} \\approx 0.222$.",
+          "why": "That is the best a line can do, and the error is concentrated at the middle point, which the line cannot reach. A single linear model has no way to be high in the middle and low at both ends — that shape needs a bend."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the same three points, fitted exactly by a sum of bends.** Build a small network whose hidden layer holds three ReLU pieces and whose output is a weighted sum of them:"
+    },
+    {
+      "t": "formula",
+      "tex": "g(x) = \\mathrm{ReLU}(x) - 2\\,\\mathrm{ReLU}(x - 1) + \\mathrm{ReLU}(x - 2)",
+      "note": "Three ReLU pieces added with weights $+1, -2, +1$. The first rises from $0$; the second, subtracted twice, bends the sum down after $x = 1$; the third flattens it out after $x = 2$. The weights were chosen by hand to make the shape obvious — finding them automatically is card 5's job — but the bend is the point.",
+      "gloss": [
+        { "sym": "\\mathrm{ReLU}(x)", "md": "the piece that is active everywhere $x > 0$: it supplies the initial rise" },
+        { "sym": "-2\\,\\mathrm{ReLU}(x-1)", "md": "a piece switched on at $x = 1$, with negative weight — it bends the curve downwards" },
+        { "sym": "+\\,\\mathrm{ReLU}(x-2)", "md": "a piece switched on at $x = 2$ that cancels the downward drift and flattens the tail" }
+      ]
+    },
+    {
+      "t": "list",
+      "items": [
+        "At $x = 0$: $\\mathrm{ReLU}(0) - 2\\,\\mathrm{ReLU}(-1) + \\mathrm{ReLU}(-2) = 0 - 0 + 0 = 0$.",
+        "At $x = 1$: $1 - 2\\,\\mathrm{ReLU}(0) + \\mathrm{ReLU}(-1) = 1 - 0 + 0 = 1$.",
+        "At $x = 2$: $2 - 2(1) + \\mathrm{ReLU}(0) = 2 - 2 + 0 = 0$."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "The network reproduces all three points exactly — mean squared error $0$, against the line's $0.222$. The line needed a bend it did not have; the ReLU sum supplies bends, and with enough of them any piecewise-linear shape can be built. That is the practical content of universal approximation: **bends are the raw material, and adding them is the strategy.**"
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In the linear model $y = wx + b$, what does the weight $w$ control and what does the bias $b$ control?",
+      "opts": [
+        {
+          "md": "$w$ sets how steep the line is; $b$ shifts the whole line up or down",
+          "correct": true,
+          "expl": "Correct. Two knobs, two geometric actions: slope and vertical offset. Because that is the entire set of knobs, the output surface can only ever be flat, which is the limitation the rest of the card is about."
+        },
+        {
+          "md": "$w$ and $b$ are two interchangeable scale factors, so swapping them changes nothing",
+          "expl": "Swapping them changes everything: $b$ multiplies the input while $w$ is added as a constant. They act on different things and are not interchangeable."
+        },
+        {
+          "md": "$w$ is the number of inputs and $b$ is the number of outputs",
+          "expl": "Those are counts describing the shape of an input or output vector, not the parameters of the model. In $y = wx + b$ both $w$ and $b$ are single numbers for a single input."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A different dataset has three points: $(0, 0)$, $(1, 2)$, $(2, 0)$. The best-fitting single straight line through them is horizontal. What is its mean squared error?",
+      "answer": 0.889,
+      "tol": 0.01,
+      "hint": "Fit the best single straight line through the three points, then square the three residuals and average them.",
+      "sol": "The targets are $0, 2, 0$, so their mean is $\\tfrac23$ and the best horizontal line is $y = \\tfrac23$. Residuals: $0 - \\tfrac23 = -\\tfrac23$, $2 - \\tfrac23 = +\\tfrac43$, $0 - \\tfrac23 = -\\tfrac23$. Squares: $\\tfrac49, \\tfrac{16}{9}, \\tfrac49$, summing to $\\tfrac{24}{9} = \\tfrac83$. Divide by three: $\\tfrac89 \\approx 0.889$. The slope is zero because the covariance numerator is $(-1)(-\\tfrac23) + (0)(\\tfrac43) + (1)(-\\tfrac23) = 0$.",
+      "unit": "mean squared error"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A colleague stacks forty linear layers with no nonlinearity between them and calls it a deep network. Why is the description wrong?",
+      "opts": [
+        {
+          "md": "Forty layers cannot be trained, because gradients vanish after about ten layers",
+          "expl": "Depth can make gradients hard to train, but that is a difficulty, not the reason the description is wrong. Even a perfectly trainable stack of linear layers is still one linear layer."
+        },
+        {
+          "md": "Because composing linear maps yields a linear map, so the whole stack is equivalent to a single linear layer",
+          "correct": true,
+          "expl": "Correct. $\\mathbf{W}_2(\\mathbf{W}_1\\mathbf{x}+\\mathbf{b}_1)+\\mathbf{b}_2 = (\\mathbf{W}_2\\mathbf{W}_1)\\mathbf{x} + (\\mathbf{W}_2\\mathbf{b}_1+\\mathbf{b}_2)$, which is again a single linear map. Card 2 proves this. Without a bend, depth adds parameters but no expressive power."
+        },
+        {
+          "md": "Because forty layers cannot represent a straight line",
+          "expl": "They represent straight lines perfectly — that is exactly the problem. A stack of linear maps represents *only* straight lines, however many layers it has."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the model in the paper's Equation (1) is precisely this pattern — linear operations interleaved with a nonlinearity — applied to hypergraph node features. Card 2 makes the layer, the matrix multiply and the bend, exact."
+}

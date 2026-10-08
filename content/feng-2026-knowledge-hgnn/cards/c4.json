@@ -1,0 +1,108 @@
+{
+  "id": "4",
+  "kind": "title",
+  "chapter": "title",
+  "section": "1.3 Neural Networks",
+  "kicker": "Title decoded 3/5 · Neural Networks",
+  "title": "Neural networks: scoring machines that tune themselves",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A neural network is a function built as a sequence of layers, each applying a linear map followed by a fixed nonlinearity, whose parameters are adjusted by gradient descent so as to reduce a loss measured over training examples. A hypergraph neural network is the same construction in which each layer's inputs and outputs are associated with the vertices of a hypergraph, and information is exchanged along hyperedges.",
+      "plain": "A scoring machine with adjustable knobs: features go in, a prediction comes out, and every time it gets an answer wrong it turns its own knobs a little to do better next time."
+    },
+    {
+      "t": "p",
+      "md": "**Why the title needs the third word.** The first two words describe *what information is prepared*. Something still has to use it. Under this title, that something is a network whose scoring is spread across the hypergraph: each vertex ends up with a score informed not only by its own features but by the vertices it shares hyperedges with."
+    },
+    {
+      "t": "p",
+      "md": "Two things about networks matter for reading this paper. First, the parameters — the \"knobs\" — are all there is; there is no lookup table, no external source, no rule written by a human. Second, because every knob is set by gradient descent, the network can only get *better at what it is scored on*, which is why what you optimise (the loss) and what you report (the metric) can quietly diverge. Chapter 6 returns to that distinction."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Common misconception.** \"The network is trained\" does **not** mean it looks anything up, browses anything, or writes its own questions. It sees only the examples it is given, errs on them, and nudges its parameters. Everything it \"knows\" after training is encoded in those numbers."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the smallest scoring machine there is.** Predict whether a dish is spicy from one number: the grams of chilli, $x$. Let the machine be $score = w \\cdot x$ with a single knob $w$. At $w = 1$, a dish with 200 g scores 200."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Mild dishes keep being scored as fiery. Each time, the training procedure nudges $w$ **down**, because lowering $w$ lowers every score, and it was the mild dishes that were scored too high.",
+          "why": "This is the whole of \"learning\": the direction of the nudge is decided by the error, not by a human."
+        },
+        {
+          "md": "But the correction is indiscriminate — lower $w$ and genuinely spicy dishes, which need a high score, now score too low.",
+          "why": "One knob cannot satisfy two conflicting requirements at once. This failure is the reason real networks have millions of them."
+        },
+        {
+          "md": "Add more knobs, one per feature, and the machine can trade them off against each other. The paper's HGNN is exactly that, with the hypergraph supplying which vertices get to influence which.",
+          "why": "The step from \"one knob\" to \"a network\" is only a step in scale, not in kind — and it is the step that makes the word *Neural* in the title mean something."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the whole title as a pipeline.** Take one vertex $v$ (one dot in the hypergraph). (1) The structural encoder counts its hyperedge memberships — one number. (2) The rule encoder writes its rule vector — a row of 0/1. (3) Both are fused onto its features to give a new vector $Z_v$. (4) $Z_v$ enters the hypergraph network, which mixes information along hyperedges and produces a score. Steps (1)–(4) *are* the model; the paper ships two versions of step (1), which is where RD and DD differ."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does it mean that a neural network can be \"trained\"?",
+      "opts": [
+        {
+          "md": "It writes its own questions and answers",
+          "expl": "It generates nothing of the sort. The decision-tree extension in Chapter 2 shows what \"questions\" look like — and even there they are fitted to data by an algorithm, not authored."
+        },
+        {
+          "md": "It repeatedly adjusts internal parameters based on prediction errors",
+          "correct": true,
+          "expl": "Correct. Training is a loop: predict, measure the error, nudge the parameters in the direction that reduces it, repeat. Nothing else is consulted."
+        },
+        {
+          "md": "It can search the web for new material",
+          "expl": "It has no channel to anything outside its input. A model's entire \"knowledge\" is the numbers in its parameters, frozen at the end of training."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A one-knob scoring machine is $score = w \\cdot x$. With $w = 0.5$ and 300 g of chilli, what is the score?",
+      "answer": 150,
+      "tol": 0.01,
+      "hint": "Substitute and multiply. If you got 300 you left the knob at its default of 1.",
+      "sol": "$0.5 \\times 300 = 150$. Note what halving the knob does: it halves *every* dish's score, which is exactly why a single knob cannot separate mild dishes from spicy ones.",
+      "unit": "score"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "In the language of the title, what distinguishes RD-HGNN from DD-HGNN?",
+      "opts": [
+        {
+          "md": "They are trained on different datasets",
+          "expl": "Both are evaluated on all ten datasets in Table I — that is the point of a controlled comparison. Changing the data would confound exactly what the ablation is trying to isolate."
+        },
+        {
+          "md": "One of them has a hypergraph network and the other does not",
+          "expl": "Both are HGNNs; if one dropped the network it would no longer be the same family and the comparison would be meaningless."
+        },
+        {
+          "md": "They embed different knowledge: RD embeds only rule knowledge, DD embeds rule knowledge plus structural knowledge",
+          "correct": true,
+          "expl": "Correct — Dual-Driven versus Rule-Driven. That is why RD is the cleaner test of \"do the rules help?\" and DD the test of \"do the two kinds of knowledge add up?\". Equation (10) writes both in one line, and the difference is a single term."
+        }
+      ]
+    }
+  ],
+  "close": "**How this paper uses it:** the network in this title is a hypergraph network whose layer is Equation (1); the paper's two models differ only in which knowledge they embed before it. **Next:** the three words put back together, and what kind of paper this is."
+}

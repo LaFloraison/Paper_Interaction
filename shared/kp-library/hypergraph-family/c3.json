@@ -1,0 +1,113 @@
+{
+  "kind": "extension",
+  "title": "Two equivalent definitions of a hypergraph",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A hypergraph may be defined set-theoretically as a pair $H = (V, E)$ where $V$ is a finite set and $E$ is a collection of non-empty subsets of $V$; or matrix-theoretically as a 0/1 matrix $H$ with $|V|$ rows and $|E|$ columns, where $H_{ve} = 1$ exactly when $v \\in e$. The two definitions carry exactly the same information: the columns of the matrix are the elements of $E$, and reconstructing one from the other is mechanical.",
+      "plain": "A hypergraph is either \"a set of vertices plus a list of groups\", or \"a table of 0s and 1s\". They are the same object written two ways."
+    },
+    {
+      "t": "p",
+      "md": "**Why the matrix definition is the one that matters here.** A set-theoretic object cannot be added, multiplied or differentiated. Every learning method needs arithmetic, so at some point the group structure has to become numbers — and the incidence matrix is that translation. The paper's Equation (3) sums a row of it; Equation (1) multiplies by it and by its transpose. Once the object is a matrix, \"which groups does this vertex belong to\" becomes \"what is this row's sum\"."
+    },
+    {
+      "t": "p",
+      "md": "**And the translation is lossless, with one caveat worth naming.** The matrix records the memberships faithfully, but it records them **in a chosen order of rows and columns**. Reorder the columns and you have the same hypergraph written differently — which is why the paper's invariance lemma is stated about exchanging columns rather than about permuting vertices. Both are relabellings of the same object."
+    },
+    {
+      "t": "callout",
+      "md": "A pair of terms you will meet in the literature: a hypergraph is **uniform** if all hyperedges have the same size, and **simple** if no hyperedge is contained in another. Neither is required here. This paper's datasets are neither uniform (edge degrees run from 2 to 982) nor generally simple."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the dorm, both ways.** Vertices $\\{Zhang, Li, Wang\\}$; one relation, \"lives in dorm 302\"."
+    },
+    {
+      "t": "table",
+      "head": ["", "Set-theoretic", "Matrix"],
+      "rows": [
+        ["The whole object", "$H = (\\{Z, L, W\\},\\; \\{\\{Z,L,W\\}\\})$", "$H = \\begin{pmatrix} 1 \\\\ 1 \\\\ 1 \\end{pmatrix}$"],
+        ["\"Who is in the group?\"", "look inside the one element of $E$", "read column 1"],
+        ["\"How many groups is Zhang in?\"", "count elements of $E$ containing $Z$", "sum row 1"]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Take the matrix of the four-person graph used in the graph-theory section: 4 rows, 3 columns, sixteen 1s and 0s in total.",
+          "why": "Start from the matrix and recover the sets — the direction you need when reading a paper that only shows you the matrix."
+        },
+        {
+          "md": "Read column 2 top to bottom: entries $(1,2)=0$, $(2,2)=1$, $(3,2)=1$, $(4,2)=0$.",
+          "why": "The 1s sit in rows 2 and 3, so the hyperedge is $\\{2, 3\\}$ — a pair. **You have just turned a column of a matrix back into a set of vertices.**"
+        },
+        {
+          "md": "Now do the same for column 1: 1s in rows 1 and 2, so $e_1 = \\{1,2\\}$. And column 3: 1s in rows 2 and 4, so $e_3 = \\{2,4\\}$.",
+          "why": "All three columns turned out to hold exactly two 1s, which is the signature of a plain graph. Had one column held three, the object would have been a genuine hypergraph — and that is a check you can run on any incidence matrix in a paper."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Here is a shortcut worth carrying: **count the ones in each column.** All 2 → a plain graph. Some larger → a hypergraph, and the largest column tells you the largest group the data contains. For DBLP-Conf that largest column holds about a thousand authors, which is the fact that makes the dataset interesting."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In the matrix definition, what does a column with four 1s represent?",
+      "opts": [
+        {
+          "md": "A vertex belonging to four hyperedges",
+          "expl": "That is a row with four 1s — the transposed reading. Rows are vertices; columns are relations."
+        },
+        {
+          "md": "One hyperedge containing four vertices",
+          "correct": true,
+          "expl": "Correct. Each 1 in the column marks a member, so four 1s means a relation of arity 4. This one reading is what tells you whether the matrix in front of you describes a graph or a hypergraph."
+        },
+        {
+          "md": "Four separate hyperedges",
+          "expl": "Four hyperedges would be four columns. A single column is a single relation, however many members it has."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "An incidence matrix has 25 rows, 8 columns and 60 entries equal to 1. What is the average vertex degree?",
+      "answer": 2.4,
+      "tol": 0.02,
+      "hint": "Row direction: total memberships divided by the number of vertices (rows).",
+      "sol": "$60 \\div 25 = 2.4$. Going the other way gives the average edge degree: $60 \\div 8 = 7.5$, which is much larger — this is a hypergraph whose relations are big and whose vertices are moderately connected.",
+      "unit": "degree"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why does a paper state its invariance result as \"columns may be exchanged\" rather than \"vertices may be relabelled\"?",
+      "opts": [
+        {
+          "md": "Because columns are easier to permute than rows",
+          "expl": "Both are equally easy — a permutation of either is just a reordering. The choice reflects what is being modelled, not effort."
+        },
+        {
+          "md": "Because the encoder operates along the hyperedge axis, so exchanging columns is the relabelling that could actually change its output",
+          "correct": true,
+          "expl": "Correct. If an encoder pools over hyperedges, then any dependence on the order in which hyperedges were written down is an artefact — the same content under a different file layout. Proving invariance under column exchange is exactly the statement that the encoder reads the set $E$ and not the spreadsheet. Chapter 5 walks through that proof step by step."
+        },
+        {
+          "md": "Because vertices are numbered by the dataset and hyperedges are not",
+          "expl": "Both are numbered by whoever prepared the file. Neither numbering is intrinsic, which is why both would need to be defended — and the paper defends the one its computation can actually violate."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** knowing that a hyperedge is a set leaves the hard question untouched — namely, where the sets come from. Cards 4 and 5 are about the two very different answers, and the choice between them changes what the model can learn."
+}

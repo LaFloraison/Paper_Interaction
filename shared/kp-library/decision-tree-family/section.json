@@ -1,0 +1,7 @@
+{
+  "key": "decision-tree-family",
+  "name": "Decision trees",
+  "title": "Decision trees: the base learner under every boosted ensemble",
+  "blurb": "Gradient-boosted decision trees are the model the paper trains, and a boosted model is nothing but many small trees added together. This section builds the single tree from zero: how it asks questions, how it chooses which question to ask (entropy, gain ratio, Gini), why it memorises its training set, and the four ways it fails. Nothing here assumes you have seen a tree before, and everything here is assumed by the boosting section that follows.",
+  "skip_hint": "If you can state the split criterion of CART and explain why an unpruned tree cannot extrapolate beyond its training range, skip this section."
+}

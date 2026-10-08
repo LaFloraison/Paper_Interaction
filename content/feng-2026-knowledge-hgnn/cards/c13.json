@@ -1,0 +1,8 @@
+{
+  "id": "13",
+  "kind": "include",
+  "library": "decision-tree-family",
+  "chapter": "pre",
+  "section": "2.2 Learning from features",
+  "kicker": "Extension · Decision trees"
+}

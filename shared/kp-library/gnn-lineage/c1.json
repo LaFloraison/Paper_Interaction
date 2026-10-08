@@ -1,0 +1,117 @@
+{
+  "kind": "extension",
+  "title": "A graph has no grid, so a layer cannot read its neighbours in order",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A *symmetric* (or *permutation-invariant*) function of a collection of vectors is a function whose output does not change when those vectors are listed in a different order. A **graph layer** is a function that produces each vertex's new feature from that vertex's own feature together with the features of its neighbours, and it is required to be symmetric in the neighbour collection, because a graph supplies no canonical ordering of a vertex's neighbours.",
+      "plain": "A graph layer computes each vertex's new numbers from the vertex plus its neighbours. It must give the same answer whatever order the neighbours are listed in, because there is no 'correct' order to list them in."
+    },
+    {
+      "t": "p",
+      "md": "**The obstacle, in one paragraph.** An image sits on a grid, and a grid hands a convolution two gifts. The first is *translation*: a rule that sends pixel $i$ to pixel $i{+}1$, so a filter can slide. The second is a *canonical order* among the neighbours of a position — the eight neighbours of a pixel are always north, north-east, east, and so on, so a weight $w_1$ can mean \"the neighbour directly above\" and mean it every time. A graph hands you neither gift. Its vertices carry no coordinates to translate along, and a vertex's neighbours are an unordered *set* — vertex 2's neighbours might be written $\\{1, 3, 4\\}$ or $\\{4, 1, 3\\}$ with identical meaning. There is no \"first neighbour\". You met this in the graph-theory section; the reason to restate it is that everything below is a response to it."
+    },
+    {
+      "t": "p",
+      "md": "**What a layer must therefore do.** Take a vertex $v$. It has its own feature vector, and each neighbour $u$ has one. The layer has to turn this *bag* of vectors into a single new vector for $v$. The only tools available are operations that do not care about order — because order is not part of the data. Adding vectors does not care about order; so does taking their average; so does taking their componentwise maximum. Each of these reads a bag of vectors and returns one vector, and each returns the same vector for every listing of the bag. That is the entire design constraint, and it is the seed from which the whole family of graph neural networks grows."
+    },
+    {
+      "t": "list",
+      "items": [
+        "**What breaks if you ignore the constraint.** A layer that assigns weight $w_k$ to \"the $k$-th neighbour\" is assigning weights to a position that does not exist in the data. Two readers who happened to store the same graph with different neighbour orderings would compute different answers for the same vertex.",
+        "**What does not break.** A layer that weighs every neighbour by a number that depends on the *neighbour itself* — its feature, or its degree — rather than on the neighbour's position in some list. This is still order-independent, because each neighbour carries its own weight along with it.",
+        "**What this note is the source of.** Every architecture in this section is a different answer to one question: *how should the bag of neighbour vectors be summarised?*"
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "The mistake to avoid: assuming that because the vertices are *numbered* $1, 2, 3, \\dots$, the numbering somehow orders each vertex's neighbours. It does not. The numbers are bookkeeping that identifies vertices, and they are arbitrary — relabel the graph and the same connections reappear with different numbers. If a layer reads neighbour features in the order the numbers happen to appear, then relabelling the graph changes the layer's output while the graph itself has not changed at all. Section 1 made this point about matrices; here it becomes an operational requirement on the layer."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — watching a positional weight fail.** Suppose a vertex $v$ has three neighbours with scalar features $3$, $1$ and $4$, and a would-be layer that (wrongly) attaches fixed weights $w = (1, 2, 3)$ to the neighbour positions. Run it once with the neighbours listed in the order $(3, 1, 4)$:"
+    },
+    {
+      "t": "calc",
+      "md": "$1 \\cdot 3 + 2 \\cdot 1 + 3 \\cdot 4 = 3 + 2 + 12 = 17$"
+    },
+    {
+      "t": "p",
+      "md": "Now relabel so the same three neighbours are listed as $(1, 3, 4)$. Nothing about the graph changed; only the order in which the layer happens to read the bag changed. The same formula gives:"
+    },
+    {
+      "t": "calc",
+      "md": "$1 \\cdot 1 + 2 \\cdot 3 + 3 \\cdot 4 = 1 + 6 + 12 = 19$"
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "Two different outputs, $17$ and $19$, for **one** graph. Notice which weights did the damage: $w_1$ and $w_2$ landed on different neighbours in the two runs. The layer treated \"position in the list\" as if it were information, and it is not."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the same bag, read symmetrically.** Keep the same neighbour features $\\{3, 1, 4\\}$ and give the layer order-independent aggregations instead. Sum: $3 + 1 + 4 = 8$. Average: $8 / 3 \\approx 2.667$. Maximum: $\\max(3, 1, 4) = 4$. List the neighbours in any order at all — $(4, 3, 1)$, $(1, 4, 3)$, anything — and each of these three numbers comes out the same, because each is built from operations that commute. The information that position used to (falsely) carry is gone, and in exchange the layer's answer is now a property of the *graph* rather than of the file that stored it."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "The three aggregations are not interchangeable, and Example 2 hides the reason: on this bag they happen to give three different values, but on another bag they can agree or disagree in ways that matter. Card 5 makes that precise with a pair of bags a sum separates and a mean does not."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why must a graph layer be symmetric in a vertex's neighbour collection?",
+      "opts": [
+        {
+          "md": "Because the graph's edges are undirected, so each edge appears twice",
+          "expl": "Undirectedness means adjacency is a symmetric relation, which is a real fact but a different one. Even on a directed graph the neighbour *collection* still has no canonical order, so symmetry of the aggregation is still required."
+        },
+        {
+          "md": "Because a vertex's neighbours form an unordered set, so any layer output that depends on their order would depend on how the data file happened to be written",
+          "correct": true,
+          "expl": "Correct. The connections are the data; the listing order is an artefact of storage. A layer whose output moves when you rewrite the file is measuring the file, not the graph."
+        },
+        {
+          "md": "Because sorting the neighbours first is too slow for large graphs",
+          "expl": "Sorting is also not a fix — the neighbours' features may not have a meaningful sort order, and two neighbours with equal features would still be interchangeable. The problem is conceptual, not one of speed."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A vertex has neighbours with feature values $3$, $1$ and $4$. What number does an order-independent **sum** aggregator return for this vertex?",
+      "answer": 8,
+      "tol": 0.01,
+      "hint": "The aggregator ignores order and adds whatever it is given — so the total does not depend on how the three values are arranged.",
+      "sol": "$3 + 1 + 4 = 8$. Addition is commutative, so any listing of the same three values gives $8$. Had the aggregator been a *mean* it would return $8 / 3 \\approx 2.667$; had it been a *maximum* it would return $4$. All three are symmetric; they differ in what they preserve.",
+      "unit": "aggregate"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A layer attaches the weight $w = 2$ to every neighbour but the weight is applied *after* multiplying by that neighbour's own degree. Is this layer symmetric?",
+      "opts": [
+        {
+          "md": "No — the neighbours are still being processed in some order",
+          "expl": "The neighbours are being read in some order, but that is true of any program. Symmetry asks whether the *answer* changes under reordering, and a weight carried by each neighbour individually does not create an order dependence."
+        },
+        {
+          "md": "Yes — each neighbour carries its own weight with it, so the contributions do not depend on the listing order",
+          "correct": true,
+          "expl": "Correct. The distinction that matters is whether the weight depends on the neighbour's *position* (order-dependent, invalid) or on the neighbour's *identity or feature* (order-independent, valid). This is exactly the move GAT makes in card 4: it replaces a positional weight with a weight computed from the neighbour itself, which keeps the aggregation legal while making it adaptive."
+        },
+        {
+          "md": "Only if all neighbours happen to have the same degree",
+          "expl": "Equal degrees would make the weighted sum numerically equal to the unweighted one, but symmetry is a structural property of the layer, not a coincidence of one input. The layer above is symmetric for every graph."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the fix — summarise the neighbour bag with a symmetric operation — is the whole content of card 2, where it becomes the message-passing recipe every network in this section specialises."
+}

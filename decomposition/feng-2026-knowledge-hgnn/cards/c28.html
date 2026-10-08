@@ -1,0 +1,56 @@
+<!-- ============ c28 图2 ============ -->
+<section class="card" data-c="28" data-title-zh="图 2 · TDR 流水线走查" data-title-en="Figure 2 · TDR pipeline walkthrough">
+  <div class="card-inner">
+    <div class="card-kicker k-fig"><span class="len">Figure 2 · the rule-ledger pipeline</span><span class="lz">图 2 · 规则账流水线</span></div>
+    <h2><span class="lz">图 2：一笔规则是怎么被记录下来的</span><span class="len">Figure 2: how one rule gets recorded</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz"><b><span class="hl">图 2 是学究的"记账流程图"：从左边一队训练好的树出发，中间两条流水线分别记录每条规则的内容和位置，右边订成一本"知识嵌入特征"。</span></b>它回答的问题是：上上卡说的"内容 + 位置"两条记录，具体长什么样、怎么装订。</p>
+    <p class="len"><b><span class="hl">Figure 2 is the scholar's bookkeeping flowchart: from a team of trained trees on the left, two middle lines record each rule's content and position, bound on the right into "knowledge-embedded features".</span></b> It answers: what do those two records (content + position) look like in practice, and how are they bound?</p>
+    <p class="lz">先认四个隔间：<b>最左</b>是"训练台"（Features → Gradient Boosting Decision Tree → Task 色点：树队在这里训练出来）；<b>中上</b>是"内容登记处"（标题 Rule Content Mapping μ<sub>c</sub>：两棵示例树 T₁、T₂ 和它们的提问点）；<b>中下</b>是"位置登记处"（标题 Rule Position Mapping μ<sub>p</sub>：一条随深度下降的曲线和三个大小不同的点）；<b>最右</b>是"装订成品"（标题 Knowledge-Embedded Features：两摞方块，标着 1st Layer、2nd Layer）。</p>
+    <p class="len">Four compartments first: <b>far left</b> the "training bench" (Features → Gradient Boosting Decision Tree → Task dots: the team is trained here); <b>upper middle</b> the "content desk" (labeled Rule Content Mapping μ<sub>c</sub>: the two sample trees T₁, T₂ and their question nodes); <b>lower middle</b> the "position desk" (Rule Position Mapping μ<sub>p</sub>: a curve sloping down with depth, plus three dots of different sizes); <b>far right</b> the "bound product" (Knowledge-Embedded Features: two stacks labeled 1st Layer, 2nd Layer).</p>
+    <p class="lz"><b>一行文字版（图若显示不清，照这行读）：</b>特征 → 树队（T₁、T₂）→ 提问点标上问题内容（μ<sub>c</sub> 面版）→ 同一条规则再按"第几层"配一个权重（μ<sub>p</sub> 面版）→ 两路记录在右侧叠成两摞 → 知识嵌入特征到手。</p>
+    <p class="len"><b>One text line (if the image is unclear, read this):</b> features → tree team (T₁, T₂) → question nodes labeled with their questions (the μ<sub>c</sub> panel) → each rule weighted by "which layer" (the μ<sub>p</sub> panel) → the two records stack into two piles at right → knowledge-embedded features delivered.</p>
+    <div class="figbox">
+      <img data-fig="fig2" alt="Figure 2 of the paper: Task-Driven Rule Encoder pipeline">
+      <div class="figcap"><span class="lz">论文图 2 原图（Feng et al., TPAMI 2026）：训练台 / 内容登记处 μ<sub>c</sub> / 位置登记处 μ<sub>p</sub> / 装订成品。</span><span class="len">Original Figure 2 (Feng et al., TPAMI 2026): training bench / content desk μ<sub>c</sub> / position desk μ<sub>p</sub> / bound product.</span></div>
+    </div>
+    <div class="callout warn">
+      <b><span class="lz">常见误解：</span><span class="len">Common misconception:</span></b>
+      <span class="lz">图上左面板画着 "Task" 色点，容易让人以为树是拿来输出任务预测的——恰恰相反：训练台产出的树，其预测在这里没有后续；被装订的只有提问点。图里 "Task" 只是说明"树是照这个任务训出来的"。</span>
+      <span class="len">The left panel's "Task" dots may suggest the trees output task predictions — the opposite holds: the bench's tree predictions have no downstream here; only question nodes get bound. "Task" merely notes "the trees were trained for this task".</span>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>走查 1（训练台 → 内容登记处）：</b>左上：特征表进 Gradient Boosting Decision Tree 方块（第 12 卡的接力树队就在这里训练），旁生一个"Task"输出——提醒任务是什么。箭头从中缝分两路上行，进入 μ<sub>c</sub> 面版：那里画着 T₁、T₂ 两棵树，每个提问点旁边标着问题原文（"x₂ ≥ 2"、"x₁ ≥ 1"、"x₃ ≥ 5"、"x₁ ≥ 2"、"x₂ ≥ 1"），底部一排 A / B / C 叶子。为什么这格重要：提问点的<b>问题原文</b>就是"规则内容"——μ<sub>c</sub> 记录的是它。</p>
+    <p class="len"><b>Walk 1 (bench → content desk):</b> upper-left: the feature table enters the Gradient Boosting Decision Tree box (cards 12–13's relay team trains right here), with a "Task" output beside it noting the objective. Arrows split upward through the seam into the μ<sub>c</sub> panel: two trees T₁, T₂, each question node tagged with its question ("x₂ ≥ 2", "x₁ ≥ 1", "x₃ ≥ 5", "x₁ ≥ 2", "x₂ ≥ 1"), and a row of A / B / C leaves at bottom. Why this cell matters: the question <b>wording</b> is the rule's content — that is what μ<sub>c</sub> records.</p>
+    <p class="lz"><b>走查 2（位置登记处）：</b>μ<sub>p</sub> 面版画着一条从左上到右下缓降的曲线（横轴 = 深度），以及三个半径依次变小的点，标着 d(o) = 1、2、3。曲线和点讲的是同一件事：<b>越往深层，规则分到的权重越小</b>（为什么？纠错接力里先问的问题摘走最大的误差，第 13、27 卡）。点的大小 = 权重的大小，视觉上就一句话："根附近的规则分量重"。</p>
+    <p class="len"><b>Walk 2 (position desk):</b> the μ<sub>p</sub> panel shows a gently descending curve (horizontal axis = depth) and three dots shrinking in radius, labeled d(o) = 1, 2, 3. Curve and dots say one thing: <b>the deeper the layer, the smaller the weight a rule receives</b> (why? the relay's earlier questions grabbed the biggest residual — cards 13, 27). Dot size = weight size, visually just: "root-side rules carry more".</p>
+    <p class="lz"><b>走查 3（装订成品）：</b>左右两路箭头汇入最右面的 Knowledge-Embedded Features：两摞竖方块，分别标 1st Layer、2nd Layer——表示"多条记录叠起来"，一摞对着一棵树收来的那批规则。每格方块就是一个数（= 内容记录 × 位置权重，第 31 卡逐格算）。为什么这格重要：它把"5 条规则"变成"每个顶点 5 个数的向量"，从此可以像特征一样被送进下游。</p>
+    <p class="len"><b>Walk 3 (bound product):</b> the two arrow streams merge into the far-right Knowledge-Embedded Features: two stacks of bars labeled 1st Layer, 2nd Layer — "records stacked", one stack per tree's rule batch. Each bar is one number (= content record × position weight; computed bar by bar at card 31). Why it matters: it turns "5 rules" into "a 5-number vector per vertex", ready to travel downstream like any feature.</p>
+    <p class="dim"><span class="lz">本卡未展示：两摞方块之间"怎么订成一页"（拼接）在图 2 里只用堆叠表示——正式写法与跨树拼接在第 32 卡。</span><span class="len">Not shown here: how the two stacks bind into one page (concatenation) is only suggested by stacking in Fig. 2 — the formal writing and cross-tree concatenation come at card 32.</span></p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">图 2 的 μ<sub>c</sub> 面板画的是什么？</span><span class="len">What does Fig. 2's μ<sub>c</sub> panel draw?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="位置（深度与权重）在中下的 μp 面板——两个面板各管一条记录，别张冠李戴。"><span class="lz">规则的深度与权重</span><span class="len">Rules' depths and weights</span></button>
+        <button class="opt" data-correct="1" data-expl="对！μc = 内容登记处：两棵示例树加每个提问点的问题原文——它记录“问的是什么”。"><span class="lz">两棵示例树和每个提问点的问题原文</span><span class="len">The two sample trees with each question node's wording</span></button>
+        <button class="opt" data-expl="训练过程在最左的训练台——μc 面板只画树与问题，不画训练数据流。"><span class="lz">树队是怎么被训练出来的</span><span class="len">How the tree team was trained</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="8" data-tol="0.01" data-hint="照图 2 的规模先把已有的提问点数出来，再按题目加一棵。" data-sol="T₁ 有 2 个提问点、T₂ 有 3 个（图 2 所示）；再加一棵同规模的 T₃（3 个）：2 + 3 + 3 = 8 条。账本条目 = 各树提问点数之和。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：图 2 的树队是 T₁、T₂ 两棵；若再加一棵与 T₂ 同规模（3 个提问点）的 T₃，三棵树共收多少条规则？</span><span class="len">Numeric: Fig. 2's team holds T₁ and T₂; add a T₃ of T₂'s size (3 question nodes). How many rules across the three trees?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：若把 μ<sub>p</sub> 的曲线改成"随深度上升"（越深权重越大），用纠错接力的道理说，会出什么问题？</span><span class="len">Transfer: if μ<sub>p</sub>'s curve flipped to rise with depth (deeper = heavier), what goes wrong in relay terms?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="形状本身合法（仍是 0–1 曲线）——问题不在数学，在“给错了分量”：把摘小果子的树当成主心骨。"><span class="lz">曲线突破 0–1 范围，程序会报错</span><span class="len">The curve would leave the 0–1 range and crash</span></button>
+        <button class="opt" data-correct="1" data-expl="正确！深层提问是在残差变小之后补零碎的（第 13 卡），把最大权重压给它们，等于让“捡碎屑的”主导整个账本——与 boosting 的机制顶着来。"><span class="lz">给“捡碎屑的深树”最大分量，与接力机制顶着来，账本会失真</span><span class="len">The residue-picking deep nodes would dominate, fighting the relay mechanism and distorting the ledger</span></button>
+        <button class="opt" data-expl="树队的训练只认任务误差，不认 μp 曲线的方向——改曲线不会让训练变慢，只会让权重分错。"><span class="lz">会让树队训练速度变慢</span><span class="len">It would slow the tree team's training</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

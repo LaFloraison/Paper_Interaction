@@ -1,0 +1,35 @@
+<!-- ============ c49 批判 2/2 ============ -->
+<section class="card" data-c="49" data-title-zh="批判 2/2 · 论文没回答的六个问题" data-title-en="Critique 2/2 · six questions the paper leaves open">
+  <div class="card-inner">
+    <div class="card-kicker" style="color:#b91c1c;background:#fef2f2">Critique · open questions</div>
+    <h2><span class="lz">读完论文，你最该接着问的六件事</span><span class="len">Six things to ask next</span></h2>
+    <p class="lz">上一卡算的是"数字对不对"；本卡问的是"论文没说的部分"——这些问题不是挑刺，而是你把方法真正用起来时会撞上的墙。</p>
+    <p class="len">The last card checked the figures; this one asks what the paper never says — not nitpicking, but the walls you will hit when you actually deploy it.</p>
+    <table class="symtab">
+      <tr><th><span class="lz">#</span><span class="len">#</span></th><th><span class="lz">问题</span><span class="len">Question</span></th><th><span class="lz">为什么值得追</span><span class="len">Why it matters</span></th></tr>
+      <tr><td>1</td><td><span class="lz">GBDT 的"预定义任务"从哪来？</span><span class="len">Where does the GBDT's "predefined task" come from?</span></td><td><span class="lz">论文只说 TDR 在"预定义任务"上预训练，但<b>没说这任务和最终分类任务什么关系</b>。若它就是最终任务本身，等于用（可能含测试集的）标签训练规则矿——需要论文明确"预训练只用训练集标签"才能排除疑虑。原文未交代。</span><span class="len">The TDR pre-trains on a "predefined task", yet the paper <b>never says how that task relates to the final one</b>. If it is the final task, the rule mine trains on labels (possibly including tests) — only an explicit "pre-training sees training labels only" would settle it. The paper stays silent.</span></td></tr>
+      <tr><td>2</td><td><span class="lz">μ<sub>c</sub> 的二值化丢了什么？</span><span class="len">What does μ<sub>c</sub>'s binarization discard?</span></td><td><span class="lz">"满足记 0、不满足记 1"把连续差距压成一位：x₂ = 2.01 与 x₂ = 5.0 对规则"x₂ ≥ 2"同样记 0——<b>离阈值多远的信息全没了</b>。论文没有做"软化版 μ<sub>c</sub>"的对照实验，无法知道这一压缩损失多大。</span><span class="len">"Satisfied → 0, missed → 1" squashes continuous distance into one bit: x₂ = 2.01 and x₂ = 5.0 both record 0 against "x₂ ≥ 2" — <b>all "how far from the threshold" information vanishes</b>. No softened-μ<sub>c</sub> baseline appears, so the size of that loss is unknown.</span></td></tr>
+      <tr><td>3</td><td><span class="lz">每换一个数据集都要重训一整支树队——代价多大？</span><span class="len">Every new dataset retrains a whole tree team — at what cost?</span></td><td><span class="lz">表 IV 的树数从 20 到 190，GBDT 预训练是每次实验的固定开销；论文<b>没有报告任何耗时</b>（只说了机器配置），也没有讨论"预训练一次、多任务复用"的可能。</span><span class="len">Table IV's tree counts run 20–190; GBDT pre-training is fixed overhead per run, yet the paper <b>reports no timings</b> (only the hardware) and never discusses "train once, reuse across tasks".</span></td></tr>
+      <tr><td>4</td><td><span class="lz">"超图"从哪来，谁来保证它是对的？</span><span class="len">Where do the hyperedges come from, and who checks them?</span></td><td><span class="lz">图数据集要用 KNN 在特征空间造超边（第 37 卡），k 取 5–20 全靠经验；Heloc/ModelNet40 的超图更是为本文现造。<b>换一个 k，结论还稳吗？</b>论文没有 k 的敏感性实验。</span><span class="len">Graph datasets get KNN-built hyperedges (card 37) with k chosen by rule of thumb (5–20); Heloc/ModelNet40's hypergraphs are purpose-built here. <b>Would another k move the conclusions?</b> No k-sensitivity study appears.</span></td></tr>
+      <tr><td>5</td><td><span class="lz">规则账会不会越用越长、撑爆维度？</span><span class="len">Can the rule ledger grow until dimensions explode?</span></td><td><span class="lz">Z 的维度 = 2 × 各树提问点数之和（第 32/33 卡）。树数 190、深度 7（表 IV 的 Github）时，维度可以极大；论文没有报告各数据集的 Cr 实际取值，也没讨论维度控制（剪枝、共享规则）。</span><span class="len">Z's width = 2 × the summed question-node count (cards 32/33). With 190 trees at depth 7 (Table IV's Github) it can balloon; the paper reports neither the actual Cr per dataset nor any width control (pruning, shared rules).</span></td></tr>
+      <tr><td>6</td><td><span class="lz">Github 上为什么赢不了？</span><span class="len">Why can't it win on Github?</span></td><td><span class="lz">表 VI 里 Github 的三行本文型号都没能超过 HGNN（Production Δ = −0.09，归纳行 Δ 为负）。论文承认"图数据集上 RD 略胜"的规律，但对 Github 这个例外<b>没有个案分析</b>——是数据太简单、还是超边构造没造好？读者无从判断。</span><span class="len">On Github none of the three paper models beats HGNN (Production Δ = −0.09; inductive Δ negative). The paper names the "RD edges out on graph data" trend but offers <b>no case analysis for Github</b> — too-simple data, or badly built hyperedges? The reader cannot tell.</span></td></tr>
+    </table>
+    <div class="callout">
+      <b><span class="lz">把追问变成研究课题：</span><span class="len">Turning questions into research:</span></b>
+      <span class="lz">其中第 2 条（μ<sub>c</sub> 软化）与第 4 条（k 敏感性）是现成的、一两周可做的消融实验；第 1 条（预训练任务的泄漏边界）则是复现这篇论文时<b>必须先向作者问清楚</b>的一条。读到好论文的尽头，就是能开出这样的清单。</span>
+      <span class="len">Items 2 (softened μ<sub>c</sub>) and 4 (k-sensitivity) are ready-made ablations doable in a week or two; item 1 (the pre-training leakage boundary) is something you <b>must ask the authors</b> before reproducing. Reaching the end of a good paper means holding exactly such a list.</span>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">CHECK</span><span class="lz">六条追问里，哪一条最可能影响"论文结论是否成立"（而非仅影响实用性）？</span><span class="len">Which of the six most threatens the paper's conclusions (rather than only its practicality)?</span></p>
+      <div class="opts">
+        <button class="opt" data-correct="1" data-expl="对——第 1 条是唯一可能动摇结论的：若规则矿的预训练偷看了测试标签，表 V/VI 的成绩就有泄漏成分；而论文恰好没写清这一句。其余五条（粒度、开销、k、维度、个案）影响的是"好不好用"，不动摇"有效"这一主张。"><span class="lz">第 1 条：预训练任务的标签边界（可能影响全部分数）</span><span class="len">Item 1: the pre-training task's label boundary (could taint every score)</span></button>
+        <button class="opt" data-expl="第 3 条（耗时）是工程成本问题——它决定"值不值得用"，不决定"结论真假"。"><span class="lz">第 3 条：预训练的耗时开销</span><span class="len">Item 3: pre-training cost</span></button>
+        <button class="opt" data-expl="第 5 条（维度膨胀）是设计权衡——它约束将来能用到多大的数据，不推翻已有实验。"><span class="lz">第 5 条：规则账的维度膨胀</span><span class="len">Item 5: ledger width explosion</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>
+
+<!-- NEXT-CARD -->

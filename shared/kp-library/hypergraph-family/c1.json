@@ -1,0 +1,124 @@
+{
+  "kind": "extension",
+  "title": "The arity of a relation: why pairs are sometimes not enough",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "The arity of a relation is the number of objects it involves simultaneously. A binary (pairwise) relation has arity 2; an $n$-ary relation involves $n$ objects at once. An ordinary graph can only record relations of arity 2, whereas a hypergraph places no restriction on arity.",
+      "plain": "How many things does one relationship involve at the same time? Two — that is what a normal graph can hold. Some relationships genuinely involve five, or nine hundred."
+    },
+    {
+      "t": "p",
+      "md": "**Where pairwise edges break down.** Take co-authorship. A paper by four people is one event involving four people at once. Write it as pairs and you get six edges: $4 \\times 3 / 2$. Three separate problems follow, and they are worth stating separately because they are the reason this family of models exists."
+    },
+    {
+      "t": "list",
+      "items": [
+        "**The count explodes.** A relation over 982 objects needs up to 481,671 pairs. DBLP-Conf has 20 such relations — the pairwise version would be millions of edges carrying less information than the original 20.",
+        "**Provenance is lost.** From the six edges you cannot tell whether the four people wrote one paper together or whether Alice–Bob, Bob–Carol and so on were three unrelated collaborations that happened to share names.",
+        "**The pairs are not independent.** The six edges all *co-occur*: if one exists, the others are implied. Any model that treats them as six separate observations has mistaken one event for six."
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The point is not that graphs are wrong.** It is that arity is a property of the data, and a model that fixes it at 2 makes a choice on the data's behalf. This paper's ten datasets split cleanly along that line: four are genuinely pairwise (citations, follows), and six involve relations of higher arity. Chapter 6's Table I marks the two groups, and the paper's results lean on the distinction."
+    },
+    {
+      "t": "callout",
+      "md": "Keep the phrase *higher-arity relation* in mind. It is the accurate name for what a hyperedge represents, and it is the term used in the literature this paper's Related Work section surveys."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — arity three, by hand.** Three friends split a restaurant bill together: Ana, Bo and Cai. The relationship \"shared this meal\" involves all three at once, so its arity is 3."
+    },
+    {
+      "t": "table",
+      "head": ["Representation", "Encoding", "What is preserved"],
+      "rows": [
+        ["Hyperedge", "$e = \\{\\text{Ana}, \\text{Bo}, \\text{Cai}\\}$ — 1 relation", "the meal as one event; arity 3"],
+        ["Pairwise graph", "Ana–Bo, Bo–Cai, Ana–Cai — 3 edges", "who sat together, but not that it was one meal"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "Both encodings contain the same three names. Only the first can answer \"how many group meals were there?\" — because only the first stores a *group* as a thing."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Now scale it: suppose 900 people attended a single conference. The hypergraph records one relation.",
+          "why": "This is DBLP-Conf's situation exactly: 4,057 authors gathered by 20 hyperedges, each embracing about a thousand of them."
+        },
+        {
+          "md": "The pairwise version needs $900 \\times 899 / 2 = 404{,}550$ edges for that one conference.",
+          "why": "The combinatorial cost is quadratic. It is the first thing to estimate when deciding whether a hypergraph is worth it."
+        },
+        {
+          "md": "And even after paying it, none of those 404,550 edges records that the people were at the *same* conference rather than in 404,550 separate pairs.",
+          "why": "This is the deeper cost: the expansion is not merely expensive, it is lossy in the direction that matters. Reason enough that the field built models for the unexpanded object instead."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "Not every multi-party event should become a hyperedge. A phone call among three people is awkward to model either way, and a group chat with a thousand members is closer to a broadcast than to a relation. The test is whether the *group itself* is a meaningful unit — \"bought on the same receipt\", \"published in the same venue\", \"enrolled in the same course\". If the group is not the unit, pairwise edges are honest and a hyperedge is decoration."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "A paper has 5 authors. How many pairwise edges does the co-authorship relation require, and how many hyperedges?",
+      "opts": [
+        {
+          "md": "5 pairwise edges; 1 hyperedge",
+          "expl": "Five edges would be right if each author were connected to a single hub — a star, not a collaboration. Co-authorship is all-to-all within the paper."
+        },
+        {
+          "md": "10 pairwise edges; 1 hyperedge",
+          "correct": true,
+          "expl": "Correct. $5 \\times 4 / 2 = 10$ pairs, against a single hyperedge of size 5. The ratio grows quadratically while the hyperedge stays at one — and only the hyperedge remembers that the ten pairs came from one paper."
+        },
+        {
+          "md": "1 pairwise edge; 5 hyperedges",
+          "expl": "Backwards. The hypergraph is the compact representation here; the pairwise graph is the expanded one."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A department has 12 people who jointly wrote one report. How many pairwise edges would the full expansion require?",
+      "answer": 66,
+      "tol": 0.01,
+      "hint": "Every pair of the 12 people, counted once — divide by 2 to avoid counting each pair twice.",
+      "sol": "$12 \\times 11 / 2 = 132 / 2 = 66$ edges, for what one hyperedge of size 12 records. If you answered 132 you counted each pair twice; the division by 2 is the difference between ordered and unordered pairs.",
+      "unit": "edges"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Which of these is *not* a good reason to prefer a hypergraph over a pairwise graph?",
+      "opts": [
+        {
+          "md": "The relation involves more than two objects at once",
+          "expl": "That is the central reason — it is what arity means, and it is what the hyperedge exists to record."
+        },
+        {
+          "md": "The relationship is directional, in the sense that A follows B does not imply B follows A",
+          "correct": true,
+          "expl": "Correct — this is a reason to prefer a *directed* graph, which is a different relative in the same family (card 2). A hyperedge is an unordered set; direction is not what it adds. Conflating the two is a common confusion, and it matters because this paper's datasets include directed relations (citations, follows) that it treats as undirected anyway."
+        },
+        {
+          "md": "The group itself is a meaningful unit, such as one receipt or one conference",
+          "expl": "A solid reason. When the group is the unit of interest, only a structure that can name the group will do."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** arity is one axis along which a model can specialise. Card 2 lays out the others — and shows that the hypergraph is one point in a family of choices, not a single answer."
+}

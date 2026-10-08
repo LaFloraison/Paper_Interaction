@@ -1,0 +1,18 @@
+# 原始论文 PDF —— 版权所属，仅保留在本机，不入库
+Paper/
+
+# 拆解过程中的临时/派生产物（可重新生成，且体积大）
+decomposition/_v4-extract/
+decomposition/*/pages/
+decomposition/*/review/
+decomposition/*/paper_text.txt
+sites/_archive/
+
+# 一次性修补脚本
+tools/_*.py
+
+# 系统杂项
+Thumbs.db
+desktop.ini
+.DS_Store
+*.tmp

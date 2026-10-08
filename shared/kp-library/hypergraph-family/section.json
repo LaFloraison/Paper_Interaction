@@ -1,0 +1,7 @@
+{
+  "key": "hypergraph-family",
+  "name": "The hypergraph family",
+  "title": "The hypergraph family: where group-shaped relations come from",
+  "blurb": "A hypergraph is not the only way to record who is connected to whom, and it is not always the right one. This section places it among its relatives — directed graphs, bipartite graphs, multigraphs — explains the two equivalent ways of defining a hypergraph, and then spends three cards on the question the literature argues about most: where the hyperedges actually come from. That last question is the one Chapter 7 puts to this paper.",
+  "skip_hint": "If you can name two different procedures for constructing hyperedges from a dataset that has no hyperedges, skip this section."
+}

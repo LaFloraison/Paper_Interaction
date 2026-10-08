@@ -1,0 +1,7 @@
+{
+  "key": "boosting-family",
+  "name": "Boosting and ensembles",
+  "title": "Boosting and ensembles: why a team of small trees beats one big tree",
+  "blurb": "The paper's model is a gradient-boosted forest of decision trees. This section places that model inside ensemble learning: how averaging many diverse models reduces variance, the two ways to manufacture that diversity (resampling and sequential error correction), how gradient boosting turns the second route into an algorithm, what XGBoost, LightGBM and CatBoost each added, and when a tree ensemble is the wrong tool entirely.",
+  "skip_hint": "If you can explain why averaging decorrelated models lowers variance, why boosted trees are trained in sequence while random-forest trees are trained in parallel, and what each new tree in a boosted ensemble is fitted to, skip this section."
+}

@@ -1,0 +1,119 @@
+{
+  "id": "85",
+  "kind": "experiment",
+  "chapter": "experiments",
+  "section": "6.0 The experimental design",
+  "kicker": "6.0 · Experimental settings",
+  "title": "What the experiments actually are",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "The paper evaluates two models — RD-HGNN and DD-HGNN — on ten datasets under two evaluation settings, against five baselines drawn from three methodological families, with each configuration run five times under different random seeds and reported as a mean with a standard deviation.",
+      "plain": "Ten datasets, five competing methods, two ways of testing, five runs each. That is the whole experimental design in one sentence."
+    },
+    {
+      "t": "table",
+      "head": ["Component", "What the paper uses", "Where it is documented"],
+      "rows": [
+        ["Datasets", "Four plain graphs (Cora, Github, Amazon-P, Amazon-C) and six hypergraphs (CA-Cora, CC-Cora, DBLP-Conf, Tencent, ModelNet40, Heloc)", "Table I"],
+        ["Baselines", "MLP and GBDT (feature-only), GCN and HGNN (structure-oriented), TLF (trees plus a network)", "Table I's setup plus Tables V and VI"],
+        ["Settings", "**Transductive** and **production** — the latter combining transductive and inductive predictions", "Tables II and III for the splits"],
+        ["Models", "RD-HGNN and DD-HGNN, plus the structural ablation implied by their difference", "Tables V–X"],
+        ["Runs", "**Five random seeds** per configuration; results reported as mean and standard deviation", "Stated once, in Section V-A"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The three families of baseline are the part worth noticing**, because they determine what the results can show. Two baselines see only features, so they answer \"is a graph or hypergraph model needed at all?\". Two see only structure, so they answer \"does adding knowledge beat the standard structural approach?\". One combines trees with a neural network, so it answers the sharpest question: \"does this paper's particular way of combining them beat the nearest predecessor?\". Each family carries a different burden, and the results should be read family by family rather than as one undifferentiated table of numbers."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**The presence of a feature-only baseline is a design decision worth crediting.** On most of these datasets, a gradient-boosted tree ensemble over the raw features is a strong competitor — that is the whole motivation for the paper's rule encoder. Reporting GBDT's numbers on the same splits means a reader can see whether the graph machinery earns its keep at all, rather than only whether it beats other graph methods. Many graph papers omit this comparison."
+    },
+    {
+      "t": "p",
+      "md": "**Two things the setup paragraph does not state**, both of which matter for interpretation. First, how many hyperparameters were tuned per model, and whether the baselines received the same tuning effort as the proposed models — an untuned baseline flatters any proposal. Second, what the \"predefined task\" of the tree pre-training is, which the method chapter also leaves open. Neither is a fatal omission, but together they bound how much weight the numbers can carry."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — count the comparisons before reading any numbers.** With two proposed models, three families of baseline and two settings, the number of distinct claims the experiments could support is larger than it first appears."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Within the transductive setting: DD against HGNN (the standard structural baseline), DD against GBDT (the standard feature baseline), and DD against RD (the ablation).",
+          "why": "Three different questions. The first asks whether knowledge embedding beats conventional hypergraph convolution; the second asks whether it beats ignoring the graph entirely; the third asks what the structural encoder contributes."
+        },
+        {
+          "md": "Repeat all three in the production setting, where the inductive vertices make the task harder.",
+          "why": "A method that helps transductively may do nothing inductively, because the test vertices were visible during training in the first case and not in the second. Reporting both is what lets a reader separate the two."
+        },
+        {
+          "md": "Now note which of these six comparisons the abstract's headline numbers could be quoting — and that the abstract names none of them.",
+          "why": "This is the question Chapter 3 raised and could not settle. With the design now in hand, you can at least enumerate the candidates, and Chapter 6 will recompute them from the tables until one matches."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**A habit that pays off immediately here.** Before reading a results table, write down the comparisons you intend to check. Otherwise the eye lands on whichever number is largest and the reading becomes confirmation rather than evaluation. The six comparisons above are the checklist for this paper, and every remaining card in this chapter refers back to them."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does the paper include MLP and GBDT as baselines when both ignore the graph entirely?",
+      "opts": [
+        {
+          "md": "To pad the comparison with easy opponents",
+          "expl": "GBDT in particular is not an easy opponent on these datasets — it is the method the paper's own rule encoder is built on, and on tabular data it is typically strong. Including it raises the bar rather than lowering it."
+        },
+        {
+          "md": "To establish whether using the graph structure helps at all, so the graph machinery has to justify itself",
+          "correct": true,
+          "expl": "Correct. Without them, a reader could only conclude that this graph method beats other graph methods — which says nothing about whether the graph is worth modelling. Feature-only baselines are the control that makes the structural claims meaningful."
+        },
+        {
+          "md": "Because the datasets are too small for graph models",
+          "expl": "Dataset size is not the reason, and two of these datasets are substantial — Github has tens of thousands of vertices."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "The paper reports five random seeds per configuration. If a table column has three hypothetical methods, how many trained runs back that column (ignoring any tuning runs)?",
+      "answer": 15,
+      "tol": 0.01,
+      "hint": "Multiply the seeds by the number of methods in the column.",
+      "sol": "$3 \\times 5 = 15$ runs for that one column. Multiplying out across ten datasets and the methods actually reported gives the total compute behind the paper's tables — a number the paper never states, and a useful thing to estimate when judging whether a comparison could have been tuned more carefully."
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A paper reports its proposed method beating an untuned baseline. Why is that comparison weak even if the numbers are correct?",
+      "opts": [
+        {
+          "md": "It is not weak — the baseline's own authors chose those settings",
+          "expl": "Settings that are good on one dataset are frequently poor on another, and the proposed method has had far more attention paid to it simply because its authors are its authors."
+        },
+        {
+          "md": "Because the baseline's settings may have been chosen for other data, and unequal tuning effort flatters the proposed method",
+          "correct": true,
+          "expl": "Correct, and it is the most common defect in applied comparisons — and the hardest to detect from a paper's tables alone, since you cannot see how much effort went into each column. The paper's inclusion of TLF, a method whose settings it must adopt from elsewhere, makes this question sharper rather than weaker."
+        },
+        {
+          "md": "Because an untuned baseline cannot be run at all",
+          "expl": "It can be run; the question is whether its settings suit the problem, not whether it produces output."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the baselines themselves, taken one at a time — what each does, and what beating it would and would not demonstrate."
+}

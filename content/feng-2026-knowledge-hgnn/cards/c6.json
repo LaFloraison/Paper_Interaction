@@ -1,0 +1,120 @@
+{
+  "id": "6",
+  "kind": "title",
+  "chapter": "title",
+  "section": "1.5 The venue",
+  "kicker": "Title decoded 5/5 · The venue",
+  "title": "What kind of paper this is — and why the venue explains its shape",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "In computer science a paper is published either in a conference proceedings (a reviewed volume tied to a dated meeting, typically with a hard page limit) or in a journal (a reviewed periodical with no meeting date, typically with a much larger page allowance and a longer revision cycle). IEEE Transactions on Pattern Analysis and Machine Intelligence (TPAMI) is a journal.",
+      "plain": "This is a journal article, not a conference paper. That single fact tells you what to expect inside it: room to derive things properly, and room to run many more experiments."
+    },
+    {
+      "t": "p",
+      "md": "**Why the venue matters to you as a reader.** A conference paper usually gets eight to ten pages, so its method section is compressed into boxed equations and its experiments into two tables. A journal accepts what that compression had to leave out: full derivations, the definitions the conference version would have waved at, and a far wider empirical sweep. The practical consequence is that **a journal paper is easier to read from scratch** — and also that it has nowhere to hide, because its claims are spread over many more tables."
+    },
+    {
+      "t": "p",
+      "md": "This particular paper appears in vol. 48, no. 7, July 2026, starting at page 8613. Its six sections run as follows, and this site's chapter numbering deliberately tracks them."
+    },
+    {
+      "t": "table",
+      "head": ["Paper section", "What it does", "This site"],
+      "rows": [
+        ["I. Introduction", "Sets up the problem and lists the contributions", "Chapter 4"],
+        ["II. Related Work", "Positions the paper against prior work", "Chapter 2 extensions + References appendix"],
+        ["III. Preliminary", "Fixes notation; states Equations (1) and (2)", "Chapter 2 core + Chapter 5 opening"],
+        ["IV. Methodology", "Equations (3)–(10), Figures 1–2", "Chapter 5"],
+        ["V. Experiments", "Tables I–X, Figure 3", "Chapter 6"],
+        ["VI. Conclusion", "The authors' own summary and future work", "Chapter 7"]
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "Read the mapping in the last column as a promise: **every numbered section of the paper has a home in this site, and figures, tables and equations are taught inside the chapter they belong to.** You can keep the PDF open beside the site and never lose your place."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — read the paper's shape from its counts.** This paper contains **3 figures** and **10 tables**. That ratio is itself information: a paper whose evidence is mostly *tabular* is telling you that its claims are comparative and quantitative — every table is a scoreboard against other methods. A paper with ten figures and three tables would be telling you something different, usually that its contribution is a mechanism you need to visualise."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Count the figures: Figure 1 (the framework), Figure 2 (the rule-encoder pipeline), Figure 3 (a three-panel ablation). Two of the three are architecture diagrams.",
+          "why": "Architecture diagrams mean the contribution is a *procedure*, not a visual phenomenon. There is no image of a dataset output because there is nothing to look at — the claims are numbers."
+        },
+        {
+          "md": "Count the tables: I–IV are setup (datasets, splits, hyperparameters); V–X are results (main scores, ablations, backbone swaps).",
+          "why": "The setup-to-results split is four to six. Six results tables for one claimed contribution tells you the authors are arguing by accumulation — many datasets, many settings, many backbones — rather than by one decisive experiment."
+        },
+        {
+          "md": "Now ask the critical question a venue this size invites: with six results tables, is there anywhere the numbers could fail to balance?",
+          "why": "There is, and Chapter 7 lists ten such places. The wider a journal's empirical sweep, the more arithmetic a reader can check — which is exactly why an audit is possible here and would not be on a six-page conference version."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "One habit worth forming now: **never trust a summary of a journal paper that skips the setup tables.** Tables I–IV decide whether the comparison is fair — which datasets, which splits, which hyperparameters, and who tuned them. Chapter 6 begins there for exactly this reason."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which capability does publishing in a journal rather than a conference give these authors?",
+      "opts": [
+        {
+          "md": "A higher score on the datasets they report",
+          "expl": "The venue cannot change results. What it changes is how much space there is to prove, document and cross-check them."
+        },
+        {
+          "md": "Room to include full derivations, complete definitions and a much wider set of experiments",
+          "correct": true,
+          "expl": "Correct. Page allowance is the real currency here. It is why this paper can afford ten tables, a step-by-step invariance proof, and preliminary sections that define every symbol — all the things a ten-page conference version would have cut."
+        },
+        {
+          "md": "Permission to skip peer review",
+          "expl": "Journals review at least as heavily as conferences; the difference is in revision rounds and length, not in scrutiny."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "How many tables does this paper contain in total?",
+      "answer": 10,
+      "tol": 0.01,
+      "hint": "Count Table I through to the last numbered table, and do not count the figures.",
+      "sol": "Ten: Table I (datasets), II (transductive split), III (production split), IV (hyperparameters), V (main transductive results), VI (production results), VII (number of trees), VIII (layer ablation), IX (backbone swap), X (ledgers on plain GNNs). The paper also has three figures and ten numbered equations — keeping these three counts straight makes it easy to check that you have seen everything.",
+      "unit": "tables"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Suppose the authors had to compress this work into a ten-page conference paper. Which part would most likely be cut first?",
+      "opts": [
+        {
+          "md": "The statement of Equations (3)–(10)",
+          "expl": "The equations are the method. A paper cannot omit its own method — cuts come from what surrounds it, not from the core."
+        },
+        {
+          "md": "The complete symbol definitions and the step-by-step invariance proof",
+          "correct": true,
+          "expl": "Correct, and this is precisely the loss that hurts a reader. Derivations and symbol tables are the first casualties of a page limit, which is why the same method often feels clearer in the journal version. It is also why this site teaches them from zero rather than assuming a derivation is obvious."
+        },
+        {
+          "md": "The main results table",
+          "expl": "The headline comparison is the last thing to be cut — a paper without its main results table has no claim left to make."
+        }
+      ]
+    }
+  ],
+  "close": "**How this paper uses it:** the venue is why the paper contains what it contains — six sections, ten equations, ten tables, three figures. **Next:** Chapter 2 builds the background this paper assumes, starting with the mathematics of graphs and hypergraphs."
+}

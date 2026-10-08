@@ -1,0 +1,117 @@
+{
+  "kind": "extension",
+  "title": "Backpropagation: the chain rule, run backwards",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Backpropagation** is the systematic application of the chain rule to compute the gradient of the loss with respect to every parameter of a layered network. Because the network is a composition of functions, the derivative of the loss with respect to an early parameter is the product of the derivatives of every function between that parameter and the loss: $\\dfrac{\\partial L}{\\partial w_1} = \\dfrac{\\partial L}{\\partial y}\\cdot\\dfrac{\\partial y}{\\partial h}\\cdot\\dfrac{\\partial h}{\\partial w_1}$ for a two-layer chain. Backpropagation evaluates these products from the output backwards to the input, so that each intermediate derivative is computed once and reused.",
+      "plain": "Backpropagation is bookkeeping for the chain rule. To learn how much a weight near the input contributed to the final error, you multiply together the local effects of everything that came after it. You compute those local effects starting from the output and working backwards, so each one is used exactly once."
+    },
+    {
+      "t": "p",
+      "md": "**The chain rule, restated for networks.** If $w_1$ affects $h$, and $h$ affects $y$, and $y$ affects the loss $L$, then the rate at which $L$ changes with $w_1$ is the product of the three individual rates: how $L$ responds to $y$, how $y$ responds to $h$, how $h$ responds to $w_1$. Each factor is a *local* derivative — it only involves one operation in the network — and the chain rule assembles them into the global one. A network is many such links in a chain, so $\\partial L/\\partial w$ for any weight is the product of the local derivatives along the path from that weight to the loss."
+    },
+    {
+      "t": "p",
+      "md": "**Why the computation runs backwards.** The derivative of the loss with respect to the output, $\\partial L/\\partial y$, is a factor in the gradient of *every* weight upstream of $y$. Compute it once at the output and pass it back. Then the derivative with respect to the last hidden layer's pre-activation, in turn, is a factor in the gradient of every weight upstream of that. Working backwards means each layer's gradient is built from the layer-after-it's gradient, already computed, times a cheap local derivative — the same accumulation for every layer, reusing work rather than repeating it. Done forwards, each weight's gradient would require its own separate traversal of the whole network; done backwards, all of them fall out of one sweep. That factorisation is the difference between a network that trains in seconds and one that never trains at all."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "The backward pass implies something with consequences for deep models: **each layer's gradient is a product of the derivatives of all the layers after it.** Multiply together many factors larger than 1 and the gradient explodes; multiply many smaller than 1 and it vanishes. This is the same compounding that made sigmoid saturation dangerous in card 3, now stated in general — depth is a chain of multiplications in the gradient, and the health of a deep network depends on those products staying moderate."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a two-layer chain rule, evaluated numerically.** Take the smallest interesting network: one input $x = 1$, one hidden unit with weight $w_1 = 2$, one output with weight $w_2 = 3$, no bias and no nonlinearity (so the chain is as transparent as possible), and squared-error loss $L = (y - t)^2$ against the target $t = 4$. The forward computation is $h = w_1 x$, then $y = w_2 h$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Forward pass. $h = w_1 x = 2 \\cdot 1 = 2$. Then $y = w_2 h = 3 \\cdot 2 = 6$. The loss is $L = (6 - 4)^2 = 2^2 = 4$.",
+          "why": "Two multiplications and a subtraction. This is everything the network does on one example; the backward pass now asks how each weight contributed to that loss of 4."
+        },
+        {
+          "md": "Gradient at the output. $\\dfrac{\\partial L}{\\partial y} = 2(y - t) = 2(6 - 4) = 4$.",
+          "why": "The outermost local derivative, and the one every upstream factor starts from. It is positive because the prediction overshot the target, so the loss increases with $y$."
+        },
+        {
+          "md": "Gradient of the output weight. $\\dfrac{\\partial y}{\\partial w_2} = h = 2$, so $\\dfrac{\\partial L}{\\partial w_2} = 4 \\cdot 2 = 8$.",
+          "why": "Only one link stands between $w_2$ and the loss: $y = w_2 h$. The chain rule gives $\\partial L/\\partial w_2 = (\\partial L/\\partial y)(\\partial y/\\partial w_2)$. The factor $h = 2$ is large, so this weight is implicated strongly."
+        },
+        {
+          "md": "Gradient of the hidden weight. $\\dfrac{\\partial y}{\\partial h} = w_2 = 3$ and $\\dfrac{\\partial h}{\\partial w_1} = x = 1$, so $\\dfrac{\\partial L}{\\partial w_1} = 4 \\cdot 3 \\cdot 1 = 12$.",
+          "why": "Two links now: $w_1 \\to h \\to y \\to L$. The gradient is the product of three local derivatives. It is larger than $\\partial L/\\partial w_2$ because $w_1$ feeds the blow-up at $w_2 = 3$."
+        },
+        {
+          "md": "One gradient step with $\\eta = 0.01$: $w_1 \\leftarrow 2 - 0.01(12) = 1.88$ and $w_2 \\leftarrow 3 - 0.01(8) = 2.92$.",
+          "why": "Both gradients were positive, so both weights are reduced. This is the correction — the network was over-predicting, so it shrinks the weights."
+        },
+        {
+          "md": "Recompute the loss with the new weights. $h = 1.88 \\cdot 1 = 1.88$, $y = 2.92 \\cdot 1.88 = 5.4896$, $L = (5.4896 - 4)^2 = 1.4896^2 = 2.2189$.",
+          "why": "The loss fell from $4$ to about $2.22$ after a single step, confirming the gradients pointed the right way. The target of 4 is still not reached — the step was deliberately small, and training is the repetition of this over many examples and many steps."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Note the structure of the backward pass: the factor $\\partial L/\\partial y = 4$ was computed once, and then reused for both weights. $\\partial L/\\partial w_2$ needed it times one more factor; $\\partial L/\\partial w_1$ needed it times two. In a network of a million parameters, that single output derivative is reused a million times — which is exactly why backpropagation makes training tractable rather than merely possible."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does backpropagation actually compute?",
+      "opts": [
+        {
+          "md": "The gradient of the loss with respect to every parameter, by the chain rule, evaluated from the output backwards",
+          "correct": true,
+          "expl": "Correct. It is not a learning rule of its own — that is gradient descent. Backpropagation only supplies the gradients; gradient descent (card 5) uses them to update the weights."
+        },
+        {
+          "md": "The updated values of the parameters after each training step",
+          "expl": "Backpropagation produces gradients, not updates. Applying the update $w \\leftarrow w - \\eta\\,\\partial L/\\partial w$ is gradient descent, a separate step that consumes the gradients."
+        },
+        {
+          "md": "The loss value on the training data",
+          "expl": "The loss value comes from the forward pass. Backpropagation starts from it and works backwards, but its product is a gradient for each parameter, not the loss itself."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "The same architecture with no nonlinearity: $h = w_1 x$, $y = w_2 h$, $L = (y - t)^2$. Now $x = 1$, $w_1 = 3$, $w_2 = 2$, and $t = 1$. What is $\\dfrac{\\partial L}{\\partial w_1}$?",
+      "answer": 20,
+      "tol": 0.01,
+      "hint": "Run the forward pass to get the loss's derivative at the output, then multiply by the two local derivatives along the path from the input weight to the loss.",
+      "sol": "Forward: $h = 3 \\cdot 1 = 3$, $y = 2 \\cdot 3 = 6$, so $\\partial L/\\partial y = 2(6-1) = 10$. Then $\\partial y/\\partial h = w_2 = 2$ and $\\partial h/\\partial w_1 = x = 1$. Multiply: $\\partial L/\\partial w_1 = 10 \\cdot 2 \\cdot 1 = 20$. (For comparison, $\\partial L/\\partial w_2 = 10 \\cdot h = 30$.)",
+      "unit": ""
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why is each layer's gradient in backpropagation a product of the derivatives of the layers after it, and what does this imply for very deep networks?",
+      "opts": [
+        {
+          "md": "Because the chain rule multiplies local derivatives along the path; deep networks risk gradients that vanish or explode as those products compound",
+          "correct": true,
+          "expl": "Correct. A weight early in the network reaches the loss through many intermediate functions, and the chain rule multiplies their derivatives. Many factors below 1 shrink the product towards zero (vanishing gradients); many above 1 make it grow (exploding gradients). This is why depth needs care — residual connections, normalisation, or non-saturating activations (card 3) to keep the factors near 1."
+        },
+        {
+          "md": "Because later layers have more parameters, so their gradients are simply larger numbers, and this is harmless",
+          "expl": "Parameter count does not enter the chain rule's product; the factors are local derivatives, not counts. And the effect is not harmless — a product that grows or shrinks without bound makes training fail, not merely change scale."
+        },
+        {
+          "md": "Because the forward pass computes each layer in order, so the backward pass must undo that order by multiplication",
+          "expl": "Reversing the order is indeed how the computation is organised, but the multiplication comes from the chain rule of calculus, not from the order of the forward pass. Even a two-layer network multiplies two derivatives."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** backpropagation and gradient descent together are the training loop the paper's model uses. Card 7 covers the last piece of the standard toolkit — the obstacle that training tends to run into — and then offers a check that you can leave this section."
+}

@@ -1,0 +1,127 @@
+{
+  "kind": "extension",
+  "title": "What it means to reproduce a result",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **reproduction** of a reported result is an attempt to obtain a result consistent with it. The three levels differ in how much of the original pipeline is reused. At **level 1 (rerun)** the authors' released code and data are executed as they are, so nothing is re-derived. At **level 2 (reimplementation)** the method is rebuilt from the paper's description alone, so the description is the only input. At **level 3 (independent confirmation)** a different implementation — other code, often other splits or hardware — checks whether the paper's *conclusion* still holds: whether the method lands on the same side of the comparison the paper draws, such as beating a named baseline, rather than whether it prints the same decimal.",
+      "plain": "Reproducing a result is not one action. The weak version runs someone else's code; the strong version rebuilds the method from the description and still gets the same answer to the question the paper asked."
+    },
+    {
+      "t": "p",
+      "md": "**Why this distinction decides what you can do with a paper.** A reader rarely has the authors' machine, their exact library versions, or their patience. What a reader wants to know is whether the *claim* holds up when the details not written down are filled in differently. So the level that matters for reading a paper is level 3, and the level a method section alone can reach is level 2 — nothing beyond it."
+    },
+    {
+      "t": "table",
+      "head": ["Level", "What is reused", "What it establishes"],
+      "rows": [
+        ["1 — Rerun", "The authors' code, data and settings", "That the released artefacts still produce the released number on a comparable machine"],
+        ["2 — Reimplementation", "Only the paper's description", "That the description is complete enough to rebuild the method"],
+        ["3 — Independent confirmation", "An independent implementation; often different code, splits or hardware", "That the paper's conclusion survives a different implementation"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "A method section alone can reach level 2, and only as far as it is complete: every choice the implementer must make has to be stated, or the implementer supplies their own value and the rebuilt method is no longer the paper's method. Level 1 is out of reach without released code, data and environment. Level 3 is the standard that matters for a reader, because it is the only level at which a defect in one implementation — a leaked test set, a lucky seed — cannot silently carry the result along with it."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The misconception to drop first.** Because a paper says its code is released, it is tempting to treat the result as reproducible. Released code makes level 1 possible and says nothing about level 2 or level 3. A rerun reproduces the *artefact*: if the code contains a mistake, the rerun reproduces the mistake too, in exactly the same way, and the number comes out identical. Identical output from identical code is evidence about the code, not about the claim."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — three readers and one paper.** A paper reports that its method beats a baseline on a benchmark. Three readers approach it, and all three end up agreeing with the paper."
+    },
+    {
+      "t": "list",
+      "items": [
+        "Reader A downloads the released code and data and runs it. The score matches the paper's. Reader A has done level 1.",
+        "Reader B reads only the method section, writes their own training loop, and lands within a fraction of a point of the paper — same conclusion. Reader B has done level 2.",
+        "Reader C writes their own loop, draws their own random split, and still finds the method ahead of the baseline, though by a smaller margin. Reader C has done level 3."
+      ]
+    },
+    {
+      "t": "p",
+      "md": "The three outcomes look similar and mean very different things. A's result is guaranteed by construction: run the same code and of course it returns the same number. B's result shows that the description is concrete enough to rebuild. Only C's speaks to whether the claim is a property of the method rather than of one particular pipeline."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — a rerun that reproduces nothing.** Suppose the authors' code standardises every feature using the mean and standard deviation of the *whole* dataset, and only afterwards splits it into train and test. The released code reruns perfectly and returns the published number. Reader C's own pipeline, written without that step because the method section never mentions it, standardises using only the training split."
+    },
+    {
+      "t": "p",
+      "md": "The two runs now differ — not because either is broken, but because the original quietly let test-set statistics reach the training process. Level 1 succeeded while level 3 failed, and the failure is the informative one: the published number depended on a step the method section never disclosed. This is the pattern to anticipate, and the next card turns it into a checklist."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Notice what neither example shows: level 1 says nothing about whether the method is right, and level 2 says nothing about whether a hidden step mattered. Only the independent comparison can fail in a way that teaches you something."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which level of reproduction does a method section by itself make possible?",
+      "opts": [
+        {
+          "md": "Level 1, because the method section describes the code",
+          "expl": "A description is not the code. Level 1 needs the actual released artefacts to execute; reading a description and re-running code are different acts."
+        },
+        {
+          "md": "Level 2 — rebuilding the method from the description — to the extent that the description is complete",
+          "correct": true,
+          "expl": "Correct. The description is the only input at level 2, so it is exactly what a method section can supply; its completeness sets how far level 2 reaches. Level 3 needs more than the text, and level 1 needs the artefacts."
+        },
+        {
+          "md": "Level 3, because any reader can reimplement the method",
+          "expl": "Anyone can attempt level 3, but the method section is not what establishes it — the independent implementation is. Reaching for the strongest level here mistakes the goal for the tool."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "apply",
+      "q": "A colleague runs the authors' released repository unchanged and obtains the paper's published number. Which level has been performed, and what has been established?",
+      "opts": [
+        {
+          "md": "Level 3 — the paper's conclusion now holds under an independent implementation",
+          "expl": "Nothing independent happened: the same code produced the same output. Treating a rerun as independent confirmation is the central confusion this card is aimed at."
+        },
+        {
+          "md": "Level 1 — the released artefacts still produce the released number; nothing yet about the conclusion",
+          "correct": true,
+          "expl": "Correct. That is precisely what a rerun can show, and it is silent on whether the method or its description is sound. The result is reproduced as an artefact, not as a conclusion."
+        },
+        {
+          "md": "Level 2 — the method has been rebuilt from the description",
+          "expl": "No rebuild occurred; the description was never used. Level 2 is defined by reimplementing from the text, and using the authors' code is the opposite of that."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A method section is complete enough that two independent teams reimplement it and reach the same conclusion, but one team's score is a point lower than published. Is the result reproduced?",
+      "opts": [
+        {
+          "md": "No — the numbers do not match, so the reproduction failed",
+          "expl": "This treats reproduction as matching decimals. Exact agreement is what level 1 promises and what level 3 explicitly does not require; a small gap under different code and splits is expected."
+        },
+        {
+          "md": "Yes at level 3 — the conclusion survives independent implementation, which is the standard that matters",
+          "correct": true,
+          "expl": "Correct. Two independent implementations landing on the same side of the comparison is the strongest evidence the section can produce, and the point-sized gap is exactly the run-to-run variation card 3 quantifies."
+        },
+        {
+          "md": "Only if the one-point gap is fully explained by different hardware",
+          "expl": "Hardware and library versions can move a score slightly, so this is worth checking, but it makes reproduction conditional on matching a machine — the opposite of level 3's purpose, which is that matching is not required."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** level 2 is the level a method section owes you, so the next card lists exactly what that section must contain — and what breaks, silently, when each item is missing."
+}

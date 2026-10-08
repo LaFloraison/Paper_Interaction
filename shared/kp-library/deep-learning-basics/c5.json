@@ -1,0 +1,120 @@
+{
+  "kind": "extension",
+  "title": "Gradient descent: walking downhill on the loss",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Gradient descent** updates each parameter by subtracting a small multiple of the loss's derivative with respect to that parameter: $w \\leftarrow w - \\eta\\,\\dfrac{\\partial L}{\\partial w}$, where $\\eta > 0$ is the **learning rate** and $\\dfrac{\\partial L}{\\partial w}$ is the **gradient** — the rate at which the loss changes as $w$ changes, holding the other parameters fixed. The subtraction is there because the gradient points in the direction of *increasing* loss; moving against it decreases the loss. Repeating this update over many steps is the whole of training.",
+      "plain": "Gradient descent is walking downhill on a hilly loss landscape. The gradient tells you which way is uphill, so you step the other way. The learning rate is your stride length: it decides how far you move on each step."
+    },
+    {
+      "t": "p",
+      "md": "**The loss surface.** Plot the loss against every parameter and you get a surface: high where the parameters are wrong, low in the valleys where they are right. Training is a search over this surface for a low point. The **gradient** is the local slope — a vector holding, for each parameter, the direction and steepness of the loss's increase at the current point. The gradient does not tell you where the global valley is; it tells you which way is down *right here*, and descent follows that local signal in steps, re-evaluating the slope after each one. For a loss that is a smooth function of the parameters — which is why card 4 chose squaring and logarithms — this slope exists everywhere and can be computed by the chain rule (card 6)."
+    },
+    {
+      "t": "formula",
+      "tex": "w \\leftarrow w - \\eta \\, \\frac{\\partial L}{\\partial w}",
+      "note": "The update rule for a single parameter, applied simultaneously to every parameter at each step. The gradient $\\partial L/\\partial w$ carries the units of 'loss per unit of $w$', so multiplying it by the learning rate $\\eta$ converts it into an actual change in $w$. The minus sign is the descent: the gradient points uphill, so we go the other way.",
+      "gloss": [
+        { "sym": "w", "md": "one parameter being adjusted — a weight or bias" },
+        { "sym": "\\eta", "md": "the learning rate, a small positive number chosen in advance, not learned" },
+        { "sym": "\\frac{\\partial L}{\\partial w}", "md": "the gradient: how fast the loss changes per unit of $w$, at the current values" },
+        { "sym": "w \\leftarrow w - \\dots", "md": "the arrow means assign: the new value replaces the old, and the process repeats" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**What the learning rate does.** The update is a balance between two quantities: the slope tells you how much a step *should* matter, and the learning rate bounds how far you actually go. Three regimes, all visible in the worked example below. If $\\eta$ is **too small**, each step barely moves the parameters; the descent is correct but so slow that training may take an impractical number of steps, and near a flat region the tiny gradient makes progress stall entirely. If $\\eta$ is **just right**, the steps shrink as the slope flattens near the bottom and the parameters settle towards a minimum. If $\\eta$ is **too large**, a step taken against a steep slope overshoots the valley and lands on the opposite wall, higher than before; repeated overshoots make the loss oscillate or grow without bound — divergence."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "The learning rate is not learned by gradient descent — you cannot differentiate the update rule with respect to it — so it is set by hand and is called a **hyperparameter**. In practice it is the single most consequential setting: a network with a good architecture and a bad learning rate will not train, while the same architecture with a good one will. Practitioners often reduce it over training, so that early steps move fast and later steps refine the position."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — descent on a parabola, three learning rates.** Take the toy loss $L(w) = (w - 3)^2$, a parabola with its minimum at $w = 3$. Its derivative is $\\dfrac{\\partial L}{\\partial w} = 2(w - 3)$, so the update is $w \\leftarrow w - \\eta \\cdot 2(w-3)$. Start every run from $w = 0$ and follow the first few steps."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Learning rate $\\eta = 0.1$. At $w = 0$ the slope is $2(0-3) = -6$, so $w \\leftarrow 0 - 0.1(-6) = 0.6$. Next: slope $2(0.6-3) = -4.8$, $w \\leftarrow 0.6 + 0.48 = 1.08$. Then $1.464$, then $1.7712$, then $2.01696$, climbing towards $3$.",
+          "why": "A small rate: every step moves in the correct direction and the steps shrink as the slope flattens, but after five steps $w$ is still only $2.02$ — a long way from $3$ in relative terms. Correct but slow."
+        },
+        {
+          "md": "Learning rate $\\eta = 0.4$. From $w = 0$: $2.4$, then $2.88$, then $2.976$, then $2.9952$, then $2.99904$.",
+          "why": "A larger rate that still converges: the same sequence of updates but with much bigger strides, reaching $2.999$ in five steps what the slow rate took dozens to approach. This is the 'just right' regime for this loss."
+        },
+        {
+          "md": "Learning rate $\\eta = 1.0$. From $w = 0$: $0 - 1.0(-6) = 6$, then $0 - 1.0(2 \\cdot 3) = 0$, then $6$, then $0$.",
+          "why": "The step exactly overshoots the minimum to the symmetric point on the other wall, then back. The loss never decreases — the parameters bounce between $0$ and $6$ forever."
+        },
+        {
+          "md": "Learning rate $\\eta = 1.1$. From $w = 0$: $6.6$, then $-1.32$, then $8.184$, then $-3.2208$, then $10.46496$.",
+          "why": "Each bounce is larger than the last: the parameters fly off to ever-greater magnitudes and the loss grows without bound. This is divergence, and it is what a too-large learning rate looks like on the loss curve — a number that climbs instead of falls."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "The four runs used one loss and one starting point; only the learning rate changed, and it alone decided whether the model converged slowly, converged quickly, oscillated, or exploded. The value $\\eta = 0.4$ converges here, and note why it can: the slope near a curvature-2 parabola is at most about $2 \\times 3 = 6$, and a step of $0.4 \\times 6 = 2.4$ is smaller than the remaining distance, so the step lands short of the far wall rather than past it. **Scaling the rate to the curvature is what keeps descent stable**, which is why practitioners tune it against the specific loss at hand."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does the update subtract the gradient rather than add it?",
+      "opts": [
+        {
+          "md": "Because the gradient points in the direction of increasing loss, so moving against it decreases the loss",
+          "correct": true,
+          "expl": "Correct. The gradient is the direction of steepest increase. To reduce the loss you step in the opposite direction — hence the minus sign. Adding the gradient would climb the loss surface, the opposite of training."
+        },
+        {
+          "md": "Because the gradient is always negative",
+          "expl": "The gradient can be positive, negative, or zero depending on where you are. If it were always negative, the minus sign would be irrelevant and the rule could not work in general."
+        },
+        {
+          "md": "Because the learning rate is positive and the update must be negative",
+          "expl": "The sign of the update is not fixed — it depends on the sign of the gradient. On the left side of a minimum the gradient is negative, so the update is positive and moves rightwards; on the right side it reverses."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "The loss is $L(w) = (w-5)^2$, so $\\dfrac{\\partial L}{\\partial w} = 2(w-5)$. Starting from $w = 1$ with learning rate $\\eta = 0.1$, what is $w$ after one update?",
+      "answer": 1.8,
+      "tol": 0.01,
+      "hint": "Evaluate the gradient at the starting point first, then apply the update rule with the sign checked against the direction of descent.",
+      "sol": "At $w = 1$, the gradient is $2(1-5) = 2(-4) = -8$. The update gives $w \\leftarrow 1 - 0.1(-8) = 1 + 0.8 = 1.8$. The gradient was negative (the point is left of the minimum at $5$), so the step moves right, towards the minimum — which is the correct direction.",
+      "unit": ""
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "During training a model's loss decreases at first, then begins to increase steadily until it becomes very large. What is the most likely cause?",
+      "opts": [
+        {
+          "md": "The learning rate is too large, so updates overshoot the minimum and the parameters diverge",
+          "correct": true,
+          "expl": "Correct. A too-large step overshoots onto the opposite wall of the valley, higher than before; repeating this makes each bounce larger, and the loss climbs without bound. Reducing the learning rate is the standard first response."
+        },
+        {
+          "md": "The dataset is too small",
+          "expl": "A small dataset causes overfitting, where training loss keeps falling and validation loss rises. Here the *training* loss itself is rising, which points at the optimiser, not the data size."
+        },
+        {
+          "md": "The model has too few parameters",
+          "expl": "Too few parameters limits what the model can represent, producing a high but stable loss. It does not cause a loss that starts decreasing and then diverges."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** gradient descent needs the gradient for every parameter, and a network can have millions of them. Card 6 shows how the chain rule computes them all efficiently — the algorithm called backpropagation."
+}

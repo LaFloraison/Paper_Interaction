@@ -1,0 +1,140 @@
+{
+  "kind": "check",
+  "title": "When not to use trees, and the skip check",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **decision tree** predicts by routing an input down a chain of axis-parallel tests (\"is feature $x_j$ below this threshold?\") until it reaches a leaf, then outputting the value stored in that leaf. Two structural consequences follow from this definition: every prediction is one of the values stored in the leaves, so it always lies within the range of the training targets in those leaves, and the prediction is a **piecewise-constant** function that is flat inside each leaf and jumps at each boundary.",
+      "plain": "A tree answers a fixed set of yes/no questions and then reads off whatever number was stored at the end. It never calculates — it only looks up. So it can never predict a number it did not essentially see during training, and its answer changes in jumps rather than smoothly."
+    },
+    {
+      "t": "p",
+      "md": "**These two properties are the whole strength and the whole weakness.** Look-up structure is why trees fit interactions and non-linearities so easily, handle mixed feature types, and resist outliers in the features. The same look-up structure is why a tree is the wrong tool whenever the truth is that (i) a trend continues beyond the data, (ii) the relationship is genuinely smooth, or (iii) the meaningful structure of the input is not \"does this individual coordinate exceed a threshold\". Each failure below is a direct consequence of the definition, not a tuning problem."
+    },
+    {
+      "t": "list",
+      "items": [
+        "**Extrapolation is impossible.** A prediction is always one of the stored leaf values, so it can never leave the interval spanned by the training targets. A test point far outside the feature range simply routes to an existing leaf and returns a value seen in training.",
+        "**High-dimensional, sparse data.** When rows are sparse (a handful of non-zero features among tens of thousands), a single feature value rarely carries signal and the useful pattern is a dense weighted sum. Linear models and neural networks capture that sum directly; axis-parallel splits on individual sparse coordinates fragment the data and generalise poorly.",
+        "**A genuinely smooth target.** A tree approximates a smooth curve with a staircase: flat inside each leaf, jumping at each boundary. Matching a slope costs many leaves, and the fit stays discontinuous — a tiny change in an input across a leaf boundary produces a jump in the prediction, whereas a linear or smooth model captures the slope with a handful of parameters.",
+        "**Images, text and audio.** Here neighbouring pixels, tokens or samples are related by position, and the meaningful pattern is spatial or sequential. Comparing one raw pixel or one token against a threshold is close to meaningless; convolutional, recurrent and transformer architectures encode that structure directly, and axis-parallel trees cannot.",
+        "**Rotated linear boundaries.** A tree draws only horizontal and vertical cuts, so separating two classes along a diagonal requires a staircase of many axis-parallel splits, and the number of splits needed grows with the number of features. A linear model needs one hyperplane."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The misconception to retire.** \"A strong model is strong everywhere.\" A gradient-boosted forest can be state of the art on tabular data and simultaneously hopeless on the same relationships when the test points sit outside the training range. The choice of model family is a statement about the *structure* of the target, not about which model won a competition."
+    },
+    {
+      "t": "p",
+      "md": "**Skip check.** This section taught five things. If you can do all five without thinking hard, you may move on — nothing later depends on a definition you already hold. The bar is fluency, not half-remembrance: if any item below leaves you reaching for the card it came from, stay and re-read that card."
+    },
+    {
+      "t": "list",
+      "items": [
+        "Explain why averaging decorrelated models reduces variance, and state what limits the reduction (the correlation floor $\\rho\\sigma^2$).",
+        "Describe bootstrap sampling: draw with replacement, and that roughly $63\\%$ of distinct rows appear while the rest are out-of-bag.",
+        "Say why a random forest also randomises the features considered at each split, and that its trees are trained in parallel.",
+        "Describe boosting's sequential error correction and contrast the two families: parallel vs sequential, variance vs bias, robust vs fragile on noisy labels, deep vs shallow base learners.",
+        "Explain gradient boosting's negative-gradient fit, note that it equals the residual for squared error, and name what XGBoost, LightGBM and CatBoost each added."
+      ]
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the same three points, two models, one impossible extrapolation.** Take the three pairs $(1, 5)$, $(2, 8)$, $(3, 11)$, which lie exactly on the line $y = 2 + 3x$."
+    },
+    {
+      "t": "list",
+      "ordered": true,
+      "items": [
+        "A **linear** model fits intercept $2$ and slope $3$ exactly. Asked for $x = 100$ it answers $2 + 3\\times 100 = 302$, continuing the trend.",
+        "A **tree** can only return leaf values drawn from the targets it saw, so its predictions are confined to the interval $[5, 11]$. Asked for $x = 100$, it follows the same test it would give any large $x$ and returns at most $11$.",
+        "Nothing about the tree is broken; the definition makes extrapolation structurally impossible. If your data has a trend that continues past the observed range, a tree ensemble must be replaced by, or combined with, a model that can carry a slope."
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — a tree with few leaves cannot even represent a slope inside the range.** Fit the same line with a single depth-1 tree (one split, two leaves). The split at $x \\le 1.5$ gives leaf values $5$ and $9.5$; the split at $x \\le 2.5$ gives $6.5$ and $11$. Both leave the same total squared error of $4.5$, i.e. a mean squared error of $1.5$ over the three points, and no other single split does better. The prediction is two flat steps trying to describe a line."
+    },
+    {
+      "t": "calc",
+      "md": "Give the tree enough leaves and it can fit those three points exactly — splits at $1.5$ and $2.5$ isolate each point and drive the error to $0$. That is the trap: a tree can fit any finite sample perfectly, yet between the sample points it is still flat, and outside the range it is still flat. A depth-$8$ tree has at most $2^8 = 256$ leaves and a depth-$10$ tree at most $2^{10} = 1024$, so the staircase can be made very fine — but a staircase it remains, and the ground beyond its last step never rises."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which property of a decision tree is directly responsible for its inability to extrapolate?",
+      "opts": [
+        {
+          "md": "That it uses axis-parallel splits",
+          "expl": "Axis-parallel splits explain the staircase shape and the weakness on diagonal boundaries, but not extrapolation. A tree of oblique splits would still look up stored values in leaves."
+        },
+        {
+          "md": "That every prediction is a value stored in a leaf, drawn from the training targets",
+          "correct": true,
+          "expl": "Correct. Because the output is a look-up rather than a computation, it can never leave the interval of the leaf values, hence never leave the range of training targets. A linear model computes 2 + 3x and therefore keeps rising past the data."
+        },
+        {
+          "md": "That it is trained on squared error",
+          "expl": "The loss choice affects what the leaves store, not the look-up structure. Any tree, under any loss, still outputs a stored leaf value."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A linear model fitted to $(1,5), (2,8), (3,11)$ has the form $y = 2 + 3x$. What does it predict for $x = 100$?",
+      "answer": 302,
+      "tol": 0.5,
+      "hint": "Substitute x = 100 into the linear expression and evaluate.",
+      "sol": "y = 2 + 3·100 = 302. A tree trained on the same three points could only return one of its leaf values, all of which lie in [5, 11], regardless of how far out x is. The gap between 302 and at most 11 is the extrapolation failure in a single comparison.",
+      "unit": ""
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You must predict a physical quantity that grows proportionally to an input, and your test points extend well beyond the range of your training inputs. Which model is the better choice, and why?",
+      "opts": [
+        {
+          "md": "A gradient-boosted tree ensemble, because it is the strongest method on tabular data",
+          "expl": "Tabular strength is real but irrelevant here. The requirement is to carry a trend past the data, and a tree's predictions are trapped inside the training target range."
+        },
+        {
+          "md": "A linear model, because it computes a slope and therefore continues the trend beyond the training range",
+          "correct": true,
+          "expl": "Correct. Proportional growth is a slope, which a linear model represents with two parameters and extends without limit. A tree would approximate the slope as a staircase inside the range and then flatten the moment inputs exceed the data — exactly the extrapolation failure this card defines."
+        },
+        {
+          "md": "A deeper tree ensemble, because more leaves give more reach",
+          "expl": "More leaves make the staircase finer inside the observed range; they do not let the model predict above the largest training target. Depth changes resolution, not reach."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "On which of these tasks is an axis-parallel tree ensemble most likely to be the wrong family?",
+      "opts": [
+        {
+          "md": "Predicting a house price from a handful of numeric columns and a category",
+          "expl": "This is exactly the tabular, mixed-type setting where boosted trees are usually competitive or best. There is no spatial structure and the feature count is small."
+        },
+        {
+          "md": "Classifying photographs, where the signal is in the spatial arrangement of nearby pixels",
+          "correct": true,
+          "expl": "Correct. Comparing an individual raw pixel against a threshold discards the spatial arrangement that carries the signal, and a tree cannot draw oblique boundaries cheaply. Convolutional networks encode locality and translation directly, which is why they dominate here."
+        },
+        {
+          "md": "Predicting whether a customer churns from a table of usage statistics",
+          "expl": "Again the classic tabular case. Trees handle the mixed, non-linear relationships among such columns well; this is not a structural mismatch."
+        }
+      ]
+    }
+  ],
+  "close": "**You are ready for the paper's own objects.** The boosted-tree model in the paper is the gradient-boosting loop of card 4 running under one of card 5's implementations, and this card's limits are the reason its authors reach for trees on tabular features and for other architectures elsewhere. If you skipped, the residual-and-update loop is the one place worth returning to."
+}

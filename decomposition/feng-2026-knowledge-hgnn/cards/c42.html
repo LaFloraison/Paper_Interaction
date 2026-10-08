@@ -1,0 +1,48 @@
+<!-- ============ c42 Table VI production ============ -->
+<section class="card" data-c="42" data-title-zh="表 VI · Production 结果" data-title-en="Table VI · production results">
+  <div class="card-inner">
+    <div class="card-kicker k-fig"><span class="len">Table VI · the realistic score sheet</span><span class="lz">表 VI · 实务卷成绩单</span></div>
+    <h2><span class="lz">表 VI：一份数据集，三行成绩</span><span class="len">Table VI: one dataset, three score lines</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz"><b><span class="hl">表 VI 是实务卷（production）的成绩单：每个数据集占三行——Production（直推+归纳合并）、Transductive、Inductive；后两列 Δ 记的是"本文最好的型号减基线"的增益。</span></b>它比表 V 多回答一个问题：见过题的点和全新点，成绩差多少？</p>
+    <p class="len"><b><span class="hl">Table VI is the realistic exam's score sheet: three lines per dataset — Production (transductive + inductive merged), Transductive, Inductive; the two Δ columns record "our best model minus baseline".</span></b> Beyond Table V it answers one more question: how far apart are scores on seen points versus brand-new ones?</p>
+    <p class="lz">读 Δ 列前先约定口径（我们逐格验过）：<b>Δ 列 = max(RD, DD) − 基线</b>——即"两个型号里较好的那个"与基线的差。自检一例即可上手：Heloc 的 Production 行，RD 72.55、DD 72.27 → 取大者 72.55；GBDT 基线 69.90 → 72.55 − 69.90 = <b>2.65</b>，与表里印的 +2.65 一致。</p>
+    <p class="len">A convention before the Δ columns (we verified it cell by cell): <b>Δ = max(RD, DD) − baseline</b> — the better of the two models against the baseline. One self-check to get going: Heloc's Production line, RD 72.55, DD 72.27 → take 72.55; GBDT baseline 69.90 → 72.55 − 69.90 = <b>2.65</b>, matching the printed +2.65.</p>
+    <div class="figbox">
+      <img data-fig="tab6" alt="Table VI of the paper: results under the production setting">
+      <div class="figcap"><span class="lz">论文表 VI 原图（Feng et al., TPAMI 2026）。注意 Github 的 Production 行：本文型号反而不如 HGNN 基线（+0.00 是四舍五入后的呈现）。</span><span class="len">Original Table VI (Feng et al., TPAMI 2026). Note Github's Production line: the paper's models trail the HGNN baseline (+0.00 is the rounded rendering).</span></div>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>走查 1（Cora 三行，连读）：</b>Production：RD <b>88.25</b>、HGNN 81.91 → ΔHGNN = 6.34；Transductive：RD <b>88.89</b>、HGNN 81.59 → ΔHGNN = <b>7.30</b>；Inductive：RD <b>87.53</b>、HGNN 83.21 → ΔHGNN = 4.32。三个观察：① 同一模型直推行最好、归纳行最差（见过 vs 没见过）；② <b>7.30 这个数就是摘要里"7.3% gain on Cora"的出处</b>（transductive 行、RD 对 HGNN）——复算 88.89 − 81.59 = 7.30 ✓，但注意它与表 V 的 Cora 格（88.64 / 81.81）不同：同一数据集在不同表里数字略有出入（分表统计与四舍五入所致）；③ 归纳行虽低，仍高基线 4.32——新点也没白学。</p>
+    <p class="len"><b>Walk 1 (Cora's three lines, read in sequence):</b> Production: RD <b>88.25</b>, HGNN 81.91 → ΔHGNN = 6.34; Transductive: RD <b>88.89</b>, HGNN 81.59 → ΔHGNN = <b>7.30</b>; Inductive: RD <b>87.53</b>, HGNN 83.21 → ΔHGNN = 4.32. Three observations: (1) the same model peaks on transductive and dips on inductive (seen versus unseen); (2) <b>7.30 is the source of the abstract's "7.3% gain on Cora"</b> (transductive line, RD vs HGNN) — recompute 88.89 − 81.59 = 7.30 ✓ — yet note it differs from Table V's Cora cells (88.64 / 81.81): the same dataset carries slightly different numbers across tables (per-table statistics and rounding); (3) even the inductive line stays 4.32 above baseline — unseen points are not wasted.</p>
+    <p class="lz"><b>走查 2（两处"表自己的账"）：</b>① 表格底部的"平均差"一栏印着 ΔGBDT 均值 <b>+6.31</b>、ΔHGNN <b>+2.53</b>；我们把 Production 十行复算：ΔGBDT 均值 5.94、ΔHGNN 均值 2.72——<b>两个都不完全对得上</b>（差 0.2–0.4）。② Github 的 Production 行 ΔHGNN 印着 <b>+0.00</b>，而该行数值是 HGNN 86.05、DD 85.96：85.96 − 86.05 = <b>−0.09</b>——本文型号其实略输，"0.00"是四舍五入后的呈现。<b>结论：这张表的正文与表格都有几笔对不平的账，读数前先自己验一遍是最稳的姿势</b>（第 48 批判卡汇总）。</p>
+    <p class="len"><b>Walk 2 (two accounts the table keeps with itself):</b> (1) the footer's average-gap row prints ΔGBDT mean <b>+6.31</b>, ΔHGNN <b>+2.53</b>; we recomputed the ten Production lines: ΔGBDT mean 5.94, ΔHGNN mean 2.72 — <b>neither matches exactly</b> (off by 0.2–0.4). (2) Github's Production line prints ΔHGNN <b>+0.00</b>, yet the line reads HGNN 86.05, DD 85.96: 85.96 − 86.05 = <b>−0.09</b> — the paper's model actually trails slightly, and "0.00" is the rounded rendering. <b>Verdict: several entries in this table and its text do not balance; verifying before reading is the safest posture</b> (card 48 gathers them).</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">同一数据集的 Production / Transductive / Inductive 三行，哪行通常最高、哪行通常最低？</span><span class="len">Across a dataset's three lines, which usually scores highest — which lowest?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="反了——归纳行面对的是一批训练时完全没见过的点，通常是三行里最低的。"><span class="lz">Inductive 最高、Transductive 最低</span><span class="len">Inductive highest, transductive lowest</span></button>
+        <button class="opt" data-correct="1" data-expl="对！Transductive（见过人、仅缺答案）通常最高；Inductive（连人带边都没见过）通常最低；Production 是两者合并，居中。Cora 三行 88.89 / 88.25 / 87.53 正是这个顺序。"><span class="lz">Transductive 最高、Inductive 最低、Production 居中</span><span class="len">Transductive highest, inductive lowest, production in between</span></button>
+        <button class="opt" data-expl="三行不是随机排的——顺序反映“见过的程度”，是一个稳定的规律（十个数据集大体如此）。"><span class="lz">三行没有稳定高低，随机排列</span><span class="len">No stable ordering; they are random</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="7.91" data-tol="0.03" data-hint="找 Cora 的 Inductive（归纳）行：把 HGNN 与 GBDT 两个准确率相减（HGNN 在前）。" data-sol="83.21 − 75.30 = 7.91——归纳行里连基线 HGNN 都比 GBDT 高将近 8 个点，说明“结构信息对新点也有效”，不只是本文型号的功劳。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：表 VI 的 Cora 归纳行里，HGNN 比 GBDT 高多少个百分点（两位小数）？</span><span class="len">Numeric: in Table VI's Cora inductive line, by how many points (two decimals) does HGNN beat GBDT?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：一个模型的 Production 行比 Transductive 行低 0.5 个点、归纳行却比基线高 4 个点。对上线部署，这说明什么？</span><span class="len">Transfer: a model's Production line sits 0.5 below its Transductive line, yet its inductive line stays 4 above baseline. What does that say for deployment?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="0.5 个点的落差说明“熟悉度”带来的便宜很小（不像有的模型直推虚高）；而归纳高 4 点是实打实的——别把两者读反。"><span class="lz">模型过拟合了，不能上线</span><span class="len">The model overfits; do not deploy</span></button>
+        <button class="opt" data-correct="1" data-expl="正确！直推与实务只差 0.5，说明成绩不靠“见过人”撑着；归纳行离基线还有 4 点的余量，说明遇到全新点仍明显优于基线——这对上线是好信号（线上永远有新点）。"><span class="lz">好信号：直推与实务差距小（不靠见过人撑分），且全新点上仍高出基线 4 点——上线后遇新点依然占优</span><span class="len">A good sign: the tiny transductive-production gap means scores do not rest on familiarity, and the 4-point inductive margin means unseen points still favor it</span></button>
+        <button class="opt" data-expl="两个数字要合起来读：差距小讲“稳”，余量为正讲“值”。单看一个都会读偏。"><span class="lz">两行数字互不相干，无法合读</span><span class="len">The two lines are unrelated and cannot be read together</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>
+
+<!-- NEXT-CARD -->

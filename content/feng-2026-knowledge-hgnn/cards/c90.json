@@ -1,0 +1,114 @@
+{
+  "id": "90",
+  "kind": "table",
+  "chapter": "experiments",
+  "section": "6.1 Datasets",
+  "kicker": "6.1 · Table I",
+  "title": "Table I: the ten exam papers",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A dataset-statistics table reports, for each benchmark, the descriptors that determine how hard learning on it is: the number of vertices |V|, the number of edges or hyperedges |E|, the feature dimension, the average edge degree (how many vertices one relation touches on average), the average vertex degree (how many relations one vertex touches on average), and the number of classes.",
+      "plain": "Table I is the roster of exam papers: it says how big each of the ten datasets is, before any model is trained on them."
+    },
+    {
+      "t": "p",
+      "md": "Every results table later in this paper reports scores on exactly these ten datasets, so Table I is the first thing to read if you want to know what the experiments are actually made of. Ten rows split into two families: **four ordinary graphs** (Cora, Github, Amazon-P, Amazon-C), where each relation joins exactly two vertices, and **six true hypergraphs** (CA-Cora, DBLP-Conf, CC-Cora, Tencent, ModelNet40, Heloc), where one relation may join any number."
+    },
+    {
+      "t": "p",
+      "md": "Before reading a single number, separate the two degree columns — they point in opposite directions and are the most common source of confusion in this table. **Average edge degree** = how many vertices one relation involves (it is always exactly 2 for the four ordinary graphs; for a hypergraph it can be large). **Average vertex degree** = how many relations one vertex belongs to."
+    },
+    {
+      "t": "figure",
+      "src": "tab1.png",
+      "alt": "Table I of the paper: dataset statistics",
+      "cap": "Original Table I (Feng et al., TPAMI 2026). The first four rows are graph datasets; the last six are hypergraphs."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — read one row, cell by cell.** Take the Cora row. 2,708 papers (vertices). 7,440 citation relations (edges). 1,433 words (features — every paper is represented as a bag of words). Average edge degree 2, because a citation is always between two papers. Average vertex degree 3.9, meaning the average paper is cited by or cites about four others. 7 classes, the number of topics to be predicted. That row is the complete CV of one task: a 7-way classification problem with 2,708 samples."
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — two rows side by side, to see graph versus hypergraph.** Cora and CA-Cora are the same corpus drawn two ways. As an ordinary graph: 7,440 pairwise edges, average edge degree 2. As a hypergraph: 970 hyperedges, average edge degree 4.5. Far fewer relations carry the same crowd structure, because each hyperedge can embrace several papers at once."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Take the extreme row, DBLP-Conf: only **20** hyperedges, embracing 4,057 authors, with average edge degree 982.2 and average vertex degree 4.8.",
+          "why": "Twenty relations is startlingly few — this is the row that shows what a hyperedge buys you."
+        },
+        {
+          "md": "Multiply: 20 × 982.2 = **19,644**. That is the total number of author-slots across all hyperedges — one author who sits in three hyperedges is counted three times.",
+          "why": "Edge degree is a per-relation count, so multiplying it by the number of relations converts it into the total number of memberships."
+        },
+        {
+          "md": "Divide that total back over the 4,057 distinct authors: 19,644 ÷ 4,057 = **4.84**, which rounds to the 4.8 printed in the vertex-degree column.",
+          "why": "The two columns now agree. This is the check to run whenever a table reports both degrees: (average edge degree) × |E| should reconstruct (average vertex degree) × |V|."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**But that check is conditional, and this very table shows why.** The identity holds only when both columns count the same thing. Github obeys it: 2 × 144,501 ÷ 37,700 = 7.67, matching the printed 7.7. Amazon-P instead obeys the *other* convention, |E| ÷ |V| = 238,163 ÷ 7,650 = 31.13, matching its printed 31.1. And Cora obeys **neither** — 2|E|/|V| gives 5.49 and |E|/|V| gives 2.75, while the table prints 3.9. So Table I mixes degree conventions across rows. Keep that in your pocket: the point of this walk was not that the table is tidy, but that **you can now tell a tidy row from an untidy one.**"
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "\"Average edge degree\" and \"average vertex degree\" — what does each count?",
+      "opts": [
+        {
+          "md": "Edge degree = relations per vertex; vertex degree = vertices per relation",
+          "expl": "The two are swapped. The word after \"degree\" names the thing being counted per unit: edge degree counts how many vertices hang off one edge."
+        },
+        {
+          "md": "Edge degree = vertices per relation; vertex degree = relations per vertex",
+          "correct": true,
+          "expl": "Correct. Edge degree asks \"how many vertices does one relation involve\" (always 2 in the four ordinary graphs; large in hypergraphs). Vertex degree asks \"how many relations does one vertex belong to\"."
+        },
+        {
+          "md": "They are two names for the same quantity",
+          "expl": "They cannot be: the two columns hold different numbers in the same row (DBLP-Conf 982.2 versus 4.8; Cora 2 versus 3.9). Equal values would only happen by coincidence."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "How many of Table I's ten datasets are true hypergraphs?",
+      "answer": 6,
+      "tol": 0.01,
+      "hint": "Count the rows whose Type column says Hypergraph. Do not count the ones built from ordinary graphs.",
+      "sol": "Six: CA-Cora, DBLP-Conf, CC-Cora, Tencent, ModelNet40 and Heloc. The remaining four (Cora, Github, Amazon-P, Amazon-C) are ordinary graphs.",
+      "unit": "datasets"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "ModelNet40 is a collection of 3D shapes. Why does this paper use it as a hypergraph?",
+      "opts": [
+        {
+          "md": "Because 3D shapes are inherently hypergraph-structured",
+          "expl": "A 3D shape is a point cloud, not a set of group relations. Nothing about it is a hyperedge until someone builds one."
+        },
+        {
+          "md": "After turning the point cloud into tabular features, K-nearest-neighbours links each point to its neighbours in feature space, and each such group becomes a hyperedge",
+          "correct": true,
+          "expl": "Correct. The hypergraph is constructed, not given — which is also why Heloc (a credit dataset) can appear as a hypergraph. The paper states this construction in Section V-A-1."
+        },
+        {
+          "md": "Because it has 40 classes, and having many classes forces a hypergraph",
+          "expl": "The class count sets the difficulty of the task, not the structure of the data. Ten datasets with wildly different class counts are all treated the same way."
+        }
+      ]
+    }
+  ],
+  "close": "**How this paper uses it:** every later table — V, VI, VII — reports scores on these ten rows, and the four/six split is the paper's own axis of comparison: the authors claim the method helps most on the six true hypergraphs and merely matches strong baselines on the four ordinary graphs. **Next: card 90p** turns the degree check into a drill."
+}

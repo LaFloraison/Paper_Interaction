@@ -1,0 +1,109 @@
+{
+  "id": "68",
+  "kind": "method",
+  "chapter": "method",
+  "section": "5.9 The TDR-Encoder",
+  "kicker": "5.9 · TDR-Encoder",
+  "title": "The Task-Driven Rule Encoder: harvesting a tree ensemble as a questionnaire",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "The Task-Driven Rule Encoder is a function $\\varphi_r : (X, T) \\mapsto X_r$ mapping a feature matrix $X \\in \\mathbb{R}^{N \\times C}$ and a pre-trained boosted ensemble $T = \\{T_1, \\dots, T_K\\}$ to a rule embedding $X_r \\in \\mathbb{R}^{N \\times C_r}$, composed of two mappings — a content mapping $\\mu_c$ and a position mapping $\\mu_p$ — applied to the inner nodes of every tree.",
+      "plain": "Train a team of small trees on the task. Then, for every question those trees learned to ask, record two things about each vertex: whether it satisfies the question, and how important the question is. Line up all the answers into a row."
+    },
+    {
+      "t": "p",
+      "md": "**Why trees, and why boosted trees specifically.** The paper names its reason in one word: **interpretability**. A tree's inner nodes are explicit predicates on individual features — \"$x_2 \\ge 2$\", \"$x_1 \\ge 1$\" — so they can be read, enumerated and counted. No other standard model offers learned structure in a form that can be written down as a list, which is what makes the ledger construction possible at all. A neural network fitted to the same features would have no inner nodes to enumerate."
+    },
+    {
+      "t": "p",
+      "md": "**The pipeline, in the paper's own terms.** First the ensemble is *pre-trained* on a predefined task, producing a fitted model $T$. Then each vertex's feature vector is run against the inner nodes, and two mappings are composed into a per-tree encoding $\\varphi_r^i$; finally the per-tree encodings for all $K$ trees are concatenated into the vertex's row $X_r[v]$. The whole thing is computed once, before the hypergraph network is trained on it."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**One detail that the equations settle and the prose leaves ambiguous.** Equation (5) evaluates $\\mu_c(x, o)$ for an inner node $o$ using the vertex's features directly — there is no condition that $o$ lie on the path the vertex would take through the tree. So the encoder does **not** record the tree's decision path. It evaluates **every question in the tree against the vertex, independently**. The vector is a questionnaire, not a trail of breadcrumbs, and this is worth being clear about because the two would behave very differently: a questionnaire asks about branches the vertex would never have reached."
+    },
+    {
+      "t": "p",
+      "md": "**What the encoder is a function of.** Given the fitted ensemble, each entry of $X_r[v]$ depends only on $v$'s feature vector — not on the hypergraph, not on other vertices, and not on $v$'s position in the graph. Two vertices anywhere in the dataset with identical features receive identical rule embeddings. So the rule encoder and the structural encoder are genuinely orthogonal in their inputs: one reads the feature matrix, the other the incidence matrix, and neither can see what the other sees."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the questionnaire on two vertices.** Take the small ensemble from Figure 2: tree $T_1$ asks $x_2 \\ge 2$ then $x_1 \\ge 1$; tree $T_2$ asks $x_3 \\ge 5$, then $x_1 \\ge 2$ and $x_2 \\ge 1$. That is five questions in total, so $C_r = 5$ and every vertex's row has five entries."
+    },
+    {
+      "t": "table",
+      "head": ["Vertex", "$x_1$", "$x_2$", "$x_3$", "Satisfied questions", "$\\mu_c$ row"],
+      "rows": [
+        ["P", "3", "5", "7", "all five", "$(0,0,0,0,0)$"],
+        ["Q", "0", "1", "9", "$x_3 \\ge 5$ and $x_2 \\ge 1$", "$(1,1,0,1,0)$"],
+        ["R", "0", "0", "0", "none", "$(1,1,1,1,1)$"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Look at vertex P.** It satisfies every question, and its content row is **all zeros**. That is not a bug — it is what the encoding means: a 0 records that a rule *covers* this vertex, and a vertex covered by everything contributes nothing. **$X_r$ is a failure ledger**: it records, weighted by importance, what the rules did *not* explain about you. This is the single most important thing to understand before Equation (9), because it explains why the Hadamard product there behaves the way it does."
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — the two encoders describe different things.** Compare P with a vertex S that has the same features as P but sits in 20 hyperedges rather than 2. Their rule rows are identical — the rule encoder cannot see the graph. Their structural values differ — the structural encoder cannot see the features. The fusion in Equation (9) is the only place the two descriptions meet."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does this paper use boosted trees rather than, say, a neural network, as its rule source?",
+      "opts": [
+        {
+          "md": "Because boosted trees predict more accurately on tabular data",
+          "expl": "That is often true and is related, but it is not the reason given here — and it would not matter, since the paper never uses the ensemble's predictions."
+        },
+        {
+          "md": "Because a tree's inner nodes are explicit predicates on features, so they can be enumerated and turned into a ledger",
+          "correct": true,
+          "expl": "Correct. The encoder needs a *list of rules*, and only a tree-shaped model hands one over. Interpretability is not a bonus here; it is the load-bearing property that makes the whole construction possible."
+        },
+        {
+          "md": "Because trees are faster to train than neural networks",
+          "expl": "Training cost is not discussed, and the method in fact adds a pre-training stage that a pure HGNN would not need — a cost the paper does not report."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Using the five-question ensemble above, how many entries of vertex R's content row equal 1?",
+      "answer": 5,
+      "tol": 0.01,
+      "hint": "Count the questions R fails — not the ones it satisfies.",
+      "sol": "All five. R has $x_1 = 0$, $x_2 = 0$, $x_3 = 0$, so it fails $x_2 \\ge 2$, $x_1 \\ge 1$, $x_3 \\ge 5$, $x_1 \\ge 2$ and $x_2 \\ge 1$ — every question. Answering 0 inverts the convention; the encoding stores coverage *failures*, so a vertex explained by nothing has an all-ones row and a vertex explained by everything has an all-zeros row. Check vertex Q in the table for the mixed case: it satisfies exactly two of the five, so exactly three of its entries are 1.",
+      "unit": "entries"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The encoder evaluates every inner node against the vertex, including nodes on branches the vertex would never reach. What does this make the encoding?",
+      "opts": [
+        {
+          "md": "The tree's decision path, expressed as a vector",
+          "expl": "A path would record only the questions actually encountered. Here every question is asked of every vertex, so the result is not a path."
+        },
+        {
+          "md": "A fixed questionnaire: the same set of questions posed to every vertex independently",
+          "correct": true,
+          "expl": "Correct, and this has real consequences. Because the questions are fixed and independent, two vertices on completely different branches can still agree on most slots — and a question deep in a region the vertex would never visit still contributes its (depth-weighted) answer. It also means the encoding is well defined for a new vertex without re-traversing anything, which is what makes the encoders usable at inference on unseen vertices."
+        },
+        {
+          "md": "A one-hot encoding of which leaf the vertex reaches",
+          "expl": "The leaves are not encoded at all. Only inner nodes contribute slots, and the leaves are drawn in Figure 2 solely to show what the ensemble predicts."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Equations (4) and (5) — the content mapping, formalised, with the failure-ledger convention pinned down and worked through on real feature values."
+}

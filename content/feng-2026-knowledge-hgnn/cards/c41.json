@@ -1,0 +1,119 @@
+{
+  "id": "41",
+  "kind": "abstract",
+  "chapter": "abstract",
+  "section": "3.2 The method claims",
+  "kicker": "3.2 · The abstract",
+  "title": "The three claims the abstract makes about the method",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A method claim in an abstract states what a named module does and why it is needed. It is falsifiable in a specific way: if you remove the module and the results do not change, the claim's justification was decorative, however well the module is described.",
+      "plain": "Each named module comes with a promise about what it contributes. A promise is only real if removing the module would hurt — which is exactly what an ablation experiment tests."
+    },
+    {
+      "t": "p",
+      "md": "This abstract names three modules and two model variants. Taken one at a time, here is what each promises and what would count as evidence."
+    },
+    {
+      "t": "table",
+      "head": ["Module", "The abstract's claim", "Evidence that would settle it"],
+      "rows": [
+        ["**HOI-Encoder** (High-Order Incidence)", "\"explicitly embeds structural knowledge by capturing permutation-invariant high-order incidence patterns that are typically overlooked by standard HGNNs\"", "Remove it (this is RD-HGNN) and the scores should drop; and the encoding must genuinely be invariant to relabelling, which is a proof, not a table"],
+        ["**TDR-Encoder** (Task-Driven Rule)", "\"extracting task-related rules from vertex attributes through gradient boosted decision tree pre-training and encoding both rule content and positional importance\"", "Remove it and the scores should drop; and the two-part encoding (content *and* position) must beat encoding content alone"],
+        ["**MDK-Fusion** (Multi-Dimensional Knowledge Fusion)", "\"integrates structural and rule-based embeddings, bridging semantic and dimensional gaps\"", "Swap the fusion for a plain concatenation and the scores should drop — otherwise the module is a renaming of concatenation"],
+        ["**RD-HGNN / DD-HGNN**", "Rule-driven emphasises rules; dual-driven \"jointly leverages\" both", "The gap between the two variants *is* the ablation of the HOI encoder, so it must be reported"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Two things to notice about the framing.** First, the abstract calls the structural patterns \"typically overlooked by standard HGNNs\" — an explicit claim about what the previous literature failed to use. That is a strong statement, and chapter 2's extension on hypergraph neural networks shows what those methods actually compute, so you will be able to judge it. Second, the TDR encoder promises **two** things (content and position), which means a clean evaluation needs to separate them; a single ablation that adds or removes the whole encoder cannot tell you whether the positional part earned its place."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "One asymmetry worth holding: the abstract says the encoders capture knowledge \"typically overlooked\" and that fusion \"bridges\" gaps — both of which are quantitative claims dressed as descriptions. **\"Overlooked\" and \"bridges\" are testable.** Keep a mental list of what would have to be true for those words to be earned."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the naming tells you the architecture.** Both variants end in HGNN, and the words before it name what is embedded: RD = rule-driven, DD = dual-driven."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "RD-HGNN embeds rule knowledge only. So it is the model **without** the HOI encoder.",
+          "why": "That immediately tells you what RD is *for*: it is the controlled test of TDR in isolation, on the same network and the same data."
+        },
+        {
+          "md": "DD-HGNN embeds both. So it is the full model.",
+          "why": "And the difference between DD and RD is precisely the contribution of structural knowledge — a difference you can read off two columns of the results table, without needing any new experiment."
+        },
+        {
+          "md": "Neither variant is the plain baseline. The standard HGNN with no knowledge embedding is the third column, and it is the one the abstract's \"typically overlooked\" claim is measured against.",
+          "why": "Three columns, three different comparisons, and the abstract quotes results from all of them. Card 42 is about the confusion that follows when a paper switches between these comparisons without labelling which is which."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "This is a reusable trick: **read model names as ablation labels.** Variants with different names almost always exist to isolate one component, and the pair that differs by exactly one word (RD/DD) is where the cleanest evidence lives."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which comparison isolates the contribution of the structural (HOI) encoder?",
+      "opts": [
+        {
+          "md": "DD-HGNN against the standard HGNN baseline",
+          "expl": "That comparison changes two things at once — it adds both encoders, not just the structural one — so any difference could come from either."
+        },
+        {
+          "md": "DD-HGNN against RD-HGNN",
+          "correct": true,
+          "expl": "Correct. RD has the rule encoder and not the structural one; DD has both. Everything else is held fixed, so the gap between these two columns is the structural encoder's contribution, and nothing else."
+        },
+        {
+          "md": "RD-HGNN against the GBDT baseline",
+          "expl": "That compares a graph model against a tabular model — two different families with different inputs. It answers whether the graph approach helps at all, not what any single module contributes."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "The paper ships two model variants plus one standard baseline. Counting only these, how many distinct pairwise comparisons exist?",
+      "answer": 3,
+      "tol": 0.01,
+      "hint": "Choose 2 from 3.",
+      "sol": "$\\binom{3}{2} = 3$: DD vs RD (the structural encoder), DD vs HGNN (both encoders against none), and RD vs HGNN (the rule encoder alone). Each answers a different question, which is why a paper quoting \"improvements\" must say *against what* — the single largest source of confusion in reading results.",
+      "unit": "comparisons"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The TDR encoder is claimed to encode both rule *content* and *positional* information. What does that imply for a satisfactory ablation?",
+      "opts": [
+        {
+          "md": "Removing the whole TDR encoder is sufficient evidence",
+          "expl": "It shows the encoder earns its place as a whole, but not that each of its two parts does. A component that contributes nothing can hide inside a bundle that contributes a lot."
+        },
+        {
+          "md": "The two parts need separating — an experiment with content only would show whether the positional part adds anything",
+          "correct": true,
+          "expl": "Correct, and this is a general principle: **an ablation must be as fine-grained as the claim.** The abstract makes a two-part claim, so a one-part ablation cannot settle it. Chapter 7 lists this among the questions the paper leaves open."
+        },
+        {
+          "md": "No further ablation is needed because both parts come from the same trained trees",
+          "expl": "Shared provenance does not imply shared contribution. Content and position are computed by different formulas — Equations (4)-(5) and Equation (6) — and could behave very differently."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the numbers. The abstract quotes two figures; the experiments section quotes different ones. Card 42 lays them side by side and identifies what is actually being measured."
+}

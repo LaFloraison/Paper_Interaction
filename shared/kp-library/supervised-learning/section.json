@@ -1,0 +1,7 @@
+{
+  "key": "supervised-learning",
+  "name": "Supervised learning and experimental setup",
+  "title": "Supervised learning and experimental setup: how a result is produced and what it owes you",
+  "blurb": "The part of an experimental paper most readers skip and most reviewers read first. This section builds the supervised setup from scratch — labelled examples, features and targets, the hypothesis class, and the gap between fitting the data you have and generalising to data you do not. It then takes apart the three-way split, cross-validation, the parameter/hyperparameter distinction, and the contract every results table is supposed to honour. By the end you can tell a real number from a manufactured one.",
+  "skip_hint": "If you can say why a score obtained on the test set can no longer be reported as a test score, and what a k-fold average estimates, skip this section."
+}

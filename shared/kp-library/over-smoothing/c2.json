@@ -1,0 +1,165 @@
+{
+  "kind": "extension",
+  "title": "Over-squashing: too much through too narrow a channel",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Over-squashing** is the loss of information that occurs when a vertex's **receptive field** — the set of vertices whose features can influence its representation after $r$ rounds of message passing, which grows with $r$ — must be summarised into a representation of fixed width $d$. When the field carries more independent numbers than $d$, the map from neighbourhood state to representation cannot be *injective* (one-to-one: distinct inputs giving distinct outputs), so different neighbourhood states are forced onto the same representation and the difference cannot be recovered by any later layer.",
+      "plain": "A vertex has to crush everything its growing neighbourhood contains into one short vector. Past a certain size, the crushing loses detail, and nothing later in the network can put it back."
+    },
+    {
+      "t": "p",
+      "md": "**Why a classifier feels it.** Two vertices whose neighbourhoods differ in some task-relevant way must come out with representations a classifier can separate. If the summary map collides them — sends two different neighbourhoods to the same vector — then a distinction that mattered has been destroyed inside the network, and the resulting error is not fixable downstream."
+    },
+    {
+      "t": "p",
+      "md": "**The mechanism.** Message passing updates a vertex from itself and its neighbours, so each round extends, by one hop, the set of vertices that can influence it — its receptive field. But the layer writes its result into a vector whose width is fixed by the architecture, no matter how large that field has grown. Two quantities therefore fall out of step: the amount of input, which grows with reach, and the channel that carries it, which does not grow at all."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Do not confuse it with over-smoothing.** They are two different failures with two different causes. Over-smoothing is about *depth*: too many averaging rounds collapse distinct representations to a common one. Over-squashing is about *width versus reach*: a receptive field larger than the fixed representation width forces many distinct states onto one vector. A two-layer network can over-squash if its neighbourhoods are huge; a twenty-layer network can over-smooth on a graph with a hundred vertices. The table at the end of the examples keeps the two apart."
+    },
+    {
+      "t": "p",
+      "md": "**The curvature view, stated honestly.** A second way to describe the same failure looks at the *graph* rather than at counting. In this view an edge is a bottleneck when everything passing between the two sides of the graph has to squeeze through it; over-squashing is then the shrinking influence of a distant vertex on a near one, and it is worst across such bottleneck edges, which sit in negatively curved regions of the graph. This is a different lens on the same underlying fact — a bounded-width representation of an expanding neighbourhood must lose influence from far away — not a competing explanation. The counting view says *that* information is lost and roughly how much room there was; the curvature view says *where* in the graph it happens."
+    },
+    {
+      "t": "p",
+      "md": "**Why hypergraphs make it acute.** In a plain graph every relation joins two vertices, so a one-hop neighbourhood stays small unless the degree is enormous. In a hypergraph one relation can contain hundreds of vertices at once — a paper with hundreds of co-authors is a single hyperedge — so the aggregation for one relation already has to summarise a very large set into the same fixed width. A hypergraph vertex's receptive field can therefore outgrow its representation after very few hops."
+    },
+    {
+      "t": "formula",
+      "tex": "h_v^{(r)} = \\phi\\Big( h_v^{(r-1)},\\; \\bigoplus_{u \\in N(v)} \\psi\\big(h_u^{(r-1)}\\big) \\Big)",
+      "note": "The message-passing update, with each symbol tied to the mechanism above. The width of $h_v$ is fixed by design, while the receptive field that feeds it grows with $r$. The counting bound that follows is $\\text{width} \\ge |S_r(v)| \\cdot d$ for injectivity, where $S_r(v)$ is the receptive field and $d$ the per-vertex feature dimension.",
+      "gloss": [
+        { "sym": "h_v^{(r)}", "md": "vertex $v$'s representation after $r$ rounds, of fixed width" },
+        { "sym": "\\psi", "md": "the message function applied to each neighbour" },
+        { "sym": "\\bigoplus", "md": "the **aggregation** — a fixed-width summary such as a sum or a mean that combines the neighbours' messages" },
+        { "sym": "\\phi", "md": "the update function that produces $v$'s new representation" }
+      ]
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a collision you can see.** Two positions in a neighbourhood carry feature vectors $f_1 = (3, 1)$ and $f_2 = (1, 3)$. Suppose the aggregation is a sum."
+    },
+    { "t": "calc", "md": "sum = (3, 1) + (1, 3) = (4, 4)" },
+    {
+      "t": "p",
+      "md": "Swap the two vectors — put $(1,3)$ first and $(3,1)$ second — and the sum is still $(4,4)$. The aggregation is symmetric (a *permutation-invariant* operation: it does not depend on the order of its inputs), so it cannot report which position held which vector. With two positions there are $2! = 2$ arrangements collapsing onto one output; the summary is not injective, and the two inputs are unrecoverable from it."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the counting bound, on a real shape.** Take a root with $10$ children, each of which has $10$ children of its own — a 10-ary tree of depth 2. Within two hops of the root lie the root, its 10 children, and its 100 grandchildren:"
+    },
+    { "t": "calc", "md": "|receptive field| = 1 + 10 + 100 = 111 vertices" },
+    {
+      "t": "p",
+      "md": "Suppose each vertex carries an $8$-dimensional feature vector. Then the receptive field holds $111 \\times 8 = 888$ independent numbers, and the root's representation — fixed at width $8$ — must be a function of all of them:"
+    },
+    { "t": "calc", "md": "888 numbers in  →  8 numbers out;   888 / 8 = 111 times too little room" },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "A continuous one-to-one map cannot send an $888$-dimensional input into an $8$-dimensional output — that is a counting fact, not a training problem. So this layer *must* collide different neighbourhood states however it is trained. To be injective it would need width at least $888$; and that is only the 2-hop case, before the field widens further. The general bound is width $\\ge |S_r(v)| \\cdot d$."
+    },
+    {
+      "t": "p",
+      "md": "**Why the bound is worse than it looks.** Sum aggregation is permutation-invariant, so whenever all the feature vectors differ, permuting them among the field's positions leaves the sum unchanged. For the $111$-vertex field that is $111! \\approx 1.76 \\times 10^{180}$ distinct neighbourhood states sharing one output. A mean aggregator is no better: it is the same sum, rescaled. Injectivity is not merely expensive at this width — it is impossible."
+    },
+    {
+      "t": "p",
+      "md": "**Example 3 — the paper's own scale.** The largest relation in the paper's Table I is DBLP-Conf, whose hyperedges average $982.2$ members. If each member carries $8$ features, one relation holds $982.2 \\times 8 = 7857.6$ numbers that must be summarised into the same fixed width a Cora relation — two members — uses:"
+    },
+    { "t": "calc", "md": "982.2 / 2 = 491.1   (times more information per relation than a pairwise edge)" },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "This is the mechanism's most testable prediction: datasets with the largest relations should be where a fixed-width summary loses most, so a remedy that adds an un-aggregated channel should help them most. A later chapter asks whether the paper's per-dataset results actually show that."
+    },
+    {
+      "t": "table",
+      "head": ["", "Over-smoothing", "Over-squashing"],
+      "rows": [
+        ["**Cause**", "Too many layers: each averages, so differences decay with depth", "A receptive field larger than the fixed representation width; growth comes from reach, not depth"],
+        ["**Symptom**", "Different vertices' representations become equal (or degree-determined); accuracy rises then falls with depth", "Information from distant or numerous vertices is distorted or lost; specific signals stay inaccessible however well the model trains"],
+        ["**Remedy**", "Fewer layers; residual (skip) connections; jumping knowledge; decoupled propagation", "Wider representations; rewiring the graph to shorten bottlenecks; explicit relation features; **an independent channel that does not pass through the aggregation**"]
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which single difference separates over-squashing from over-smoothing?",
+      "opts": [
+        {
+          "md": "Over-squashing is caused by depth; over-smoothing is caused by width",
+          "expl": "Reversed. Depth drives over-smoothing; a receptive field too large for the fixed width drives over-squashing. Getting the pairing backwards also swaps the remedies."
+        },
+        {
+          "md": "Over-squashing comes from the size of the receptive field relative to the fixed representation width; over-smoothing comes from the number of layers",
+          "correct": true,
+          "expl": "Correct. One is a capacity problem — too much input for the channel — and the other a convergence problem — too many averaging steps. Different causes, different symptoms, different remedies."
+        },
+        {
+          "md": "They are the same phenomenon, so no difference separates them",
+          "expl": "The paper itself keeps them apart and gives each its own mechanism sentence; a network can have one without the other, and the fixes do not overlap."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A vertex's 2-hop receptive field in a 6-ary tree holds 43 vertices (1 + 6 + 36). If each vertex carries 5 features, what is the smallest representation width that could in principle be injective?",
+      "answer": 215,
+      "tol": 0.01,
+      "hint": "Injectivity needs at least as many output numbers as there are input numbers to distinguish.",
+      "sol": "The field carries 43 × 5 = 215 independent numbers, so a map to a vector of fixed width can be injective only if its width is at least 215. Below that, counting alone guarantees that two distinct neighbourhood states share one representation. Note this is a necessary condition, not a sufficient one: even a width of 215 does not promise the trained map actually uses the room.",
+      "unit": "numbers"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Which remedy targets over-squashing rather than over-smoothing?",
+      "opts": [
+        {
+          "md": "Use fewer layers",
+          "expl": "That addresses depth — over-smoothing. It does nothing about a single relation that is already too large for the fixed width."
+        },
+        {
+          "md": "Add an independent channel that carries per-vertex information without passing through the neighbourhood aggregation",
+          "correct": true,
+          "expl": "Correct. The width of the aggregated summary is unchanged, but the vertex now has a description that was never squeezed through it, so information the summary would have crushed survives."
+        },
+        {
+          "md": "Add a residual connection around each layer",
+          "expl": "That is a depth remedy: it keeps the pre-averaging signal alive against over-smoothing. It does not enlarge the fixed-width summary of a wide relation, so the squashing remains."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why is over-squashing worse on a hypergraph than on a plain graph?",
+      "opts": [
+        {
+          "md": "A hypergraph relation joins more than two vertices, so one aggregation step can have to summarise hundreds of members into the fixed width",
+          "correct": true,
+          "expl": "Correct. On a plain graph a one-hop neighbourhood is bounded by the degree; on a hypergraph a single relation can hold hundreds of vertices, so the set to be summarised is large immediately."
+        },
+        {
+          "md": "Hypergraphs have no adjacency structure at all",
+          "expl": "They do — it is the incidence structure, and message passing runs over it exactly as on a graph. The issue is the size of a relation, not the absence of structure."
+        },
+        {
+          "md": "Hypergraph vertices carry higher-dimensional features",
+          "expl": "Feature dimension is a property of the dataset, not of being a hypergraph. The squashing comes from how many vertices share a relation, not from how many numbers each one carries."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** over-squashing is the second failure the paper's introduction names, and the paper answers both at once — one encoder for smoothing, a second channel for compression. The next card is the recap and the skip check."
+}

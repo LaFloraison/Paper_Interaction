@@ -1,0 +1,7 @@
+{
+  "key": "deep-learning-basics",
+  "name": "Deep learning basics",
+  "title": "Deep learning basics: the neural network the paper quietly assumes",
+  "blurb": "The paper's model is a stack of matrix operations trained by gradient descent, and it never stops to explain any of that. This section supplies the whole assumed toolkit: the neuron and the layer, the nonlinearity that makes depth mean anything, the loss that turns a task into a single number, gradient descent, backpropagation, and the train/validation split that decides when to stop. Read it and the paper's equations stop being notation and start being a network.",
+  "skip_hint": "If you can write a layer as a matrix multiply with a bias and a nonlinearity, explain why removing that nonlinearity collapses any stack to one linear map, and say what a validation loss rising while training loss falls means, skip this section."
+}

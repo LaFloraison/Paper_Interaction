@@ -1,0 +1,148 @@
+{
+  "kind": "extension",
+  "title": "Why one run is not a result",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **run** is one complete training of a model from an initialised state to a final score. A **seed** is the integer that fixes the random state at the start of a run, and therefore fixes the initial weights, the order in which data is drawn, and — if the split is generated randomly — the split itself. Because these draws differ between seeds, a run's score is a **random variable**: repeating the run with a different seed gives a different number. Reporting a result therefore means reporting a summary of several runs: a mean, together with the spread of the runs around that mean.",
+      "plain": "One training run is one draw from a lottery you cannot see, and the seed decides which draw you get. A single number says which ticket came up, not how the lottery behaves — so a result is a mean over several runs plus how much those runs disagreed."
+    },
+    {
+      "t": "p",
+      "md": "**Why a single run is not a result.** Three things move when the seed changes. The initial weights start the model in a different place, so it settles in a different minimum. The order in which training examples arrive changes the update path. And if the train and test split is drawn randomly, the split itself changes. Each source nudges the final score, and their combined effect is measurable — which is why a one-decimal difference between two methods can be entirely seed noise."
+    },
+    {
+      "t": "p",
+      "md": "**How the spread is measured.** Run the same code with several seeds and collect the scores. The mean says where the runs sit; the sample standard deviation says how far a typical run falls from that mean. If the gap between your method and the baseline is smaller than the spread, the gap may be a seed rather than an effect."
+    },
+    {
+      "t": "formula",
+      "tex": "s = \\sqrt{\\frac{1}{n-1}\\sum_{i=1}^{n}\\left(x_i - \\bar{x}\\right)^2}",
+      "note": "The **sample standard deviation** $s$ over $n$ runs with scores $x_i$ and mean $\\bar{x}$. The sum adds the squared distances of each run from the mean; dividing by $n-1$ averages those squared distances over the runs; the square root returns the answer to the units of the scores.",
+      "gloss": [
+        { "sym": "x_i", "md": "the score of the $i$-th run; the index $i$ runs from 1 to $n$" },
+        { "sym": "\\bar{x}", "md": "the mean of the $n$ scores" },
+        { "sym": "n", "md": "the number of runs; the divisor $n-1$ is used so the spread is not underestimated by measuring distances from a mean that was fitted to the same runs" },
+        { "sym": "s", "md": "the sample standard deviation — the typical distance of a run from the average run" }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Two misconceptions to separate.** The first is that a small standard deviation means the result is correct; it means the runs agreed with one another, which a systematically broken pipeline also does. The second is that the standard deviation over seeds is a confidence interval for the gap to the baseline: it describes spread within your own runs, and the gap between two methods also carries the baseline's own seed spread."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — five runs and their average.** Five seeds give accuracies 82.5, 84.0, 81.5, 83.5 and 83.5. The mean is the sum divided by the count."
+    },
+    {
+      "t": "calc",
+      "md": "82.5 + 84.0 = 166.5"
+    },
+    {
+      "t": "calc",
+      "md": "166.5 + 81.5 = 248.0"
+    },
+    {
+      "t": "calc",
+      "md": "248.0 + 83.5 = 331.5 ; 331.5 + 83.5 = 415.0"
+    },
+    {
+      "t": "calc",
+      "md": "mean = 415.0 / 5 = 83.0"
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the spread of those same five runs.** Now measure how far each run falls from the mean of 83.0."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Subtract the mean from each score: −0.5, +1.0, −1.5, +0.5, +0.5.",
+          "why": "The distance of each run from the average is the raw material of the spread."
+        },
+        {
+          "md": "Square each distance: 0.25, 1.00, 2.25, 0.25, 0.25, which sum to 0.25 + 1.00 + 2.25 + 0.25 + 0.25 = 4.00.",
+          "why": "Squaring makes every distance count positively; without it the negative and positive distances would cancel and the spread would look like zero."
+        },
+        {
+          "md": "Divide by n − 1 = 4: 4.00 / 4 = 1.00. That is the sample variance.",
+          "why": "Dividing by n − 1 rather than n corrects the downward pull you get from measuring distances to a mean that was fitted to the same five numbers."
+        },
+        {
+          "md": "Take the square root: √1.00 = 1.00. The sample standard deviation is 1.0 accuracy points.",
+          "why": "The square root undoes the squaring, returning the spread to accuracy points rather than squared accuracy points."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**How large must an effect be to be visible?** The spread of a *single* run is $s = 1.0$ points. The spread of the *mean* of five runs is smaller, because averaging cancels part of the noise: it is the standard error, $s/\\sqrt{n} = 1.0/\\sqrt{5} = 0.447$. Comparing two methods each averaged over five seeds, the gap between the two means has a standard error of about $1.0 \\times \\sqrt{2/5} = 0.632$. A gap of twice that, roughly 1.3 accuracy points, is where the difference starts to sit outside the seed noise. A gap of half a point, on five seeds, is not something these runs can resolve."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Look at the range of the five runs: the best is 84.0 and the worst is 81.5, a spread of 2.5 points. If the authors kept only the best of five and reported 84.0, the reported number would sit 1.0 point above the mean — the same size as the standard deviation. **Selecting the best run is not a neutral choice**; it shifts the reported number by an amount comparable to the run-to-run noise it was meant to summarise."
+    },
+    {
+      "t": "p",
+      "md": "**What \"mean and standard deviation over five seeds\" does and does not establish.** It *does* show that the score moves under seed change and give a rough scale for how much, which is enough to stop a reader treating a one-decimal difference as real. It *does not* establish that five seeds represent the distribution, because the standard deviation is itself estimated from only five numbers and is therefore a rough quantity. It is not a confidence interval or a significance test. And it does not constrain the gap to a baseline, which was also run over seeds of its own."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does changing the seed change the final score?",
+      "opts": [
+        {
+          "md": "Because the seed also sets the learning rate",
+          "expl": "The learning rate is a hyperparameter chosen separately; the seed fixes randomness, not optimisation settings. This answer confuses the two kinds of control."
+        },
+        {
+          "md": "Because the seed fixes the initial weights, the order in which data is drawn, and any randomly generated split",
+          "correct": true,
+          "expl": "Correct. Those three draws are the whole reason a score is a random variable, and together they are large enough to move an accuracy by a point or two."
+        },
+        {
+          "md": "Because the seed changes the dataset itself",
+          "expl": "Close but wrong in the important half: a random split changes which examples land in which part, but the pool of data and the true labels are untouched. Overstating this hides the real mechanism."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Five seeds give 61.0, 63.0, 62.0, 64.0 and 60.0. Compute the sample standard deviation.",
+      "answer": 1.58,
+      "tol": 0.02,
+      "hint": "Find the mean first — the five values straddle it evenly — then square the five distances, divide by n − 1 = 4, and take the square root.",
+      "sol": "Mean = (61 + 63 + 62 + 64 + 60)/5 = 310/5 = 62.0. Distances from 62.0: −1, +1, 0, +2, −2; squares 1, 1, 0, 4, 4, summing to 10. Sample variance = 10/4 = 2.5. Sample standard deviation = √2.5 ≈ 1.58.",
+      "unit": "accuracy points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Method A reports 84.0 from a single run chosen as its best over several. Method B reports 83.0 as the mean over ten seeds. Which statement is best supported?",
+      "opts": [
+        {
+          "md": "A is better, because 84.0 is greater than 83.0",
+          "expl": "This compares a selected best against a mean, which are different kinds of number. The selection alone can lift A above its own average, so the comparison is not on equal footing."
+        },
+        {
+          "md": "B's figure is the more trustworthy comparison, and A's selection inflates A's number by an unknown amount",
+          "correct": true,
+          "expl": "Correct. A mean over seeds is a summary of a distribution; a selected best is the upper edge of one. Taking the largest of several runs biases the reported number upward by roughly the seed spread, as the five-seed example shows."
+        },
+        {
+          "md": "The two figures cannot be compared at all because the seed counts differ",
+          "expl": "An overcorrection. They can be compared once you know one is a selected best and the other a mean; the obstacle is interpretation, not the difference in counts."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** a hyperparameter table is the other half of a method section, and it can be read as a description of the model itself. The next card does that arithmetic."
+}

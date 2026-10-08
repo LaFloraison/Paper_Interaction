@@ -1,0 +1,111 @@
+{
+  "id": "52",
+  "kind": "intro",
+  "chapter": "intro",
+  "section": "4.3 The contributions",
+  "kicker": "4.3 · The introduction",
+  "title": "The four contributions, and what they actually are",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A contribution list states what is new and what the paper delivers. Each item should name an artefact — a method, a theorem, a dataset, an analysis — such that a reader can say whether it exists and whether it is novel. An item that names a result rather than an artefact is not a contribution but evidence, and an item that merely collects the others into one heading is a framing, not a separate contribution.",
+      "plain": "A contribution list is a list of *things the paper made*. If an item is really a result, or really just a name for the other items, it is not a contribution in the sense the list implies."
+    },
+    {
+      "t": "p",
+      "md": "This paper lists four contributions. Read them against that test."
+    },
+    {
+      "t": "table",
+      "head": ["#", "The claim", "What it actually is"],
+      "rows": [
+        ["1", "\"We introduce the Knowledge HGNN framework that overcomes the limitations of only utilizing structure-guided feature smoothing of traditional HGNNs\"", "**A framing.** The framework *is* the union of items 2 and 3. Nothing is delivered here that items 2 and 3 do not deliver — it is the name for them."],
+        ["2", "\"We develop the High-Order Incidence Encoder … and the Task-Driven Rule Encoder for embedding rule knowledge from both content and positional perspectives\"", "**Two artefacts**, named and separately implementable. This is the substantive core of the paper."],
+        ["3", "\"We present the Multi-Dimensional Knowledge Fusion strategy, which integrates various types of knowledge, addressing semantic gaps and embedding dimension discrepancies\"", "**One artefact** — though, as chapter 5 will show, it is a single operation rather than two, so the *two* gaps it claims to bridge are handled by one mechanism."],
+        ["4", "\"The experimental results indicate that … yields a 7.3% improvement on the Cora dataset and an average improvement of 2.5% across all datasets\"", "**A result, not a contribution.** Nothing is created here; something is measured. And its basis is undefined, as card 42 established."]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "This is worth stating plainly, because it is a widespread convention rather than a peculiarity of this paper: **a four-item contribution list here contains two encoders, one fusion module, one framing, and one result.** Reading it as \"four contributions\" would credit the paper with twice the novelty it claims on its own behalf. The honest count of artefacts is three modules."
+    },
+    {
+      "t": "p",
+      "md": "**Why the list is still useful.** Despite the inflation, this list is a genuinely good table of contents. It names every module the paper builds, it tells you they are separately ablatable, and it tells you where the method chapter is going. The right response is not to discount the paper but to **re-derive the list yourself** — which is what the table above does — and then hold the paper to the version you derived."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — convert the list into a delivery checklist.** Each module named must eventually appear with its own mathematics and its own ablation."
+    },
+    {
+      "t": "list",
+      "items": [
+        "**HOI-Encoder** → needs a definition, at least one equation, and a stated invariance property. Chapter 5 delivers Equations (3)-(4) plus a lemma, and the claim that it is permutation-invariant.",
+        "**TDR-Encoder** → needs the tree-based extraction, the content encoding, and the positional encoding. Chapter 5 delivers Equations (4)-(8) across four cards.",
+        "**MDK-Fusion** → needs a formula showing what it does that concatenation would not. Chapter 5 delivers Equation (9).",
+        "**The two variants** → need the ablation that separates them. Chapter 6's results tables supply it, since RD and DD are separate columns."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Notice that this checklist can be completed **before reading the method chapter**, and that it is falsifiable: if a module named here never receives an equation or an ablation, the paper has not delivered on its own list. Having the checklist in hand is what makes reading the method chapter an act of checking rather than of absorbing."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is wrong with listing a measured result as a \"contribution\"?",
+      "opts": [
+        {
+          "md": "Nothing — results are the point of a paper",
+          "expl": "Results are the point, but a contribution list names what was *made*. Including a result in it inflates the apparent count of new artefacts without adding one."
+        },
+        {
+          "md": "It inflates the list: a result is evidence for the artefacts, not another artefact",
+          "correct": true,
+          "expl": "Correct. The paragraph immediately before this list already says the experiments confirm the method; stating it again as contribution 4 does not create a fourth thing. Counting artefacts honestly gives three modules plus a framing."
+        },
+        {
+          "md": "It is fine as long as the result is true",
+          "expl": "Truth is a separate question from category. A true result in a contribution list is still a result in the wrong list."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Counting only artefacts (not framings, not results), how many distinct modules does this paper contribute?",
+      "answer": 3,
+      "tol": 0.01,
+      "hint": "Two encoders plus what fuses them.",
+      "sol": "Three: the HOI-Encoder, the TDR-Encoder and MDK-Fusion. Items 1 and 4 of the list add no artefact. This matters when you weigh the paper against others: a three-module contribution evaluated on ten datasets is a moderately sized paper, not a sweeping one — and that is a fair characterisation rather than a criticism.",
+      "unit": "modules"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why is a contribution list more useful once you have re-derived it yourself?",
+      "opts": [
+        {
+          "md": "Because the authors' version is usually dishonest",
+          "expl": "Inflation is conventional, not dishonest — the list is written in the genre's house style. The reason to re-derive is about *your* reading, not their intent."
+        },
+        {
+          "md": "Because the derived version becomes a checklist of what the paper must deliver, and you can mark items off as you read instead of trusting the summary",
+          "correct": true,
+          "expl": "Correct. This converts passive reading into verification, and it produces a concrete failure detector: if a named module never receives its own equation or its own ablation column, you have found something the paper promised and did not supply."
+        },
+        {
+          "md": "Because the number of contributions determines the paper's quality",
+          "expl": "It does not. A single well-validated module can outweigh five poorly supported ones. The count matters only for knowing what to look for."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the rhetoric — the specific words the introduction uses to make its case, and what each of them would have to be true to be earned."
+}

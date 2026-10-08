@@ -1,0 +1,176 @@
+{
+  "kind": "check",
+  "title": "The hypergraph turn, and can you leave this section?",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **hypergraph** $H = (V, E)$ generalises a graph by dropping the pairwise restriction: each hyperedge is a non-empty subset of $V$ of *any* size, so one relation may join two vertices or fifty. A **hyperedge** is the collection of vertices that take part in one relation. When every hyperedge has size $2$ the object is an ordinary graph; hypergraphs are what remain when that restriction is lifted.",
+      "plain": "In a hypergraph, one relation is allowed to contain any number of things at once — a whole group, not a pair. Everything in this section so far has quietly assumed relations come in pairs, and this card is where that assumption is removed."
+    },
+    {
+      "t": "p",
+      "md": "**Why the pairwise assumption had to be doing something, and what breaks.** Every operator in this section fed a vertex a bag of *neighbours* — vertices directly attached to it. That is exactly what a pairwise relation guarantees: if edge $\\{v,u\\}$ exists, $u$ is a neighbour of $v$. A hyperedge of five members does not give you a bag of four neighbours in the same sense. Do vertex $1$ and vertex $3$ count as neighbours because they share a hyperedge, or only because they share a *hyperedge with each other specifically*? The pairwise vocabulary does not answer this, and the two naive ways of forcing it back into the vocabulary each pay a price."
+    },
+    {
+      "t": "p",
+      "md": "**Naive option one — clique expansion.** Replace each hyperedge of $n$ members with all $\\binom{n}{2}$ pairwise edges among its members. This makes the data graph-shaped and lets any graph network run unchanged. Two costs. The size blows up combinatorially: a hyperedge of $5$ members becomes $10$ edges, and a relation with $982$ members becomes $481{,}671$. And, more damaging than the size, the *group* disappears: after expansion all the network sees is a dense tangle of pairs, and it cannot recover that they came from a single event, nor distinguish a vertex that belongs to two groups with the same membership from one that belongs to only one."
+    },
+    {
+      "t": "p",
+      "md": "**Naive option two — star (bipartite) expansion.** Give each hyperedge its own new vertex, and connect it to each of its members. A hyperedge of $n$ members becomes a star of $n$ edges, so the count grows linearly rather than quadratically, and the memberships are all still there. This removes the blow-up but not the conceptual problem: the result is a bipartite graph, and a graph network running on it treats hyperedge-vertices and ordinary vertices as the same kind of object, with the same message-passing rules. The two-hop path *vertex → hyperedge → vertex* can represent 'two things in the same group', but a standard graph layer has no built-in notion that the middle object is a relation rather than a thing, and the vertex set has been inflated by one new vertex per relation."
+    },
+    {
+      "t": "p",
+      "md": "**Why a dedicated operator was wanted.** Both expansions trade the object away: one destroys the group, the other disguises it as a vertex. A hypergraph layer instead keeps the incidence matrix of the graph-theory section — rows for vertices, columns for hyperedges — and aggregates in two explicit stages: vertices to hyperedges, then hyperedges back to vertices. The hypergraph neural network of Feng et al. (2019) is this idea written as an operator, and it is the direct generalisation of the GCN of card 3, with the incidence matrix playing the role the adjacency matrix played."
+    },
+    {
+      "t": "formula",
+      "tex": "X^{(l+1)} = \\sigma\\!\\left( D_v^{-1/2}\\, H\\, W_e\\, D_e^{-1}\\, H^{\\top}\\, D_v^{-1/2}\\, X^{(l)}\\, \\Theta \\right)",
+      "note": "Read the sandwich in the middle as two passes. $H$ sends each vertex's feature to the hyperedges that contain it; $D_e^{-1}$ averages within each hyperedge; $H^{\\top}$ sends the hyperedge summaries back to their members; the two $D_v^{-1/2}$ factors normalise by how many relations each vertex belongs to. This is GCN's operator with 'edge' replaced by 'relation of any size', and with every hyperedge of size two it collapses back to a graph operator of the GCN family, up to a constant and the self-loop convention.",
+      "gloss": [
+        { "sym": "H", "md": "the incidence matrix — rows are vertices, columns are hyperedges, entry 1 when a vertex belongs to a hyperedge" },
+        { "sym": "H^{\\top}", "md": "its transpose — the pass in the opposite direction, hyperedges back to vertices" },
+        { "sym": "D_v", "md": "diagonal matrix of *vertex* degrees — how many hyperedges each vertex belongs to (the row sums of $H$)" },
+        { "sym": "D_e", "md": "diagonal matrix of *edge* degrees — how many vertices each hyperedge contains (the column sums of $H$). $D_e^{-1}$ divides by the hyperedge's size, which is the step that makes a large relation not drown its members." },
+        { "sym": "W_e", "md": "a diagonal matrix of hyperedge *weights*, letting one relation count more than another. It is often set to the identity." },
+        { "sym": "\\Theta", "md": "the learned weight matrix — the only trained object here, exactly as $W$ was in GCN" },
+        { "sym": "\\sigma", "md": "the nonlinearity, applied entry by entry" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Skip check.** This section taught six things beyond this card. If you can do all of them without hesitating, you have what the paper's own layer assumes."
+    },
+    {
+      "t": "list",
+      "items": [
+        "State why a graph layer's aggregation must be symmetric in the neighbour set (card 1).",
+        "Write the message-passing update and name its four moves — aggregate, transform, self-connection, nonlinearity (card 2).",
+        "Explain GCN's $\\hat{D}^{-1/2}\\hat{A}\\hat{D}^{-1/2}$ normalisation, and give at least one of the two readings of why it is there (card 3).",
+        "Say what GAT learns that GCN fixes, and one cost of doing so (card 4).",
+        "Explain inductive versus transductive learning, and give a pair of neighbourhood bags that a sum separates and a mean does not (card 5).",
+        "Define over-smoothing and name one mitigation (card 6).",
+        "Say what changes when a relation has more than two members, and why clique expansion is not a free fix (this card)."
+      ]
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the blow-up, counted.** A hyperedge with $n$ members becomes $\\binom{n}{2} = n(n-1)/2$ pairwise edges under clique expansion. The counts rise fast:"
+    },
+    {
+      "t": "table",
+      "head": ["Members in one relation", "Clique-expansion edges", "Star-expansion edges"],
+      "rows": [
+        ["$3$", "$\\binom{3}{2} = 3$", "$3$"],
+        ["$5$", "$\\binom{5}{2} = 10$", "$5$"],
+        ["$982$", "$\\binom{982}{2} = 481{,}671$", "$982$"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "Read the last row: one real-world relation — a conference with $982$ authors, say — becomes $481{,}671$ edges under clique expansion, while star expansion spends $982$. The quadratic-versus-linear gap is the reason star expansion is the more common practical compromise among the naive options."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the information clique expansion discards.** Take a hypergraph with two hyperedges over the same three vertices: $e_1 = \\{1, 2, 3\\}$ and $e_2 = \\{1, 2, 3\\}$. These are two distinct relations that happen to have identical membership."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Expand to a graph. Each hyperedge is the same triangle, so the union of the two triangles is that one triangle: edges $\\{1,2\\}$, $\\{1,3\\}$, $\\{2,3\\}$. Three edges, and no trace of there having been two relations.",
+          "why": "Clique expansion maps edge *sets* to edge sets and forgets multiplicity. Two relations with the same members produce a graph identical to the one a single relation produces."
+        },
+        {
+          "md": "Look at the incidence matrix instead. It has $3$ rows and $2$ columns, and every entry is $1$. Row $2$ sums to $2$.",
+          "why": "That row sum is vertex $2$'s degree — it takes part in $2$ relations. The count that clique expansion erased is exactly what the incidence matrix keeps, and it is the object the dedicated operator computes with."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Keep the two examples in view together. Example 1 prices the naive options in edges; Example 2 shows what even the cheaper option can lose. The dedicated operator's case is the combination: no combinatorial blow-up, and the group and its membership counts survive intact into the arithmetic."
+    },
+    {
+      "t": "p",
+      "md": "**What this card does not do.** It does not develop the hypergraph operator's properties — its derivation, its relationship to spectral hypergraph theory, or its behaviour under stacking. Those belong to the paper's own treatment. This card closes the family tree: the operator above is what the paper's network generalises further."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is the essential thing a hyperedge lets a model express that a graph edge cannot?",
+      "opts": [
+        {
+          "md": "Weighted connections between pairs of vertices",
+          "expl": "Weights are available on ordinary graph edges too, and the GCN of card 3 already uses them implicitly through degrees. The novelty is not weighting; it is the size of the relation."
+        },
+        {
+          "md": "A single relation that holds any number of vertices at once, kept as one relation rather than decomposed into pairs",
+          "correct": true,
+          "expl": "Correct. That is the entire difference. The significance is that it is kept whole: the relation's identity and its membership count survive into the arithmetic, which is what clique expansion destroys and what Example 2 shows being lost."
+        },
+        {
+          "md": "Directed connections, so that one vertex can point at another",
+          "expl": "Directed graphs handle direction and have nothing to do with this. A hyperedge's distinguishing feature is its arity, not any direction it might carry."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Under clique expansion, how many pairwise edges does one hyperedge with $6$ members become?",
+      "answer": 15,
+      "tol": 0.01,
+      "hint": "It is the number of ways to choose an unordered pair from the members — every pair of distinct members, counted once.",
+      "sol": "$\\binom{6}{2} = 6 \\times 5 / 2 = 15$ edges. Star expansion, for contrast, would spend $6$ edges — one per member to a new hyperedge-vertex. The gap between the two grows with $n$ because one count is quadratic and the other linear.",
+      "unit": "edges"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A colleague converts a co-authorship hypergraph to a plain graph by clique expansion and reports that the network no longer distinguishes a paper with two authors from a paper with ten, both connecting the same researchers. Which explanation fits?",
+      "opts": [
+        {
+          "md": "The expansion lost the count of how many relations a pair shares, and with it the size of the group; only the fact that a pair exists survives",
+          "correct": true,
+          "expl": "Correct, and it is Example 2's mechanism in a realistic setting. Clique expansion records *which pairs are connected*, not *how* they came to be connected or how many others were in the relation with them. The two-author paper and the ten-author paper both contribute one edge between the same two people, so the graph cannot tell them apart."
+        },
+        {
+          "md": "The expansion is fine but the network has too few layers to see the difference",
+          "expl": "More layers would propagate the same pairwise structure further, but the information was never written into the graph. Depth cannot recover a distinction that expansion removed."
+        },
+        {
+          "md": "The expansion is fine but the graph needs edge weights set to the group size",
+          "expl": "This is a genuine partial remedy and a real variant — weighting the expanded edges by group size restores some of the lost signal. But it is a workaround applied on top of expansion, and a dedicated hypergraph operator carries the group size in its structure rather than in a hand-chosen weight."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The dedicated operator's middle factor is $H W_e D_e^{-1} H^{\\top}$. Why does it divide by the hyperedge's size, $D_e^{-1}$?",
+      "opts": [
+        {
+          "md": "To keep the output within a bounded range for numerical stability",
+          "expl": "Boundedness is a helpful side effect, not the reason. The division is doing something structural: it determines what a hyperedge's summary *means*."
+        },
+        {
+          "md": "So that a hyperedge's summary is an average over its members, and a relation with many members does not dominate the vertices in it by sheer count",
+          "correct": true,
+          "expl": "Correct. $H^{\\top}$ sums over the members, so without the division a $982$-member relation would send each member a contribution proportional to the whole group, dwarfing every small relation. Dividing by $D_e$ turns that sum into a mean, so each relation contributes comparably regardless of its size — the same role the $1/\\sqrt{\\hat d}$ factors played for degrees in GCN."
+        },
+        {
+          "md": "To make the matrix symmetric, as the adjacency matrix is",
+          "expl": "The operator as a whole is made symmetric by the $D_v^{-1/2}$ factors on the outside, not by $D_e^{-1}$ in the middle. $D_e^{-1}$ sits between $H$ and $H^{\\top}$ and is about the size of the relation, not about symmetry."
+        }
+      ]
+    }
+  ],
+  "close": "**The family tree is complete.** Card 1 to card 6 built the pairwise lineage — the symmetric aggregation, GCN's normalisation, GAT's attention, GraphSAGE's inductive rule and GIN's expressiveness question, and the depth problem. This card removed the pairwise assumption. The paper's own layer is the next node on this tree, and it assumes everything above."
+}

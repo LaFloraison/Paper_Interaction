@@ -1,0 +1,206 @@
+{
+  "id": "72",
+  "kind": "formula",
+  "chapter": "method",
+  "section": "5.13 Equation (8)",
+  "kicker": "5.13 · Equation (8)",
+  "title": "Equation (8): assembling every tree into one row",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Equation (8) concatenates the per-tree encodings into a single row per vertex: $X_r[v] = \\big(\\varphi_r^1(x_v, T_1) \\;\\Vert\\; \\varphi_r^2(x_v, T_2) \\;\\Vert\\; \\cdots \\;\\Vert\\; \\varphi_r^K(x_v, T_K)\\big)^{\\mathsf T}$, where $\\Vert$ denotes concatenation and $x_v$ is vertex $v$'s features. The resulting width is $C_r = \\sum_{i=1}^{K} |O_{\\mathrm{in}}(T_i)|$, the total number of questions across the whole ensemble.",
+      "plain": "Run the vertex's features through every tree's questionnaire, and stack all the answers end to end into one long row."
+    },
+    {
+      "t": "formula",
+      "tex": "X_r[v] = \\varphi_r^1(x_v, T_1) \\;\\Vert\\; \\varphi_r^2(x_v, T_2) \\;\\Vert\\; \\cdots \\;\\Vert\\; \\varphi_r^K(x_v, T_K)",
+      "note": "Concatenation, not a sum. The blocks are laid end to end and stay distinguishable, so a downstream layer can in principle weight the questions of one tree differently from those of another — an option that summing would have destroyed.",
+      "gloss": [
+        {
+          "sym": "K",
+          "md": "the number of trees in the pre-trained ensemble"
+        },
+        {
+          "sym": "\\varphi_r^i",
+          "md": "the $i$-th tree's block, from Equation (7)"
+        },
+        {
+          "sym": "\\Vert",
+          "md": "concatenation: the widths add, nothing is combined"
+        },
+        {
+          "sym": "C_r",
+          "md": "the total width — the sum of inner-node counts over all trees, not a hyperparameter the user sets directly"
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The width is not a free parameter, and that is the important structural fact here.** $C_r$ is determined by two things the experimenter chooses — the number of trees and their depth — and nothing else. Table IV reports those two per dataset. So the embedding's width is a *consequence* of the ensemble configuration rather than a dimension anyone picked, and a reader who wants to know how wide the model is must multiply out the table rather than look it up."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Configuration",
+        "Trees",
+        "Max depth",
+        "Inner nodes per tree",
+        "$C_r$ upper bound",
+        "Fused width"
+      ],
+      "rows": [
+        [
+          "Heloc, Tencent",
+          "20",
+          "3",
+          "7",
+          "140",
+          "280"
+        ],
+        [
+          "Amazon-P, ModelNet40",
+          "190",
+          "3",
+          "7",
+          "1,330",
+          "2,660"
+        ],
+        [
+          "Amazon-C",
+          "190",
+          "4",
+          "15",
+          "2,850",
+          "5,700"
+        ],
+        [
+          "**Github**",
+          "**150**",
+          "**7**",
+          "**127**",
+          "**19,050**",
+          "**38,100**"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Read the last row of that table carefully.** The rows are the paper's own Table IV configurations, not invented ones. A full binary tree of depth 7 has $2^7 - 1 = 127$ inner nodes, and Github is configured with 150 trees at maximum depth 7 — so up to $150 \\times 127 = 19{,}050$ rule slots per vertex, and a fused vector up to $38{,}100$ entries wide. Every other dataset stays under three thousand. This is arithmetic the paper leaves to the reader, and it is the single largest cost in the method."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the two-tree ensemble, assembled.** Use the paper's Figure 2 trees: $T_1$ has questions $x_2 \\ge 2$ (depth 0) and $x_1 \\ge 1$ (depth 1); $T_2$ has $x_3 \\ge 5$ (depth 0), $x_1 \\ge 2$ (depth 1) and $x_2 \\ge 1$ (depth 1). With $\\alpha = \\beta = 6$ the weights are $(1.000,\\; 0.857)$ for $T_1$ and $(1.000,\\; 0.857,\\; 0.857)$ for $T_2$."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Vertex",
+        "$\\varphi_r^1$ (T₁)",
+        "$\\varphi_r^2$ (T₂)",
+        "$X_r[v]$",
+        "Width"
+      ],
+      "rows": [
+        [
+          "P $(3,5,7)$",
+          "$(0,\\; 0)$",
+          "$(0,\\; 0,\\; 0)$",
+          "$(0,\\; 0,\\; 0,\\; 0,\\; 0)$",
+          "5"
+        ],
+        [
+          "Q $(0,1,9)$",
+          "$(1.000,\\; 0.857)$",
+          "$(0,\\; 0.5,\\; 0)$",
+          "$(0,\\; 0.5,\\; 0,\\; 0.5,\\; 0)$",
+          "5"
+        ],
+        [
+          "R $(0,0,0)$",
+          "$(1.0,\\; 0.5)$",
+          "$(1.0,\\; 0.5,\\; 0.5)$",
+          "$(1.0,\\; 0.5,\\; 1.0,\\; 0.5,\\; 0.5)$",
+          "5"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Check the width: $C_r = 2 + 3 = 5$, and every row has five entries.",
+          "why": "The widths add because concatenation is the operation. A sum would have produced a width of 3 — the length of the longer block — and would have merged T₂'s third question with nothing."
+        },
+        {
+          "md": "Confirm that each row is exactly its two blocks, in order, with no mixing.",
+          "why": "This is what preserves the block structure. Had the paper summed the blocks instead, the first entry of $X_r[Q]$ would have been $0 + 0 = 0$ either way — but the second — $0.857$ from T₁ and $0.857$ from T₂ — would have collapsed to a single $1.714$, and no later layer could have recovered the fact that two different trees both failed."
+        },
+        {
+          "md": "Note that Q and R have different rows even though both fail the same *number* of questions in some sense — Q fails two, R fails five.",
+          "why": "And more importantly the *pattern* differs, not just the count. Two vertices with the same number of failures but at different depths would also differ, because depth is baked into the magnitudes. The encoding is of patterns, not counts."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**One efficiency observation, since it explains the table above.** Most vertices in this walk have rows that are mostly zero — P's is entirely zero, Q's has two nonzeros out of five. In a real ensemble the same holds: a vertex fails only those questions its features fall outside, and for a tree ensemble fitted to real data that is a minority of the questions. So the rule embedding is **sparse**, which is why the width of tens of thousands is not as ruinous as it first appears. The paper does not say whether it exploits this; a dense implementation of $2C_r$ per vertex on 37,700 vertices would need on the order of a billion floating-point entries at the largest settings."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why concatenate the per-tree blocks rather than sum them?",
+      "opts": [
+        {
+          "md": "Because summation is numerically unstable with many trees",
+          "expl": "Summing a few hundred small numbers poses no numerical difficulty. The reason is about expressiveness, not arithmetic."
+        },
+        {
+          "md": "Because summing merges the blocks irreversibly, whereas concatenation lets a later layer weight each tree's questions separately",
+          "correct": true,
+          "expl": "Correct. Summing would also destroy the record of *which* tree failed, since two failures in different trees at the same depth would produce one entry of double the weight. Concatenation keeps the provenance — the same argument as in the linear-algebra section's card on concatenation, applied one level up."
+        },
+        {
+          "md": "Because the blocks have different lengths",
+          "expl": "They do have different lengths, which is why summing them entry-wise is not even defined — but the deeper reason for concatenating is that it preserves which tree contributed what. Two blocks of equal length would still be worth concatenating."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "An ensemble has 40 trees, each grown to full depth 2. What is $C_r$?",
+      "answer": 120,
+      "tol": 0.01,
+      "hint": "Count one tree's inner nodes, then multiply by the number of trees.",
+      "sol": "A full binary tree of depth 2 has $2^2 - 1 = 3$ inner nodes, so $C_r = 40 \\times 3 = 120$, and the fused width is $2C_r = 240$. Answering 160 uses $2^2 = 4$ — the leaf count. The paper's dimension statements count inner nodes, so the distinction changes the answer by a third.",
+      "unit": "entries"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The paper's Table IV reports tree counts and depths per dataset but not $C_r$ itself. What follows for a reader?",
+      "opts": [
+        {
+          "md": "The embedding width cannot be determined from the paper",
+          "expl": "It can be determined, by multiplying out the reported tree count and depth — that is what the table above does. What cannot be determined is whether the trees were actually grown to their full depth, since the paper reports a maximum depth rather than a realised average."
+        },
+        {
+          "md": "The width is derivable as an upper bound from the table, but the realised width depends on how fully each tree was grown — which the paper does not report",
+          "correct": true,
+          "expl": "Correct, and that is the honest position. $40 \\times 3$ is the maximum; if pruning or an early stop left some trees shallower, the true $C_r$ is smaller. Since the width drives memory and training cost, a reader assessing whether the method is practical is left with an upper bound and no lower one. Chapter 7 lists this among the questions to put to the authors."
+        },
+        {
+          "md": "The width does not matter, since the network learns to ignore irrelevant entries",
+          "expl": "The network can learn small weights, but it still has to store and multiply the entries — the cost is paid in parameters and computation before any learning happens. Trainability and cost are different questions, and the second one is not answered by the first."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Equation (9), where the two knowledge embeddings finally meet. It is the paper's central mechanism, and reading it is easier now than it would have been at any earlier point."
+}

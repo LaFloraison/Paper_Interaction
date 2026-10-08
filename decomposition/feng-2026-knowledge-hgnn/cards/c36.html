@@ -1,0 +1,49 @@
+<!-- ============ c36 讨论 · RD 还是 DD ============ -->
+<section class="card" data-c="36" data-title-zh="讨论 · RD 还是 DD：怎么选型" data-title-en="Discussion · RD or DD: choosing a model">
+  <div class="card-inner">
+    <div class="card-kicker k-math"><span class="len">Discussion · picking a model for your data</span><span class="lz">讨论 · 为你的数据挑型号</span></div>
+    <h2><span class="lz">两个型号摆在货架上，拿哪个？</span><span class="len">Two models on the shelf — which one?</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">方法篇的最后一个问题：第 34 卡的两个型号（RD = Rule-Driven，只吃规则账；DD = Dual-Driven，规则账 + 结构账都吃），到底什么场景拿哪个？论文给了判断口诀——<b>看你数据里的"结构有多重"</b>。</p>
+    <p class="len">The method part's last question: card 34's two models (RD = Rule-Driven, eats the rule ledger only; DD = Dual-Driven, eats rules plus structure) — which one for which setting? The paper hands down a rule of thumb: <b>gauge how heavy the structure is in your data</b>.</p>
+    <p class="lz">先把"结构重不重"说清：用<b>超边</b>（一条边圈住一群人的边）表达的群体关系越多、圈得越大，结构就越"重"；反过来，关系基本是"一对一、两两成对"的（普通图），结构就"轻"——那时结构账里其实没多少信息可喂。</p>
+    <p class="len">"Heavy structure" in plain terms: the more relations live as <b>hyperedges</b> (one edge embracing a whole crowd) and the bigger the crowds, the heavier the structure; when relations are essentially one-to-one pairs (an ordinary graph), structure is light — the structural ledger has little to feed.</p>
+    <p class="lz"><b><span class="hl">选型口诀：结构越"抱团"，DD 越占优；关系越"两两成对"，RD 越占优。</span></b>下一段的实测数字给这条口诀压上证据。</p>
+    <p class="len"><b><span class="hl">The rule in one line: the more the structure clusters into crowds, the more DD pays; the more relations stay pairwise, the more RD pays.</span></b> The measured numbers below back this rule.</p>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>例 1（决策表，两个真实数字）：</b>Table V 给的是十数据集上的分类准确率（单位 %，越大越好）；比较口径是"DD 减 RD"。图数据集 Cora：RD 88.64、DD 87.22 → 差 <b>−1.42</b>（Cora 的每条关系恰好 2 个端点，平均边度 = 2，属于"两两成对"）→ 拿 RD。超图数据集 CC-Cora：DD 76.06、RD 74.30 → 差 <b>+1.76</b>（关系成"团"出现）→ 拿 DD。选型不是拍脑袋，是一条能落表的规则。</p>
+    <p class="len"><b>Example 1 (a decision table, two real numbers):</b> Table V reports classification accuracy across ten datasets (unit %, higher is better); the comparison convention is "DD minus RD". Graph dataset Cora: RD 88.64, DD 87.22 → gap <b>−1.42</b> (Cora's relations hold exactly two endpoints — average edge degree 2, "pairwise") → take RD. Hypergraph CC-Cora: DD 76.06, RD 74.30 → gap <b>+1.76</b> (relations come in crowds) → take DD. Selection is not a hunch but a rule that fits on a slipsheet.</p>
+    <p class="lz"><b>例 2（边界情形，如实走查）：</b>Github（图）：RD 86.20、DD 86.00，差 <b>−0.20</b>——但论文自己的重复实验波动就有 ±0.16 / ±0.33（Table V 的 ± 号，五次不同随机种子的波动范围）。Tencent（超图）：DD 95.83、RD 95.65，差 <b>+0.18</b>，而波动达 ±1.65。读法：<b>当数据形态处在中间地带、差距落进波动里时，口诀给不了确定答案</b>——这也解释了论文为什么用"平均排名 DD 1.5、RD 1.7"而不是"DD 全面胜出"来汇报。</p>
+    <p class="len"><b>Example 2 (a boundary case, honestly walked):</b> Github (graph): RD 86.20, DD 86.00, gap <b>−0.20</b> — yet the paper's own re-runs fluctuate by ±0.16 / ±0.33 (the ± figures in Table V: five random seeds). Tencent (hypergraph): DD 95.83 vs RD 95.65, gap <b>+0.18</b>, with fluctuations up to ±1.65. Reading: <b>when the data's shape is middling and the gap drowns in variability, the rule cannot decide</b> — which is why the paper reports average ranks (DD 1.5, RD 1.7) rather than a clean sweep.</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">选型的依据是什么？</span><span class="len">What drives the choice?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="数据集大小不是依据——论文的十数据集规模从 2 千到 3 万顶点都有，选型规律照样成立。"><span class="lz">数据集的大小</span><span class="len">The dataset's size</span></button>
+        <button class="opt" data-correct="1" data-expl="对！看结构有多“重”：关系抱团、超边密集 → DD 的结构账有料可喂，占优；关系两两成对 → 结构账信息稀薄，RD 轻装上阵反而好。"><span class="lz">数据里结构的“轻重”——关系抱团还是两两成对</span><span class="len">How heavy the structure is — clustered crowds vs pairwise pairs</span></button>
+        <button class="opt" data-expl="两个型号用的打分机器同款（第 34 卡），轮不到“机器”来做选择依据。"><span class="lz">打分机器的型号</span><span class="len">The scoring machine's model</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="0.13" data-tol="0.02" data-hint="翻到 Table V 原图，找 Heloc 那一行：把 DD 与 RD 两个数相减（DD 在前）。" data-sol="72.57 − 72.44 = 0.13——超图数据集上 DD 胜（差值为正），但只有 0.13 个百分点，正落在例 2 说的“波动地带”里。拿来与 CC-Cora 的 +1.76 对比：同是超图，结构知识的价值可以差一个数量级。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：用 Table V 的口径，"DD 减 RD"在 Heloc（超图）上的差值是多少个百分点（两位小数）？</span><span class="len">Numeric: by Table V's convention, what is "DD minus RD" on Heloc (hypergraph), in points (two decimals)?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：一个"科研合作网络 + 论文主题分类"项目（作者天然成团、超边密集），选型建议？</span><span class="len">Transfer: a "research-collaboration network + topic classification" project (authors naturally cluster, hyperedges dense) — which model?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="特征主导是 RD 的主场——合作网络恰恰相反：关系是数据的主角。"><span class="lz">RD：按“特征主导”兜底的保守选择</span><span class="len">RD: the conservative feature-first default</span></button>
+        <button class="opt" data-correct="1" data-expl="正确！作者成团 = 高阶连接密集（论文里的 DBLP-Conf 正属此类：平均超边圈近千位作者），DD 的“结构的声音”在这里最值钱——论文明说 DD 适合科研合作网络、脑连接这类场景。"><span class="lz">DD：超边密集正是结构知识的主场（论文点名的合作网络场景）</span><span class="len">DD: dense hyperedges are structural knowledge's home turf (the paper names collaboration networks)</span></button>
+        <button class="opt" data-expl="两者同款机器、同款训练，串起来跑不会更准——只会更贵。"><span class="lz">先跑 RD，再用 DD 微调</span><span class="len">Run RD, then fine-tune with DD</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout good">
+      <b><span class="lz">方法篇完结：</span><span class="len">Method part complete:</span></b>
+      <span class="lz">从式 (1) 到式 (10)，论文的全部公式你都亲手算过至少一个例。论文与最像的前人工作（BGNN）的界线、以及我们复核中发现的问题，留到第 48 批判卡一并处理。下一站：实验篇——十张表和一张图检验这台机器的成色。</span>
+      <span class="len">From Eq. (1) to Eq. (10), every equation has passed through your hands at least once. The line between this work and its closest predecessor (BGNN), plus the issues our own verification uncovered, wait at the card-48 critique. Next stop: the experiment part — ten tables and one figure test the machine's mettle.</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

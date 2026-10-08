@@ -1,0 +1,124 @@
+{
+  "id": "62",
+  "kind": "formula",
+  "chapter": "method",
+  "section": "5.3 Equation (2)",
+  "kicker": "5.3 · Equation (2)",
+  "title": "Equation (2): how gradient boosting builds a model one small step at a time",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Equation (2) is the update rule of gradient boosting: at iteration $t$, the model becomes $f^{t}(x) = f^{t-1}(x) + \\epsilon\\, h_t(x)$, where $f^{t-1}$ is the model built so far, $h_t$ is a weak learner chosen from a family $\\mathcal{H}$, and $\\epsilon$ is the learning rate (also called the shrinkage).",
+      "plain": "Gradient boosting builds a model by adding one small tree at a time, each one fitted to whatever the current model still gets wrong — and then only partially trusting it."
+    },
+    {
+      "t": "p",
+      "md": "**The intuition in one sentence.** Each round, compute how far the current model's predictions are from the targets, fit a small tree to *those errors* rather than to the targets, and add a fraction of that tree to the model. Repeat. The model is never rebuilt; it is corrected."
+    },
+    {
+      "t": "formula",
+      "tex": "f^{t}(x) = f^{t-1}(x) + \\epsilon\\, h_t(x)",
+      "note": "Every symbol here is deliberately small. $h_t$ is a *weak* learner — typically a tree with a handful of leaves — and $\\epsilon$ is a fraction, so each round changes the model only a little. The strength of the ensemble comes from many small corrections, not from any single strong model.",
+      "gloss": [
+        { "sym": "f^{t-1}", "md": "the model as it stands after $t-1$ rounds; for $t=1$ this is a constant — in regression, the mean of the targets" },
+        { "sym": "h_t", "md": "the $t$-th weak learner — in this paper, a small decision tree fitted to the current errors" },
+        { "sym": "\\mathcal{H}", "md": "the family from which each $h_t$ is chosen; a restricted family is what makes each learner weak and the ensemble stable" },
+        { "sym": "\\epsilon", "md": "the learning rate, a number typically well below 1, which discounts every new tree's contribution" },
+        { "sym": "t", "md": "the iteration index; the total number of rounds is the number of trees in the ensemble" }
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "**Why a fraction, and not the whole tree?** Setting $\\epsilon = 1$ fits the training data faster and overfits sooner. Shrinking each tree's contribution and adding more trees is the standard trade: the ensemble becomes smoother and generalises better, at the price of more iterations. This is why the paper's Table IV reports both a tree count and a depth per dataset — they are the ensemble's size and the size of each member."
+    },
+    {
+      "t": "p",
+      "md": "**And this is why the ensemble is useful to this paper for a reason that has nothing to do with prediction.** A fitted boosted ensemble is a collection of trees, and each tree is a collection of questions about individual features. The paper does not use the ensemble's output at all — it uses its **questions**, harvesting them into a ledger. Everything in Equations (4)-(8) is about what to record about each question."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — three rounds of boosting on four points.** Targets $y = (10, 20, 30, 40)$, squared error, and a weak learner restricted to a single split with two leaves. Learning rate $\\epsilon = 0.5$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "**Start from a constant.** With squared error the best constant is the mean: $f^0 = 25$ for every point. Residuals: $(10-25,\\; 20-25,\\; 30-25,\\; 40-25) = (-15,\\; -5,\\; 5,\\; 15)$.",
+          "why": "The first model is deliberately trivial, and the residuals carry all the remaining signal. Starting from the mean is not a choice of convenience — for squared error it is the optimal constant, which is why it is the standard initialisation."
+        },
+        {
+          "md": "**Fit a tree to the residuals.** One split separates $\\{10, 20\\}$ from $\\{30, 40\\}$. Each leaf takes the mean residual of its points: left leaf $-15$ and $-5$ average to $-10$; right leaf $5$ and $15$ average to $+10$. So $h_1$ predicts $-10$ on the left and $+10$ on the right.",
+          "why": "The tree is fitted to the *errors*, not to the targets. That is the whole of \"gradient\" boosting: for squared error the negative gradient of the loss is exactly the residual, so fitting the residual is gradient descent performed by a tree."
+        },
+        {
+          "md": "**Take a fraction of it.** With $\\epsilon = 0.5$, the update is $-5$ on the left and $+5$ on the right: $f^1 = (20,\\; 20,\\; 30,\\; 30)$.",
+          "why": "Note that $f^1$ still has only two distinct values — a two-leaf tree can only shift two groups. Fine-grained structure emerges across rounds, not within one."
+        },
+        {
+          "md": "**Recompute and repeat.** New residuals: $(-10,\\; 0,\\; 0,\\; 10)$. The next tree's leaves average to $-5$ and $+5$, and at $\\epsilon = 0.5$ the model becomes $f^2 = (17.5,\\; 17.5,\\; 32.5,\\; 32.5)$.",
+          "why": "Compare the squared error before and after: initially $(-15)^2 + (-5)^2 + 5^2 + 15^2 = 500$; after two rounds $(-7.5)^2 + (-2.5)^2 + 2.5^2 + 7.5^2 = 125$. Each round cuts the error, and neither round removed the ability to keep going — which is why ensembles of hundreds of trees are ordinary."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**What to notice about this walkthrough for the rest of the chapter.** The two trees here have one inner node each — one question, one split. The paper's rule ledger records one entry per **question**, so this ensemble contributes two entries, and its content encoding (Equation 5) records whether a given vertex satisfies each question. A real ensemble has hundreds of trees and dozens of questions per tree, which is where the ledger's width comes from."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is each new tree in a gradient-boosting ensemble fitted to?",
+      "opts": [
+        {
+          "md": "The original targets",
+          "expl": "Fitting every tree to the targets would produce many similar trees that all approximate the same function. The ensemble gains nothing from repetition."
+        },
+        {
+          "md": "The errors the current model still makes",
+          "correct": true,
+          "expl": "Correct. Each tree corrects what the ensemble so far gets wrong, so the trees are complementary by construction. For squared error the error *is* the negative gradient of the loss, which is where the method's name comes from."
+        },
+        {
+          "md": "A random subset of the targets",
+          "expl": "Resampling is bagging's mechanism, not boosting's — the difference the boosting-family extension section draws. Boosting is sequential and uses the residual structure, not randomness, to make its members differ."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Continuing the walkthrough, what is the squared error of $f^2 = (17.5, 17.5, 32.5, 32.5)$ against the targets $(10,20,30,40)$?",
+      "answer": 125,
+      "tol": 0.5,
+      "hint": "Compute the four residuals, square each, and add.",
+      "sol": "Residuals are $-7.5$, $-2.5$, $2.5$, $7.5$. Squared: $56.25 + 6.25 + 6.25 + 56.25 = 125$. The starting error was 500, so two rounds of half-size trees reduced it fourfold — and the next rounds continue, which is why the ensembles in this paper run to tens or hundreds of trees.",
+      "unit": "squared error"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "This paper does not use the boosted ensemble's predictions at all. What does it use instead?",
+      "opts": [
+        {
+          "md": "Its training loss, as an extra feature",
+          "expl": "The loss is a single number per dataset, not per vertex. Nothing in Equations (3)-(8) has a scalar loss as input, and a per-dataset constant could not distinguish vertices."
+        },
+        {
+          "md": "The questions asked by each tree's inner nodes — harvested into a per-vertex ledger",
+          "correct": true,
+          "expl": "Correct, and it is the paper's central move. The ensemble is used as a *rule generator*, not a predictor: its trees are read as a list of learned if-then conditions about individual features, and each vertex is described by which of those conditions it satisfies. This is why the encoder is called Task-Driven — the questions were chosen to serve a task, and they are reused as descriptions."
+        },
+        {
+          "md": "The tree structure, encoded as a graph",
+          "expl": "The trees' structure does enter — Equation (6) scores each node by its depth. But it is the individual nodes (questions) that are encoded, not the tree as a graph."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Figure 1, the paper's own diagram of the framework — the right place to check that the four-step walkthrough you have been building matches the authors' picture."
+}

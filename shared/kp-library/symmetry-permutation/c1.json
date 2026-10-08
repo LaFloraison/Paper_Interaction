@@ -1,0 +1,152 @@
+{
+  "kind": "extension",
+  "title": "Symmetry: when two descriptions name the same object",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **symmetry** of a function $f$ is a transformation $T$ of its input under which $f$ behaves in a fixed, prescribed way. Two behaviours are distinguished. $f$ is **invariant** under $T$ if $f(Tx) = f(x)$ for every input $x$: the output does not move. $f$ is **equivariant** under $T$ if $f(Tx) = T\\,f(x)$ for every $x$: the output moves by the same transformation that was applied to the input. In both cases $T$ changes only the *description* of the input, never the object being described.",
+      "plain": "A symmetry is a way of rewriting the input that either leaves the answer alone (invariant) or moves the answer in exactly the same way the input moved (equivariant). The input is renamed; the object is not."
+    },
+    {
+      "t": "p",
+      "md": "**Why this needs a name at all.** In a computer every object arrives as a list of numbers in some order, and that order is a fact about the *file*, not about the object. If a function's answer changes when the same items are listed in a different order, the function is not reporting on the object — it is reporting on how the file was laid out. A symmetry statement is the precise claim that a function does not do this."
+    },
+    {
+      "t": "h3",
+      "md": "Invariance and equivariance: one idea, two prescriptions"
+    },
+    {
+      "t": "p",
+      "md": "The two words make different promises. **Invariance** promises that the output is a single thing that ignores the relabelling entirely — typically one number per graph, or one fixed-length summary. **Equivariance** promises that the output is indexed the same way the input is, and that relabelling the input relabels the output to match, so item 1's answer travels with item 1. Neither is stronger; which one is correct is decided by what the output is supposed to mean."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The distinction is routinely blurred** — many talks use the two words interchangeably. The concrete confusion: a layer that emits one vector per vertex is expected to *follow its vertex* when the vertices are renamed, so it is **equivariant**. Only the final graph-level readout that pools all the vertices into one answer is expected to be **invariant**. Calling the per-vertex layer \"invariant\" states a different and usually wrong requirement, because it would forbid the model from knowing which vector belongs to which vertex."
+    },
+    {
+      "t": "p",
+      "md": "**When symmetry fails, it fails visibly.** A function with no symmetry contains a term tied to a *position* or an *index* — for instance a weighted sum whose weights are the positions $1, 2, 3, \\dots$. Such a function is neither invariant nor equivariant under reordering: it is maximally sensitive to the layout, and the third example below shows the numbers. That failure is not a curiosity; it is exactly the shape of a wrong model."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — invariance in one line of arithmetic.** Take the list $(3, 1, 4, 1, 5)$ and reorder it to $(5, 1, 3, 1, 4)$."
+    },
+    {
+      "t": "calc",
+      "md": "sum(3, 1, 4, 1, 5) = 14\nsum(5, 1, 3, 1, 4) = 14"
+    },
+    {
+      "t": "p",
+      "md": "The sum is **invariant** under reordering: both orders give 14. The mean is invariant too, because it is the sum divided by a count that reordering never changes: $14 / 5 = 2.8$."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — invariance and equivariance are different promises.** Take $(30, 10, 20)$. Two natural functions behave differently on it."
+    },
+    {
+      "t": "list",
+      "items": [
+        "**Sorting** returns the values in increasing order: $(30,10,20) \\mapsto (10, 20, 30)$. Reorder the input to $(10, 30, 20)$ and sorting still returns $(10, 20, 30)$. Sorting is **invariant** — the output list is the same either way.",
+        "**Ranking** returns, for each entry, its position in that sorted order: for $(30,10,20)$ the ranks are $(3, 1, 2)$. Reorder the input to $(10, 30, 20)$ and the ranks become $(1, 3, 2)$ — the original rank list with the *same swap* applied to it. Ranking is **equivariant**: swapping two entries of the input swaps the same two entries of the output."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**A frequent slip:** sorting is often called equivariant because it \"rearranges things\". It is not. Sorting's output values are identical for every ordering of the input, which is invariance. It is **ranking** — the label attached to each entry — that moves with the input, and that is equivariance. Fixing this now prevents a real misreading later, because the same slip recurs with neighbourhood aggregation."
+    },
+    {
+      "t": "p",
+      "md": "**Example 3 — a function with neither symmetry.** Weight each entry by its position and add: compute $w \\cdot x = 1\\cdot x_1 + 2\\cdot x_2 + 3\\cdot x_3 + 4\\cdot x_4 + 5\\cdot x_5$."
+    },
+    {
+      "t": "calc",
+      "md": "w·(3, 1, 4, 1, 5) = 1(3) + 2(1) + 3(4) + 4(1) + 5(5) = 3 + 2 + 12 + 4 + 25 = 46\nw·(5, 1, 3, 1, 4) = 1(5) + 2(1) + 3(3) + 4(1) + 5(4) = 5 + 2 + 9 + 4 + 20 = 40"
+    },
+    {
+      "t": "p",
+      "md": "The two orderings give **46** and **40**. Same five values, same object, a different answer. This function is neither invariant nor equivariant: it is a function of the *arrangement*, and the arrangement is not part of the object. Every design error this section warns about has this shape."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**Carry one sentence away.** Invariance: the answer does not change. Equivariance: the answer changes exactly the way the input did. Anything else: the answer is about the layout, not the object."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which equation states that a function $f$ is **equivariant** under a transformation $T$ of its input?",
+      "opts": [
+        {
+          "md": "$f(Tx) = f(x)$ for every $x$",
+          "expl": "That is invariance — the output is left completely unchanged. Equivariance permits the output to move, provided it moves in the prescribed way, so this equation is the stronger and different requirement."
+        },
+        {
+          "md": "$f(Tx) = T\\,f(x)$ for every $x$",
+          "correct": true,
+          "expl": "Correct: the output moves by the same transformation as the input. This is the promise a per-vertex layer must make, because each output entry belongs to the vertex that produced it and must travel with that vertex under renaming."
+        },
+        {
+          "md": "$f(Tx) = -f(x)$ for every $x$",
+          "expl": "This is a symmetry too, but a different one — anti-symmetry. Choosing it confuses \"the output transforms\" with \"the output transforms by $T$\"; here the transformation $T$ never appears on the output side, only a fixed sign flip does."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "With weights equal to the positions $1, 2, 3, 4, 5$, compute $w \\cdot x$ for the list $(2, 7, 1, 7, 3)$.",
+      "answer": 62,
+      "tol": 0.01,
+      "hint": "Multiply each entry by its position and add. Do not sort the list first: sorting would change the answer, which is precisely the point being tested.",
+      "sol": "$1(2) + 2(7) + 3(1) + 4(7) + 5(3) = 2 + 14 + 3 + 28 + 15 = 62$. For comparison, the plain sum is $2 + 7 + 1 + 7 + 3 = 20$, and 20 would be the answer for *any* ordering, whereas this positional value changes whenever the entries move.",
+      "unit": "weighted total"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A model outputs one feature vector per vertex of a graph. Under a relabelling of the vertices, what should happen to that output?",
+      "opts": [
+        {
+          "md": "It should stay exactly the same, because the graph did not change",
+          "expl": "This is the invariance reflex, and it is wrong here. The output is indexed by vertices, so if vertex 2 is renamed vertex 1, the vector that belonged to vertex 2 must move to position 1. Demanding identical output forces the model to forget which vertex each vector describes."
+        },
+        {
+          "md": "It should be relabelled the same way, so each vertex's vector follows that vertex",
+          "correct": true,
+          "expl": "Correct — this is equivariance. The vectors do not change as values; their positions move with the vertices. Only a later pooling step, which sums or averages those vectors into one graph-level answer, is expected to be invariant."
+        },
+        {
+          "md": "It should change in an unpredictable way, since the input changed",
+          "expl": "The change is fully predictable, and equivariance is exactly the statement of how. \"Unpredictable\" would mean the relabelling scrambled the output, and a model with that behaviour could not be trained coherently."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Is sorting a list invariant or equivariant under a reordering of that list?",
+      "opts": [
+        {
+          "md": "Invariant: the sorted output list is the same whatever the input ordering",
+          "correct": true,
+          "expl": "Correct. Sorting's output values do not depend on the input order, so the function is invariant — which is why sorting is used as a permutation-invariant pooling operation."
+        },
+        {
+          "md": "Equivariant: the output is a rearrangement, so it must move with the input",
+          "expl": "This is the common slip. The output is indeed a rearrangement of the input, but it is the *same* rearrangement for every ordering, so the output value is identical — that is invariance. What moves with the input is the rank of each entry, not the sorted list."
+        },
+        {
+          "md": "Neither: sorting destroys the input",
+          "expl": "Sorting keeps every value; only the order is discarded. Keeping the values while discarding the order is the definition of invariance, so this answer reverses the situation."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** graphs and hypergraphs arrive as exactly such lists, ordered by whoever wrote the file. The next card asks which reorderings of a graph are free to change, and which function types must respect them."
+}

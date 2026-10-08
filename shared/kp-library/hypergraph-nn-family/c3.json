@@ -1,0 +1,116 @@
+{
+  "kind": "extension",
+  "title": "HyperGCN and DHGNN: change the graph, not the layer",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**HyperGCN** (Yadati et al., 2019) trains graph networks on hypergraphs by first reducing the hypergraph to an ordinary graph: within each hyperedge one member is chosen as the **mediator**, and an ordinary edge is added from the mediator to every other member. **DHGNN** (Jiang et al., 2019) keeps the hypergraph but treats its structure as **dynamic**: the hyperedges are recomputed from the current vertex features during training, so the structure the layer reads changes from layer to layer.",
+      "plain": "Two different ways to dodge the problem of defining a hypergraph operator. HyperGCN turns each group into a little star of ordinary edges and runs an ordinary graph network on it. DHGNN keeps the groups but redraws them as training goes on. HyperGCN changes the graph once; DHGNN changes it repeatedly."
+    },
+    {
+      "t": "p",
+      "md": "**HyperGCN: a mediator inside each hyperedge.** A hyperedge of size $s$ becomes $s-1$ ordinary edges — the mediator joined to each other member. Crucially, the mediator is a *member of the hyperedge*, not a new vertex, so the resulting graph has exactly the original vertices. This is the difference from the star *expansion* of the graph-theory material, which invents one fresh vertex per hyperedge; HyperGCN reuses an existing one. For a hyperedge of size 2 the step is vacuous, since the two members are already an ordinary edge. The mediator is chosen by a stated rule, and the choice is a heuristic — the paper that proposed it selects the member that is, in a precise sense, most central to the group."
+    },
+    {
+      "t": "p",
+      "md": "**DHGNN: redrawing the structure.** DHGNN never converts the hypergraph into a fixed graph. Instead it recomputes the hyperedges from the current features at each layer — typically by joining each vertex to its nearest neighbours in the current feature space — and then applies a vertex convolution over the hyperedges a vertex currently belongs to. A vertex that drifts into a different region of feature space acquires a different set of hyperedges, so the structure tracks the features."
+    },
+    {
+      "t": "table",
+      "head": ["Method", "Idea", "New vertices", "Cost per hyperedge of size s", "What it gains", "What it gives up"],
+      "rows": [
+        ["HyperGCN", "mediator inside each hyperedge, one ordinary edge to each other member", "none", "$s-1$ edges", "any graph network applies unchanged; linear cost", "the group is gone — its members connect only through the mediator, and fidelity depends on which member was chosen"],
+        ["DHGNN", "rebuild hyperedges from current features each layer", "none", "recomputed per layer", "structure adapts to the learned features", "the structure becomes a moving target: it can drift, costs an extra step, and is harder to reproduce and interpret"]
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "**The mistake to avoid:** describing HyperGCN as adding an auxiliary vertex per hyperedge. That is the star expansion, a different construction. HyperGCN's mediator is chosen *from* the hyperedge, so the vertex count never changes. The distinction matters because it is exactly what the comparison table turns on: adding a vertex invents an object with no meaning, whereas reusing one makes the representation depend on a choice."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — HyperGCN on the four-vertex hypergraph.** Edges $e_1=\\{1,2,3\\}$, $e_2=\\{1,4\\}$, $e_3=\\{2,4\\}$. Choose the first-listed member of each hyperedge as its mediator."
+    },
+    {
+      "t": "table",
+      "head": ["Hyperedge", "Size", "Mediator", "Edges created"],
+      "rows": [
+        ["$e_1=\\{1,2,3\\}$", "3", "1", "$1$–$2$, $1$–$3$ — two edges"],
+        ["$e_2=\\{1,4\\}$", "2", "1", "$1$–$4$ — one edge"],
+        ["$e_3=\\{2,4\\}$", "2", "2", "$2$–$4$ — one edge"]
+      ]
+    },
+    {
+      "t": "calc",
+      "md": "HyperGCN graph: 4 edges on 4 vertices.  Clique expansion of the same hypergraph: 5 edges."
+    },
+    {
+      "t": "p",
+      "md": "Four edges instead of five, and the vertex count is unchanged where star expansion would have pushed it to seven. But look at what the mediator cost: vertices 2 and 3 sat together in $e_1$, yet the HyperGCN graph has no edge $2$–$3$. They are connected only through the mediator vertex 1. Had the mediator been chosen as vertex 3 instead, the edge set would read $3$–$1$, $3$–$2$, $1$–$4$, $2$–$4$ — a different graph from the same hypergraph. **The reduction is not unique, and the difference is not nothing.**"
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — what \"dynamic\" changes.** Suppose DHGNN builds each hyperedge as a vertex plus its $k = 3$ nearest neighbours in the current feature space, so every hyperedge holds $3+1 = 4$ members. At layer 0 the neighbours are read from the input features. After one round of convolution the features have moved, and the $3$ nearest neighbours of a given vertex may be a different three vertices — so the hyperedge it sits in is rebuilt, not reused. A single training run therefore visits many different hypergraphs. This is the source of both its flexibility and its cost: nothing downstream can assume the structure it saw at layer 0 still holds at layer 5."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**What these examples do not show.** The mediator example fixes a particular mediator rule for concreteness; other rules give other graphs, and none of the numbers here should be read as HyperGCN's published results. Example 2 uses a $k = 3$ neighbourhood as an illustration of the *dynamic* idea, not as DHGNN's exact construction, which the original paper specifies in more detail."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In HyperGCN, what is the mediator of a hyperedge?",
+      "opts": [
+        {
+          "md": "A new vertex added to represent the hyperedge",
+          "expl": "That is the star expansion. HyperGCN adds no vertices; conflating the two is the standard slip, and it flips the table's \"new vertices\" column from none to one per hyperedge."
+        },
+        {
+          "md": "One of the hyperedge's own members, chosen by a rule, joined to every other member",
+          "correct": true,
+          "expl": "Correct. The mediator is an existing member, so the graph stays on the original vertices and a hyperedge of size s becomes s−1 edges. Which member is chosen affects the resulting graph, which is the method's main fragility."
+        },
+        {
+          "md": "The average of the hyperedge's members' features",
+          "expl": "That describes a form of aggregation, not a mediator. A mediator is a vertex that anchors the edges, not a computed summary value."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "HyperGCN is applied to a hyperedge of size 6. How many ordinary edges does that hyperedge become?",
+      "answer": 5,
+      "tol": 0.01,
+      "hint": "One mediator is joined to every other member — how many others are there?",
+      "sol": "The mediator is one of the six members, so it links to the other 6−1 = 5 members: 5 edges. The clique expansion would instead give 6×5/2 = 15 edges. Answering 6 links the mediator to itself, which is not an edge.",
+      "unit": "edges"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "What is the essential trade-off DHGNN accepts by rebuilding its hyperedges from the current features?",
+      "opts": [
+        {
+          "md": "It gains adaptability to the learned features, at the cost of a structure that drifts and is harder to reproduce",
+          "correct": true,
+          "expl": "Correct. Because the hyperedges are functions of features that change during training, the network is training against a moving structure. That flexibility is real, but so is the price: two runs can visit different structures, and a reader cannot inspect one fixed hypergraph and reason about the model."
+        },
+        {
+          "md": "It gains a guarantee of permutation invariance, which fixed-structure methods lack",
+          "expl": "Symmetry under reordering is a property of how a layer aggregates, and the fixed-structure methods already have it through their symmetric operators. The dynamic step neither adds nor removes that."
+        },
+        {
+          "md": "It gains a smaller graph that is cheaper to process",
+          "expl": "Rebuilding hyperedges each layer adds work rather than removing it. Cost is on the price side of this trade-off, not the gain side."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** HyperGCN and DHGNN each alter the structure. Card 4 turns to the work that stepped back and asked a unifying question — how do all these layers relate, and what is the most general form of a hypergraph network?"
+}

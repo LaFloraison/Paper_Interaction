@@ -1,0 +1,7 @@
+{
+  "key": "gnn-lineage",
+  "name": "Graph neural networks",
+  "title": "Graph neural networks: the family the paper's layer belongs to",
+  "blurb": "A hypergraph network is a graph network with the pairwise assumption relaxed, so the family tree comes first. This section builds the message-passing recipe that nearly every graph network instantiates, then walks the four that define the lineage — GCN's normalised aggregation, GAT's learned attention, GraphSAGE's inductive sampling, and GIN's expressiveness question — and closes on what changes when a single relation has many members rather than two.",
+  "skip_hint": "If you can write the message-passing update from memory and say what a sum aggregator distinguishes that a mean aggregator cannot, skip this section."
+}

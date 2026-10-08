@@ -1,0 +1,112 @@
+{
+  "id": "3",
+  "kind": "title",
+  "chapter": "title",
+  "section": "1.2 Knowledge-Embedded",
+  "kicker": "Title decoded 2/5 · Knowledge-Embedded",
+  "title": "\"Knowledge-Embedded\": writing knowledge down as numbers",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Knowledge embedding, in this paper, means computing two explicit, nameable quantities from a dataset — (i) structural knowledge: how many hyperedges each vertex belongs to, and (ii) rule knowledge: which of a set of learned if-then conditions each vertex's feature values satisfy — and appending both to the vertex's feature vector before any network sees it.",
+      "plain": "Instead of hoping the model will notice something useful, you work out two kinds of things you can name, write each down as a number, and staple those numbers onto the data."
+    },
+    {
+      "t": "p",
+      "md": "**Why the title insists on \"embedded\".** A hypergraph hands a model two things: the group structure (who belongs with whom) and each vertex's own feature vector. Ordinary hypergraph networks take both, but cannot tell you what they actually extracted — the structure is consumed implicitly, inside the smoothing operation. This paper's whole bet is that two specific kinds of knowledge can be *named*, computed, and then fed in the same way features are."
+    },
+    {
+      "t": "p",
+      "md": "The two kinds divide the labour. **Structural knowledge** answers \"how central is this vertex in the group relations?\" — how many hyperedges embrace it. **Rule knowledge** answers \"which task patterns do its feature values trigger?\" — for example, whether an income is above a threshold or an age below one. Each answer becomes a row of numbers; \"embedding\" simply means that."
+    },
+    {
+      "t": "callout",
+      "md": "Note the order of the words. *Knowledge-Embedded Hypergraph Neural Networks* — the knowledge is embedded **first**, the network runs **after**. That ordering is the paper's contribution, and the next three chapters are the unfolding of it."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — structural knowledge is one number.** Student Zhao belongs to 3 study groups; Qian belongs to 1. Count the hyperedges each belongs to (each study group is one hyperedge, exactly as in the dorm example): Zhao is **3**, Qian is **1**. Those two numbers are the plainest possible structural-knowledge encoding. Equation (3), later, adds one smoothing function on top; the idea is already complete."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — rule knowledge is a row of 0s and 1s.** Suppose a tree has been trained to predict pass/fail and has settled on three questions: \"self-study ≥ 10 h/week?\", \"attendance ≥ 90%?\", \"homework submitted on time?\"."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Run student Sun's record down the three questions. Self-study 12 h → the first condition holds. Attendance 80% → the second fails. Homework submitted → the third holds.",
+          "why": "Walking a record down a list of learned questions is exactly what a decision tree does; we are simply keeping the questions rather than the final verdict."
+        },
+        {
+          "md": "Write **0** for each condition that holds and **1** for each that fails: Sun's rule vector is `[0, 1, 0]`.",
+          "why": "The direction surprises everyone, so fix the meaning now: the slot records not \"did this rule fire for you\" but \"**does this rule fail to cover you**\". 0 means the rule explains your case; 1 means it does not, and other rules must speak for you."
+        },
+        {
+          "md": "Read the vector back as a sentence: \"Sun is covered by the study-hours and homework rules, and is *not* covered by the attendance rule.\"",
+          "why": "Each 0/1 is a per-rule explanation. That is why the design is worth the trouble: the vector is auditable in a way a hidden layer is not. Why it is arranged this way is card 29's business."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "Two things are deliberately **not** shown yet. First, we have not appended `[0, 1, 0]` to Sun's original feature vector — that joining happens at Equation (8) and card 32. Second, the tree whose questions we borrowed was *learned from data*, not written by hand; that machinery is Chapter 2's extension on decision trees."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which pair matches the two kinds of knowledge this paper embeds?",
+      "opts": [
+        {
+          "md": "Image knowledge and text knowledge",
+          "expl": "Those are data modalities, not kinds of knowledge. Nothing in this paper distinguishes image from text; the ten datasets are graphs, hypergraphs and tables."
+        },
+        {
+          "md": "Structural knowledge (how hyperedges connect a vertex) and rule knowledge (which feature patterns it triggers)",
+          "correct": true,
+          "expl": "Correct. Structural comes from the data's shape via hyperedge counts; rule comes from a learned model's questions. The two encoders are named HOI and TDR precisely because they compute these two different things."
+        },
+        {
+          "md": "Training knowledge and test knowledge",
+          "expl": "That is a split of the data, and mixing them would be leakage. Here both encoders are computed the same way for every vertex."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A tree has 3 questions. A vertex satisfies questions 1 and 3, and fails question 2. In its rule-knowledge vector (0 = rule covers you, 1 = it does not), how many entries equal 1?",
+      "answer": 1,
+      "tol": 0.01,
+      "hint": "Count the *failures*, not the successes. If you answered 2 you counted how many rules fired for the vertex.",
+      "sol": "The vector is `[0, 1, 0]`: question 2 is the only one the vertex fails, so exactly **1** entry equals 1. Counting successes gives 2, which is the most common slip — the encoding stores coverage failures, not hits.",
+      "unit": "entries"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "\"This hospital admitted 5,000 patients this quarter.\" If you wanted to encode that as *structural* knowledge, what would you actually count?",
+      "opts": [
+        {
+          "md": "The total 5,000 admissions",
+          "expl": "That is a volume statistic about the hospital, not a statement about how any one object sits inside group relations."
+        },
+        {
+          "md": "If the ward is a hyperedge and patients are vertices, how many wards each patient was admitted to",
+          "correct": true,
+          "expl": "Correct. Structural knowledge is always counted *per vertex*, and always counts how many group relations that vertex belongs to. The hospital's own total tells you nothing about an individual patient's position — which is why Equation (3) sums over hyperedges for each vertex separately."
+        },
+        {
+          "md": "The number of wards in the hospital",
+          "expl": "That is the analogue of $M$, the hyperedge count — a property of the dataset as a whole, not of a vertex. Structural knowledge is per-vertex by definition."
+        }
+      ]
+    }
+  ],
+  "close": "**How this paper uses it:** these two encodings are the HOI-Encoder (structural, one number per vertex, Equation 3) and the TDR-Encoder (rule, one row of 0/1 per vertex, Equations 4–8). They are computed *before* the network and fused into the features at Equation (9). **Next:** the third word — what \"Neural Networks\" adds to the picture."
+}

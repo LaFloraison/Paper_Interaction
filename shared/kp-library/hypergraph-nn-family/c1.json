@@ -1,0 +1,192 @@
+{
+  "kind": "extension",
+  "title": "What a hypergraph network layer does",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **hypergraph network layer** replaces every vertex's feature vector with a new one computed from that vertex together with the vertices it shares hyperedges with, using the incidence matrix. Its standard form, the *hypergraph convolution* of Feng et al. (2019), is the map $X \\mapsto \\sigma\\!\\left(D_v^{-1/2}\\, H\\, W_e\\, D_e^{-1}\\, H^{\\top}\\, D_v^{-1/2}\\, X\\, \\Theta\\right)$, where $H$ is the incidence matrix, $D_v$ and $D_e$ hold the vertex and hyperedge degrees, $W_e$ weights whole hyperedges, $\\Theta$ is a learned matrix, and $\\sigma$ is a nonlinearity applied entry by entry. The output is unchanged if the vertices or the hyperedges are relabelled.",
+      "plain": "Each vertex takes a damped summary of the vertices that share a hyperedge with it. Large hyperedges and busy vertices are damped more, so no single group and no single hub can dominate. A learned matrix reshapes the summary, and a nonlinearity is applied."
+    },
+    {
+      "t": "p",
+      "md": "**The two objects the layer reads, in one place.** The **incidence matrix** $H$ has one row per vertex and one column per hyperedge, with $H_{ve} = 1$ when vertex $v$ belongs to hyperedge $e$, and $0$ otherwise. Its **row sums** are the vertex degrees $d(v)$ — how many hyperedges contain $v$. Its **column sums** are the edge degrees $\\delta(e)$ — how many vertices $e$ contains. The layer uses the diagonals of these two lists as the matrices $D_v$ and $D_e$."
+    },
+    {
+      "t": "p",
+      "md": "**Why the degrees appear at all.** Without them the summary would be a plain sum, and a vertex inside a 982-member hyperedge would receive a contribution hundreds of times larger than a vertex inside a 2-member one. The factors $D_v^{-1/2}$ and $D_e^{-1}$ put every vertex and every hyperedge on a comparable scale, so a large relation speaks more softly rather than more loudly. This is the same idea as the degree normalisation of a graph convolution, transplanted to relations that can have any size."
+    },
+    {
+      "t": "p",
+      "md": "**The layer as six moves.** Read the formula left to right and each multiplication is one move."
+    },
+    {
+      "t": "list",
+      "ordered": true,
+      "items": [
+        "**Normalise the vertices** — multiply by $D_v^{-1/2}$, dividing each vertex's row by the square root of its degree.",
+        "**Collect into hyperedges** — multiply by $H^{\\top}$, replacing each hyperedge by the sum of the vertex rows inside it.",
+        "**Average within each hyperedge** — multiply by $D_e^{-1}$, dividing each hyperedge by its size. The optional $W_e$ reweights whole hyperedges at this step.",
+        "**Distribute back to the vertices** — multiply by $H$, giving each vertex the sum of the values of the hyperedges it belongs to.",
+        "**Normalise the vertices again** — a second $D_v^{-1/2}$, dividing by the square root of the degree once more.",
+        "**Transform and activate** — multiply by the learned $\\Theta$, then apply $\\sigma$ entry by entry."
+      ]
+    },
+    {
+      "t": "formula",
+      "tex": "X^{(l+1)} = \\sigma\\left( D_v^{-1/2}\\, H\\, W_e\\, D_e^{-1}\\, H^{\\top}\\, D_v^{-1/2}\\, X^{(l)}\\, \\Theta^{(l)} \\right)",
+      "note": "This is the entire layer. Everything between $\\sigma$ and $\\Theta$ is fixed by the hypergraph: it is the *listening pattern*, not something the network trains. Only $\\Theta$, and the optional $W_e$, are learned.",
+      "gloss": [
+        { "sym": "X^{(l)}", "md": "one row per vertex; row $v$ is vertex $v$'s current feature vector. The superscript ${}^{(l)}$ is the layer index, and ${}^{(0)}$ is the raw input feature." },
+        { "sym": "H", "md": "the incidence matrix; $H_{ve} = 1$ when vertex $v$ is a member of hyperedge $e$" },
+        { "sym": "D_v", "md": "diagonal matrix of vertex degrees $d(v)$ — the row sums of $H$" },
+        { "sym": "D_e", "md": "diagonal matrix of edge degrees $\\delta(e)$ — the column sums of $H$" },
+        { "sym": "W_e", "md": "diagonal matrix of per-hyperedge weights; the identity when every hyperedge counts equally. Raising one diagonal entry makes that hyperedge speak more loudly." },
+        { "sym": "D_v^{-1/2}", "md": "divides each vertex's contribution by $\\sqrt{d(v)}$. It appears on both sides, so an edge shared by vertices of degrees $d$ and $d'$ carries weight $1/\\sqrt{dd'}$." },
+        { "sym": "D_e^{-1}", "md": "divides each hyperedge by its size $\\delta(e)$ — the averaging step that stops a 982-member relation from swamping a 2-member one" },
+        { "sym": "\\Theta^{(l)}", "md": "the learned weight matrix; it mixes feature dimensions, and is the only trained object besides $W_e$" },
+        { "sym": "\\sigma", "md": "a nonlinearity applied entry by entry, a ReLU being the usual choice" }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Hold the layer as one sentence: **normalise the vertices, gather them into hyperedges, average inside each hyperedge, scatter back to the vertices, normalise again, transform, activate.** Every hypergraph network in this section is a rearrangement of those moves, and the paper under study leaves all of them untouched — it changes what arrives at the layer, not the layer."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The mistake to avoid:** reading $H$ and $H^{\\top}$ as interchangeable. $H^{\\top}$ gathers vertices *into* hyperedges; $H$ scatters hyperedges *back out* to vertices. Swap them and you average along the wrong axis, producing a $|E|$-rowed object where a $|V|$-rowed one belongs. The test is the shape: the layer must return one row per vertex."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**When the layer fails.** It is, at heart, a smoothing operator. Apply it many times and every vertex's feature drifts towards its neighbourhood's, until vertices that share hyperedges become hard to tell apart — the over-smoothing that card 2 measures. And the layer can only be as good as the hypergraph it is handed, which it takes as fixed and correct: if the hyperedges are wrong, or if the information needed lives in the structure rather than in the features, adding layers does not recover it."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a hypergraph small enough to check by eye.** Take four vertices $\\{1,2,3,4\\}$ and three hyperedges $e_1=\\{1,2,3\\}$, $e_2=\\{1,4\\}$, $e_3=\\{2,4\\}$. Write the incidence matrix with vertices down the rows and hyperedges across the columns."
+    },
+    {
+      "t": "formula",
+      "tex": "H = \\begin{pmatrix} 1 & 1 & 0 \\\\ 1 & 0 & 1 \\\\ 1 & 0 & 0 \\\\ 0 & 1 & 1 \\end{pmatrix}",
+      "note": "Row sums give the vertex degrees $(2,2,1,2)$; column sums give the edge degrees $(3,2,2)$. Both lists total $7$, the number of ones in the matrix — every membership is counted once from each side.",
+      "gloss": [
+        { "sym": "1", "md": "the vertex is a member of that hyperedge" },
+        { "sym": "0", "md": "the vertex is not a member" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — one layer, every move visible.** Give the vertices the scalar features $x=(2,4,6,8)$. Take $W_e$ and $\\Theta$ to be the identity so the arithmetic stays in one dimension, and let $\\sigma$ be the ReLU $\\sigma(z)=\\max(0,z)$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "**Normalise the vertices.** Divide each by the square root of its degree, $\\sqrt{(2,2,1,2)}$: $2/1.4142=1.4142$, $4/1.4142=2.8284$, $6/1=6$, $8/1.4142=5.6569$.",
+          "why": "Vertex 3 has degree 1, so its factor is 1 and it passes through unchanged. Every vertex of degree 2 is divided by $\\sqrt{2}$."
+        },
+        {
+          "md": "**Collect into hyperedges.** $H^{\\top}$ sums the members of each hyperedge: $e_1 = 1.4142+2.8284+6 = 10.2426$, $e_2 = 1.4142+5.6569 = 7.0711$, $e_3 = 2.8284+5.6569 = 8.4853$.",
+          "why": "Each hyperedge now holds one number summarising its members. Vertices that share a hyperedge have been brought into the same entry."
+        },
+        {
+          "md": "**Average within each hyperedge.** Divide by the size: $e_1 = 10.2426/3 = 3.4142$, $e_2 = 7.0711/2 = 3.5355$, $e_3 = 8.4853/2 = 4.2426$.",
+          "why": "Without this division the three-member hyperedge would contribute three times as much as a pair. The averaging is what makes the sizes comparable."
+        },
+        {
+          "md": "**Distribute back to the vertices.** $H$ gives each vertex the sum of its hyperedges: $v_1 = 3.4142+3.5355 = 6.9497$, $v_2 = 3.4142+4.2426 = 7.6569$, $v_3 = 3.4142$, $v_4 = 3.5355+4.2426 = 7.7782$.",
+          "why": "Now each vertex holds information from every vertex it shares a group with. Vertex 3 belongs to one hyperedge only, so its value is that hyperedge's average."
+        },
+        {
+          "md": "**Normalise again.** Divide each by $\\sqrt{d(v)}$: $6.9497/1.4142 = 4.9142$, $7.6569/1.4142 = 5.4142$, $3.4142/1 = 3.4142$, $7.7782/1.4142 = 5.5000$.",
+          "why": "The second factor damps vertices that belong to many hyperedges, so a hub does not accumulate an outsized value."
+        },
+        {
+          "md": "**Transform and activate.** With $\\Theta$ the identity there is no reshaping, and the ReLU leaves these positive numbers alone. The layer's output is $(4.9142,\\ 5.4142,\\ 3.4142,\\ 5.5000)$.",
+          "why": "Compare input spread to output spread: the input ran from $2$ to $8$, a spread of $6$; the output runs from $3.4142$ to $5.5$, a spread of about $2.09$. The neighbourhoods have pulled the values towards each other."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**What this example does not show.** $W_e$ and $\\Theta$ were set to the identity, so no hyperedge was reweighted and no feature dimensions were mixed; a real $\\Theta$ maps a feature of one width to another. Only one layer was applied, so the multi-layer smoothing that card 5 of the graph-network section is about is absent. And with these four vertices the degree factors do little work — their effect grows with how unequal the degrees are."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In the layer, which multiplication gathers each hyperedge's members into a single entry?",
+      "opts": [
+        {
+          "md": "Multiplying by $H$",
+          "expl": "H scatters hyperedge values back out to vertices — it has |V| rows and produces one row per vertex. Using it to gather would produce one row per hyperedge, the wrong shape."
+        },
+        {
+          "md": "Multiplying by $H^{\\top}$",
+          "correct": true,
+          "expl": "Correct. Hᵀ has one row per hyperedge, so it sums the vertex entries inside each hyperedge. Reading rows as vertices and columns as hyperedges, Hᵀ is the move that walks down a column."
+        },
+        {
+          "md": "Multiplying by $D_e^{-1}$",
+          "expl": "Dₑ⁻¹ divides by the hyperedge size; it changes the scale of each hyperedge but does not gather anything. It acts after the gathering, not in place of it."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Using the same four-vertex hypergraph, take vertex features $x=(3,6,9,12)$ with $W_e$ and $\\Theta$ the identity and a ReLU. What is vertex 4's output after one layer?",
+      "answer": 8.25,
+      "tol": 0.02,
+      "hint": "Vertex 4 belongs to hyperedges e2 and e3. Work out each hyperedge's average, then apply vertex 4's own degree factor.",
+      "sol": "Normalised values: 3/√2 = 2.1213, 6/√2 = 4.2426, 9/1 = 9, 12/√2 = 8.4853. Hyperedge averages: e2 = (2.1213+8.4853)/2 = 5.3033, e3 = (4.2426+8.4853)/2 = 6.3640. Vertex 4 sums these two: 5.3033+6.3640 = 11.6673, then divides by √2 for its degree: 11.6673/1.4142 = 8.25. Equivalently 0.25·3 + 0.25·6 + 0.5·12 = 8.25: vertex 4's value is built from vertices 1, 2 and 4 only, because vertex 3 shares no hyperedge with it.",
+      "unit": "feature value"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A colleague removes the $D_e^{-1}$ factor, so hyperedges are summed rather than averaged. What is the most direct consequence?",
+      "opts": [
+        {
+          "md": "The layer stops being permutation-invariant",
+          "expl": "Permutation invariance comes from the symmetric sum structure, which the H and Hᵀ factors give. Removing a per-hyperedge scale does not touch the order-independence."
+        },
+        {
+          "md": "A large hyperedge contributes in proportion to its size, so a few big relations dominate every vertex's new feature",
+          "correct": true,
+          "expl": "Correct. The average is what puts a 982-member relation and a 2-member one on the same footing. Drop it and the largest group outweighs the rest by its size, which is exactly the pathology the normalisation was introduced to prevent."
+        },
+        {
+          "md": "The output would have one row per hyperedge instead of one per vertex",
+          "expl": "The output's shape is set by the outer H, not by Dₑ⁻¹. Removing the averaging leaves the shape correct and the scale wrong."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why does $D_v^{-1/2}$ appear twice, once on each side of the operator?",
+      "opts": [
+        {
+          "md": "So that an edge between vertices of degrees $d$ and $d'$ carries weight $1/\\sqrt{dd'}$, damping links to hubs from both ends",
+          "correct": true,
+          "expl": "Correct. One factor damps by the receiving vertex's degree and the other by the sending vertex's degree, so a connection into a high-degree hub is scaled down twice over. A single factor would damp only one end and leave the operator asymmetric."
+        },
+        {
+          "md": "Because the formula is applied twice, once per layer",
+          "expl": "The two factors are inside one layer, not split across layers. Both act on the same feature matrix, one before the aggregation and one after."
+        },
+        {
+          "md": "To make every row of the operator sum to one, turning it into an average",
+          "expl": "That is the random-walk normalisation, which uses Dᵥ⁻¹ on one side only. The symmetric pairing here does not give row sums of one; it is chosen for symmetry when the operator is applied repeatedly."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** this layer is the backbone every model in the section shares. Card 2 names the paper that first wrote it down in this form and states honestly what it can and cannot do."
+}

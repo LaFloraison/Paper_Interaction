@@ -1,0 +1,139 @@
+{
+  "kind": "extension",
+  "title": "Mixing the two regimes: what a \"production\" protocol averages",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **mixed protocol** is one whose scoring set contains vertices from both regimes at once: some that were present, unlabelled, in the graph during training, and some that were absent during it. The reported number is a combination of the two regimes' scores — typically a weighted average, weighted by how many scored vertices came from each. A paper may call such a setting a **production** setting, meaning it approximates a deployed graph in which part of the data was already collected and part keeps arriving.",
+      "plain": "A mixed protocol grades both kinds of vertex at once — the ones the model trained alongside, and the ones it never saw — and reports a single combined number."
+    },
+    {
+      "t": "p",
+      "md": "**What the mixture is trying to model.** A deployed graph is not purely one regime. When a system is switched on it already holds a backlog of vertices it trained alongside, and from that moment new vertices keep arriving. A benchmark that scores only the backlog understates the difficulty of the steady state; one that scores only the arrivals discards the part of the graph the system will actually be asked about most. Averaging the two is an attempt to report something closer to that steady state."
+    },
+    {
+      "t": "formula",
+      "tex": "s_{\\text{mixed}} = w_{T}\\, s_{T} + w_{I}\\, s_{I}, \\qquad w_{T} + w_{I} = 1",
+      "note": "The blended score is a weighted average of the two regime scores. The weights are the fractions of the scoring set that came from each regime, so they sum to 1.",
+      "gloss": [
+        { "sym": "s_{T}", "md": "the score on the transductive portion of the scoring set — vertices that were present but unlabelled during training" },
+        { "sym": "s_{I}", "md": "the score on the inductive portion — vertices that were absent during training" },
+        { "sym": "w_{T}", "md": "the fraction of scored vertices that belong to the transductive portion" },
+        { "sym": "w_{I}", "md": "the fraction that belong to the inductive portion; it is $1 - w_{T}$" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**When a mixture informs, and when it misleads.** It informs when three conditions hold at once: both portions are scored on the same task with the same metric, the same model produced both numbers, and the weights are reported. Under those conditions the blend is a legitimate summary of one model on one benchmark, and it can be compared against another blend computed the same way. It misleads when the weights are omitted, when the two portions are drawn from different distributions so that the blend mixes two problems, or when the blend is quoted as though it were a single-regime score."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**One consequence to carry away.** A blended headline hides which regime produced it. Two models can post the same blended score from very different profiles — one excellent on the backlog and poor on arrivals, the other ordinary on both. The recipe is legible only if the two component scores are printed beside the blend."
+    },
+    {
+      "t": "p",
+      "md": "**When it fails.** (i) An unpublished weight makes the blend unreproducible and uncomparable, because many different pairs of component scores give the same weighted sum. (ii) If one portion's vertices come from a different distribution than the other's, the blend is an average of two different problems, and no single model achieved it on one task. (iii) If the blend is placed against a single-regime number from another paper, the comparison is between different quantities, and any gap may be the protocol rather than the method."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — two regimes, equal weights.** The transductive portion of a scoring set scores 80 and the inductive portion scores 60. Both are percentages, on the same task with the same metric, from the same model."
+    },
+    {
+      "t": "calc",
+      "md": "equal weights:  (80 + 60) / 2 = 70"
+    },
+    {
+      "t": "p",
+      "md": "The blend is 70. Notice what that number is: no vertex received it. Each portion was summarised by its own average, and 70 is the average of those two averages. A reader who sees only 70 cannot tell whether it came from a model that is strong on the backlog, strong on arrivals, or middling on both."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the same two component scores, a different mix.** Suppose the scoring set is not half-and-half. Weight each component by the fraction of scored vertices from its regime."
+    },
+    {
+      "t": "calc",
+      "md": "25% transductive, 75% inductive:  0.25 × 80 + 0.75 × 60 = 20 + 45 = 65"
+    },
+    {
+      "t": "calc",
+      "md": "75% transductive, 25% inductive:  0.75 × 80 + 0.25 × 60 = 60 + 15 = 75"
+    },
+    {
+      "t": "p",
+      "md": "Identical component scores, blends of 65 and 75 — a 10-point spread produced entirely by the composition of the scoring set. This is why the weights belong to the result rather than to a footnote: two blended numbers cannot be compared unless both were weighted the same way."
+    },
+    {
+      "t": "p",
+      "md": "**Example 3 — the same blend, three different models.** Equal weights throughout; only the component scores change."
+    },
+    {
+      "t": "calc",
+      "md": "(80 + 60) / 2 = 70        (85 + 55) / 2 = 70        (70 + 70) / 2 = 70"
+    },
+    {
+      "t": "p",
+      "md": "Three different models, three different profiles, one headline. The first is strong on the backlog and weak on arrivals; the second is stronger on the backlog and weaker still on arrivals; the third is flat. Averaging has discarded the information that separates them — which is exactly the information a reader needs when deciding whether to deploy one."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "None of this makes a mixed protocol wrong. It answers a real and well-posed question — how does this model do on a benchmark shaped like deployment — provided the component scores and the weights are on the page. The mistake is not averaging; it is averaging silently."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "A mixed protocol reports one number over a scoring set containing both vertices that were present during training and vertices that were absent. What must accompany that number for it to be reproducible?",
+      "opts": [
+        {
+          "md": "The model's parameter count",
+          "expl": "Size does not determine the blend. The same blend can come from different models, and the blend is fixed by the component scores and the mix, not by how large the network is."
+        },
+        {
+          "md": "The two component scores and the fraction of scored vertices from each regime",
+          "correct": true,
+          "expl": "Correct. The component scores say what happened in each regime and the fractions supply the weights. Without either, other combinations produce the same headline, so the number can be neither reproduced nor compared."
+        },
+        {
+          "md": "The number of training epochs",
+          "expl": "Epoch count is a training setting. It may change the component scores, but it tells a reader nothing about how the two regimes were combined into the headline."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A scoring set is 30% transductive vertices and 70% inductive vertices. The model scores 80 on the transductive portion and 60 on the inductive portion. What is the blended score, as a weighted average?",
+      "answer": 66,
+      "tol": 0.1,
+      "hint": "Weight each component score by the fraction of scored vertices from its regime, then add.",
+      "sol": "0.30 × 80 + 0.70 × 60 = 24 + 42 = 66. The unweighted mean of the same two components would be 70, so the 4-point difference is entirely the mix, not the model.",
+      "unit": "score"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Two papers report a blended 70 on a mixed benchmark. Paper A's components are 80 and 60; Paper B's are 70 and 70, both with equal weights. What can a reader conclude from the headline alone?",
+      "opts": [
+        {
+          "md": "The two models are equivalent, since the blended score is the same",
+          "expl": "The blend is the same; the behaviour is not. A's profile is uneven across regimes and B's is flat, and which one is preferable depends on how much of the deployed graph will be new vertices."
+        },
+        {
+          "md": "Nothing about the regimes — the component scores are needed before the models can be distinguished",
+          "correct": true,
+          "expl": "Correct. The blend is a lossy summary: 70 arises from many pairs of components. Only the components show that A is strong on the backlog and weak on arrivals while B is uniform."
+        },
+        {
+          "md": "A is the weaker model because its lower component is lower",
+          "expl": "A's lower component, 60, is below both of B's, but A's higher component, 80, is above both. Which model is preferable depends on the mix at deployment, which the headline does not fix."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the arithmetic of regimes explains why numbers move. Card 5 asks why one model can score 100 under one discipline and chance under another, and closes the section with a skip check."
+}

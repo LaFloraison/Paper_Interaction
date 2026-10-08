@@ -1,0 +1,184 @@
+{
+  "kind": "extension",
+  "title": "Over-smoothing: why depth turns every vertex into the same vector",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Over-smoothing** is the decay of the differences between vertex representations as smoothing layers are stacked. Its model is the **closed-neighbourhood average**: each vertex replaces its value with the mean of its own value and its neighbours'. That update is *row-stochastic* (every row is non-negative and sums to 1, so each new value is a weighted average of previous ones), and on a connected graph its repeated application converges to the *stationary average* — a single number assigned to every vertex — so the **range** (largest entry minus smallest) tends to zero.",
+      "plain": "Average every vertex together with its neighbours, again and again, and every vertex ends up holding the same vector — the graph's average. Once that happens, no classifier can tell the vertices apart."
+    },
+    {
+      "t": "p",
+      "md": "**Why this matters for a classifier.** A node classifier reads one vertex's representation and names it. If every vertex in a connected component carries the same vector, the classifier has one input for the whole component and can emit only one label — the information it needed to separate them has been averaged away, and nothing later in the network can recover it."
+    },
+    {
+      "t": "p",
+      "md": "**The mechanism, in one line.** Each layer is a weighted average, so every new value lies between the smallest and largest values of the previous round. A sequence whose terms always lie inside the previous range can never leave that range, and the range strictly shrinks whenever the values are not already equal. Depth therefore means repeated mixing, and mixing drives the range towards zero."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The usual misconception.** Smoothing is not the bug — it is the operation that lets a graph network use neighbours at all, and one or two steps of it are exactly what a graph network is for. The failure is *depth*: the same operation applied many times. It is also not the case that over-smoothing means \"the model forgets its training data\"; it means the vertex *representations* have become equal, which is a statement about the forward pass, not about memory."
+    },
+    {
+      "t": "p",
+      "md": "**When it actually hurts, and the standard fixes.** The damage is real only when depth is large relative to the graph's diameter, because a small graph mixes after very few rounds. Every standard fix does one of four things: use fewer layers; add a **residual (skip) connection**, which adds each layer's input back to its output so the pre-averaging signal is carried around the smoothing; use **jumping knowledge**, which reads the representations of every layer rather than only the last, so an early, un-smoothing layer is still available at the readout; or **decouple propagation**, separating the learned transformation from the averaging so many averaging steps can be taken at readout without stacking a nonlinear layer between each one."
+    },
+    {
+      "t": "formula",
+      "tex": "x_v^{(t+1)} = \\frac{1}{d_v + 1}\\left( x_v^{(t)} + \\sum_{u \\in N(v)} x_u^{(t)} \\right)",
+      "note": "The **closed-neighbourhood average**, with every symbol tied to the intuition above: the sum collects the neighbours' values, and the $+1$ in the denominator is the vertex itself (written as a self-loop). The fraction $1/(d_v+1)$ is the averaging weight; it makes the weights sum to 1, which is what forces each new value inside the previous round's range.",
+      "gloss": [
+        { "sym": "x_v^{(t)}", "md": "the representation of vertex $v$ after $t$ rounds" },
+        { "sym": "d_v", "md": "the **degree** of $v$ — how many neighbours it has" },
+        { "sym": "N(v)", "md": "the neighbour set of $v$" },
+        { "sym": "\\frac{1}{d_v+1}", "md": "the averaging weight; it makes the weights sum to 1, which is what forces each new value inside the previous range" }
+      ]
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — one round, by hand.** Four vertices in a line, numbered 1–2–3–4 with edges 1–2, 2–3, 3–4. Vertices 1 and 4 each have one neighbour; vertices 2 and 3 have two. Start with a wide spread: $x = (10, 20, 30, 40)$, whose range is $40 - 10 = 30$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Vertex 1: closed neighbourhood $\\{1, 2\\}$, so $x_1 = (10 + 20)/2 = 15$.",
+          "why": "It averages itself with its single neighbour. The result 15 sits between 10 and 20 — inside the old range, as the mechanism promised."
+        },
+        {
+          "md": "Vertex 2: closed neighbourhood $\\{1, 2, 3\\}$, so $x_2 = (10 + 20 + 30)/3 = 20$.",
+          "why": "A middle vertex blends both sides. It keeps the value 20 only because this particular signal happens to be symmetric around it."
+        },
+        {
+          "md": "Vertex 3: closed neighbourhood $\\{2, 3, 4\\}$, so $x_3 = (20 + 30 + 40)/3 = 30$.",
+          "why": "The mirror of vertex 2."
+        },
+        {
+          "md": "Vertex 4: closed neighbourhood $\\{3, 4\\}$, so $x_4 = (30 + 40)/2 = 35$.",
+          "why": "The other end pulls in by 5, towards its only neighbour."
+        },
+        {
+          "md": "After one round the signal is $(15, 20, 30, 35)$ and the range has fallen from 30 to $35 - 15 = 20$.",
+          "why": "Every value moved towards its neighbours, so the extremes pulled inward and the range contracted by a third in a single step."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — run it to the limit.** Applying the same four calculations over and over gives:"
+    },
+    {
+      "t": "table",
+      "head": ["Round", "$x_1$", "$x_2$", "$x_3$", "$x_4$", "Range"],
+      "rows": [
+        ["0", "10", "20", "30", "40", "30"],
+        ["1", "15", "20", "30", "35", "20"],
+        ["2", "17.5", "21.667", "28.333", "32.5", "15"],
+        ["3", "19.583", "22.5", "27.5", "30.417", "10.833"],
+        ["4", "21.042", "23.194", "26.806", "28.958", "7.917"],
+        ["5", "22.118", "23.681", "26.319", "27.882", "5.764"],
+        ["6", "22.899", "24.039", "25.961", "27.101", "4.201"],
+        ["limit", "25", "25", "25", "25", "0"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "The range shrinks by roughly $0.73$ each round once the first step is past, so it heads to zero geometrically and never reverses. The common value the four vertices approach is the **stationary average**: the initial signal weighted by each vertex's closed-neighbourhood size $(d_v + 1)$."
+    },
+    {
+      "t": "formula",
+      "tex": "x^{\\infty} = \\frac{\\sum_v (d_v + 1)\\, x_v^{(0)}}{\\sum_v (d_v + 1)}",
+      "note": "Here $(d_v+1) = (2, 3, 3, 2)$, summing to $10$, so $x^{\\infty} = (2\\cdot10 + 3\\cdot20 + 3\\cdot30 + 2\\cdot40)/10 = 250/10 = 25$.",
+      "gloss": [
+        { "sym": "x^{\\infty}", "md": "the common value every vertex converges to" },
+        { "sym": "(d_v+1)", "md": "the number of vertices in $v$'s closed neighbourhood — its weight in the average" }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "Two qualifications, because they matter when you read the paper. First, the limit here equals the plain mean $(10+20+30+40)/4 = 25$ only by coincidence: the weights $(0.2, 0.3, 0.3, 0.2)$ happen to be symmetric and the signal rises evenly. With a different signal the limit is the *weighted* average, not the plain one — the next card's first quiz uses exactly that case. Second, the paper's layer weights neighbours by degree (a symmetric normalisation), and under that variant the limit is not literally one shared number but a *degree-proportional* pattern; on this path it is $(22.247, 27.247, 27.247, 22.247)$ — two values fixed by degree. Either way, the vertex's own contribution is gone."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**What this example does not show.** A real layer applies a learned weight matrix and a nonlinearity around the averaging, and that transformation is what residual connections exploit. The pure averaging here isolates the contraction so you can see it; it is not the whole layer, and a trained model can delay the collapse without preventing it."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is over-smoothing, stated precisely?",
+      "opts": [
+        {
+          "md": "The model memorises the training set and so fails to generalise",
+          "expl": "That is overfitting — a statement about error on unseen data. Over-smoothing is a property of the forward pass: the representations themselves have become equal before any prediction is made."
+        },
+        {
+          "md": "As smoothing layers are stacked, vertex representations converge to a common value, so distinct vertices become indistinguishable",
+          "correct": true,
+          "expl": "Correct on both halves — the convergence, and the consequence. The range of the representation shrinks to zero, so a classifier has nothing left to separate vertex from vertex."
+        },
+        {
+          "md": "The graph loses edges as the network deepens",
+          "expl": "The structure is fixed and nothing removes relations. What changes is the *representation* of each vertex, not the graph."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "On the four-vertex path of the example, the smoothing drives every vertex to the same value. For a new initial signal (50, 20, 10, 60), what is that value?",
+      "answer": 31,
+      "tol": 0.01,
+      "hint": "The common value is the closed-neighbourhood-weighted average, with each vertex weighted by its neighbourhood size — not the plain mean of the four numbers.",
+      "sol": "The weights are (d_v + 1) = (2, 3, 3, 2), summing to 10, so the limit is (2×50 + 3×20 + 3×10 + 2×60)/10 = (100 + 60 + 30 + 120)/10 = 310/10 = 31. The plain mean of the four entries is (50+20+10+60)/4 = 35; reaching for 35 is the usual mistake, and it is wrong because vertices with more neighbours are counted more often in the average.",
+      "unit": ""
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A trained model over-smooths badly at its chosen depth. Which change most directly counteracts the phenomenon?",
+      "opts": [
+        {
+          "md": "Increase the feature dimension of every vertex",
+          "expl": "A wider representation does not slow the averaging. Extra width helps a different problem — over-squashing — not depth-driven convergence."
+        },
+        {
+          "md": "Add a residual connection, so each layer's output includes a copy of its input",
+          "correct": true,
+          "expl": "Correct. A skip connection keeps the pre-averaging signal alive, so even after many layers the readout still has something distinct to use. This is the standard remedy for over-smoothing."
+        },
+        {
+          "md": "Increase the learning rate",
+          "expl": "That changes optimisation, not the forward pass. The contraction happens inside the layer regardless of how the weights are trained."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A colleague argues that more layers can only help, because a deeper network \"sees more of the graph\". Where does the argument break?",
+      "opts": [
+        {
+          "md": "It does not break — reach always improves a node classifier",
+          "expl": "Reach does grow with depth, but the benefit is not free: the same depth that enlarges the receptive field also shrinks the differences between representations."
+        },
+        {
+          "md": "Reach does grow, but the representation simultaneously stops carrying distinct information, so extra layers buy a larger receptive field at the cost of telling vertices apart",
+          "correct": true,
+          "expl": "Correct. The two effects move together: each added layer extends what a vertex can see and averages the representation a little closer to its neighbours'. Past a point the second effect dominates, which is why accuracy rises then falls with depth."
+        },
+        {
+          "md": "Deeper networks actually see less of the graph",
+          "expl": "The opposite: the receptive field grows by one hop per layer. That growth is precisely what the argument is about — and it is also what makes the trade-off real."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** over-smoothing is the first of the two failures the paper's introduction names. The second — a growing neighbourhood crushed into a fixed-width vector — is a different phenomenon with a different cause, and it is the next card."
+}

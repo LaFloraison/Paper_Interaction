@@ -1,0 +1,49 @@
+<!-- ============ c34 公式(10) RD/DD ============ -->
+<section class="card" data-c="34" data-title-zh="公式 (10) · RD-HGNN 与 DD-HGNN" data-title-en="Eq. (10) · RD-HGNN and DD-HGNN">
+  <div class="card-inner">
+    <div class="card-kicker k-math"><span class="len">Equation 10 · the two models</span><span class="lz">公式 10 · 两个型号</span></div>
+    <h2><span class="lz">式 (10)：一台机器，两种装料法</span><span class="len">Eq. (10): one machine, two loading plans</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">备料车间全部完工：规则账 X<sub>r</sub>（5 格）与融合账 Z（10 格）都造好了；打分机器（HGNN，第 22 卡）和超图结构 H 一直没变。剩下的只是<b>装料选择</b>——喂哪一本给机器。</p>
+    <p class="len">The prep floor is finished: rule ledger X<sub>r</sub> (5 slots) and fused ledger Z (10 slots) both built; the scoring machine (HGNN, card 22) and the hypergraph H never changed. All that remains is the <b>loading choice</b> — which ledger feeds the machine.</p>
+    <p class="lz"><b><span class="hl">两种装料 = 两个型号：只喂规则账的叫 RD-HGNN（Rule-Driven，规则驱动）；喂融合账 Z（规则 + 结构）的叫 DD-HGNN（Dual-Driven，双驱）。</span></b>它们是同一台机器、同一个骨架，唯一起差别的是料。</p>
+    <p class="len"><b><span class="hl">Two loading plans = two models: feeding only the rule ledger gives RD-HGNN (Rule-Driven); feeding the fused Z (rules + structure) gives DD-HGNN (Dual-Driven).</span></b> Same machine, same skeleton — only the ingredient differs.</p>
+    <span class="tex-display" data-tex="\begin{aligned} & \mathrm{HGNN}\big(\varphi_r(X, T),\; H\big) && \text{RD-HGNN} \\ & \mathrm{HGNN}\big(\psi(\varphi_r(X, T),\, \varphi_s(X)),\; H\big) && \text{DD-HGNN} \end{aligned}"></span>
+    <p class="formula-note"><span class="lz">逐符号：φ<sub>r</sub>(X, T) = 规则账的制造函数（树队 T 加上顶点特征 X → 账 X<sub>r</sub>，第 32 卡）；φ<sub>s</sub>(X) = 结构账的制造函数（编组表 → 账 X<sub>s</sub>，论文里写作 φ<sub>s</sub>(H)，此处简记）；ψ = 融合函数（MDK-Fusion，第 33 卡）；HGNN(·, H) = 打分机器顺着超图运转；两行唯一的差别：DD 的料多经过一次 ψ 融合。<b>一句话：RD 喂 5 格料，DD 喂 10 格料，机器同款。</b></span><span class="len">Symbol by symbol: φ<sub>r</sub>(X, T) = the rule-ledger maker (tree team T + features X → ledger X<sub>r</sub>, card 32); φ<sub>s</sub>(X) = the structural-ledger maker (roster → ledger X<sub>s</sub>; the paper writes φ<sub>s</sub>(H)); ψ = the fusion function (MDK-Fusion, card 33); HGNN(·, H) = the scoring machine running along the hypergraph; the only difference between the lines: DD's ingredient passes through ψ once more. <b>One breath: RD eats 5 slots, DD eats 10, same machine.</b></span></p>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>例 1（顶点甲走两个型号）：</b>RD-HGNN 的输入 = X<sub>r</sub>(甲) = [0, 0, 1.125, 1.0, 0]（5 格）；DD-HGNN 的输入 = Z(甲) = [0, 0, 0.9909, 0.8808, 0, 0, 0, 1.125, 1.0, 0]（10 格，第 33 卡算例）。之后两台"机器"做的事完全一样：沿超图收集—平均—归一化，最后输出分类。所以比较两者成绩时，变量只有一个：料里"有没有结构的声音"。</p>
+    <p class="len"><b>Example 1 (vertex A through both models):</b> RD-HGNN's input = X<sub>r</sub>(A) = [0, 0, 1.125, 1.0, 0] (5 slots); DD-HGNN's input = Z(A) = [0, 0, 0.9909, 0.8808, 0, 0, 0, 1.125, 1.0, 0] (10 slots, card 33's walkthrough). From there the two "machines" do exactly the same: collect–average–normalize along the hypergraph, then classify. So comparing their scores varies exactly one thing: whether the ingredient carries the structural voice.</p>
+    <p class="lz"><b>例 2（论文实测的选型规律——Table V 真实数字）：</b>看"DD 减 RD"在十数据集上的符号：图数据集上全是负的——Cora 上 RD 88.64、DD 87.22（<b>DD 反而低 1.42</b>）、Github、Amazon-P、Amazon-C 同样 RD 略胜；超图数据集上全是正的——CA-Cora 上 DD 79.75、RD 79.36（<b>DD 高 0.39</b>）、CC-Cora 上 DD 更是高出 <b>1.76</b>。规律一句话：<b>结构越复杂（超边的世界），双驱越占便宜；关系越简单（两两边就够），单驱反而更利落。</b></p>
+    <p class="len"><b>Example 2 (the paper's selection pattern — real Table V numbers):</b> watch the sign of "DD − RD" across the ten datasets: negative on every graph dataset — on Cora, RD 88.64 vs DD 87.22 (<b>DD lower by 1.42</b>), with Github, Amazon-P, Amazon-C likewise slightly favoring RD; positive on every hypergraph dataset — CA-Cora: DD 79.75 vs RD 79.36 (<b>DD higher by 0.39</b>), CC-Cora's gap reaching <b>1.76</b>. One line: <b>the richer the structure (hyperedges), the more the dual-drive pays; the simpler the relations (pairwise suffices), the leaner single-drive wins.</b></p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">RD-HGNN 与 DD-HGNN 的差别在哪一层？</span><span class="len">At which layer do RD-HGNN and DD-HGNN differ?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="打分机器同款——两行公式里 HGNN(·, H) 一字不差，连超图结构 H 都相同。"><span class="lz">打分机器不同</span><span class="len">Different scoring machines</span></button>
+        <button class="opt" data-correct="1" data-expl="对！差别只在“料”：RD 直接喂规则账 Xr（5 格），DD 喂融合账 Z（10 格，规则+结构）。公式上就是 DD 多经过一次 ψ。"><span class="lz">喂进机器的"料"不同（RD 只喂规则账、DD 喂规则+结构的融合账）</span><span class="len">The ingredient differs (RD feeds the rule ledger; DD feeds the fused rules+structure)</span></button>
+        <button class="opt" data-expl="任务相同——论文用同一批任务、同一套划分比较两者，连数据都一模一样。"><span class="lz">训练任务不同</span><span class="len">Different training tasks</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="5" data-tol="0.01" data-hint="DD 的料比 RD 的料多出“另一半”——想想 10 格与 5 格差在哪里（第 33 卡的 Z 配方）。" data-sol="DD 输入 10 格、RD 输入 5 格 → 多出 5 格（正是被结构加权过的那一份 X̃r）。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：DD-HGNN 的输入比 RD-HGNN 多几格？</span><span class="len">Numeric: how many slots does DD-HGNN's input hold beyond RD-HGNN's?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：一个"用户-商品"推荐场景，用户之间几乎没有组关系（关系稀疏），你选哪个型号上生产？</span><span class="len">Transfer: a user-item recommendation setting with almost no group relations (sparse structure) — which model goes to production?</span></p>
+      <div class="opts">
+        <button class="opt" data-correct="1" data-expl="正确！关系稀疏 = 结构账的信息量本来就少，多喂反而拖累（图数据集上 DD 一律略输的同一道理）。RD-HGNN 直接吃规则账，轻装上阵——论文明说 RD 适合推荐、信用评分这类“特征主导、关系稀疏”的场景。"><span class="lz">RD-HGNN：结构信息本就稀少，带结构料的 DD 反而受累</span><span class="len">RD-HGNN: structure is scarce anyway, and DD's extra structural slots drag it down</span></button>
+        <button class="opt" data-expl="反向选择——结构丰富才是 DD 的主场（超图数据集上的实测优势换到稀疏场景就消失了）。"><span class="lz">DD-HGNN：多一路信息总不吃亏</span><span class="len">DD-HGNN: an extra stream never hurts</span></button>
+        <button class="opt" data-expl="两个型号同款机器、同款训练——差别只在料，跑两次比一次更慢，也更啰嗦。"><span class="lz">两个都上线，每次跑两遍取平均</span><span class="len">Ship both and average two runs</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout">
+      <b><span class="lz">本文如何用它：</span><span class="len">How the paper uses it:</span></b>
+      <span class="lz">下一卡：实验室——你亲手转旋钮，把 x₁、x₂、x₃ 和 α、β 调起来，看两个型号的"料"实时变化。</span>
+      <span class="len">Next card: the lab — turn the knobs yourself and watch both models' ingredients shift in real time.</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

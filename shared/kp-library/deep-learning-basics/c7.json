@@ -1,0 +1,167 @@
+{
+  "kind": "check",
+  "title": "Overfitting, regularisation, and the skip check",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Overfitting** is when a model fits the training data more closely than it fits the pattern that generated it, so that its error on *new* data is worse than its error on data it has seen. It is detected with a **validation set** — data held out of training and never used to update the parameters — and shows up as a **gap**: the training loss keeps falling while the validation loss stops falling and begins to rise. **Regularisation** is any technique that penalises model complexity to keep that gap small.",
+      "plain": "Overfitting is memorising the training examples instead of learning the pattern behind them. You catch it by testing on examples the model never trained on: if its error there is much worse, and getting worse while the training error keeps dropping, it has memorised."
+    },
+    {
+      "t": "p",
+      "md": "**Why you cannot judge a model on the data it trained on.** Gradient descent is designed to reduce the training loss, and a sufficiently large network can drive it to nearly zero by memorising each example — including its noise. The training loss therefore tells you how hard the model *worked* to fit, not whether it captured anything transferable. To measure the latter you need examples the parameters never saw. The standard split is to hold out a fraction of the data — commonly 20 percent — as a **validation set**. With 10,000 examples that is 8,000 for training and 2,000 for validation. The validation set is used to make decisions (when to stop, how strong the regularisation should be); a further **test set**, held out even from those decisions, is reserved for the final reported number. Reusing the validation set to make too many decisions gradually contaminates it, which is why a separate test set exists."
+    },
+    {
+      "t": "p",
+      "md": "**The four standard remedies.** All of them reduce the model's effective freedom to memorise. *More data* is the most reliable — more examples leave less room to fit noise — but it is often unavailable. *Weight decay* (also called L2 regularisation) adds a penalty proportional to the squared size of the weights to the loss, discouraging large weights, which are what let a network fit sharply and noisily. *Dropout* randomly switches off a fraction of units during each training step, so no unit can rely on the presence of any other and co-adapted memorising circuits cannot form. *Early stopping* stops training at the point where the validation loss is lowest, before it starts rising — the simplest remedy, and it needs no change to the model at all."
+    },
+    {
+      "t": "formula",
+      "tex": "L_{\\text{reg}} = L + \\lambda \\sum_i w_i^2",
+      "note": "Weight decay in one line. The ordinary loss $L$ is augmented by a term proportional to the sum of squared weights, with strength controlled by the hyperparameter $\\lambda$. Gradient descent then has to reduce both the error and the weight magnitudes, so it prefers small weights unless a large weight earns its size by reducing the error substantially. Large weights are what let a network bend sharply to touch every training point; shrinking them smooths the learned function.",
+      "gloss": [
+        { "sym": "L", "md": "the original loss — mean squared error or cross-entropy, from card 4" },
+        { "sym": "\\sum_i w_i^2", "md": "the sum of the squares of all the weights — a single number measuring how large the model's weights are" },
+        { "sym": "\\lambda", "md": "the regularisation strength, a hyperparameter: $\\lambda = 0$ disables the penalty, large $\\lambda$ pushes weights hard towards zero" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The trade-off, and where each remedy fails.** Regularisation deliberately makes the training loss *worse* — it forbids the model from fitting some of the training data — in exchange for a better validation loss. Push it too far and the opposite failure appears, **underfitting**: the weights are crushed towards zero, the model can no longer bend enough, and both training and validation loss stay high. Overfitting and underfitting are the two ends of one dial, and the validation set is how you find the middle. Weight decay cannot tell a genuinely large, useful weight from an oversized noisy one, only that large weights are penalised; dropout adds noise that can slow convergence; early stopping requires a validation set to monitor, and its result depends on how often you check."
+    },
+    {
+      "t": "list",
+      "items": [
+        "Explain why a linear model cannot fit a curve, and what a nonlinearity between layers adds (card 1).",
+        "Write a layer as $\\phi(\\mathbf{W}\\mathbf{x}+\\mathbf{b})$ and give the shapes of $\\mathbf{W}$ and $\\mathbf{b}$ for a given input and output size (card 2).",
+        "Say why removing the nonlinearity collapses any stack of layers to a single linear map (card 2).",
+        "Name the four common activations and state the saturation problem of the sigmoid and why ReLU avoids it (card 3).",
+        "Write cross-entropy for a classification prediction and explain why it punishes confident errors heavily (card 4).",
+        "Apply one gradient-descent update $w \\leftarrow w - \\eta\\,\\partial L/\\partial w$, and say what an over-large learning rate does (card 5).",
+        "Explain why backpropagation runs backwards, and why an early layer's gradient is a product of the derivatives after it (card 6)."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The questions below are the check for the whole section. The bar is not 'two out of four' — it is that you did not have to stop and reconstruct anything. If any line of that list made you hesitate, the relevant card is short and worth the re-read: card 4's cross-entropy and card 6's chain rule are the two the paper leans on most heavily."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — reading an overfitting curve.** The table is an illustrative training run (numbers chosen to show the shape of the phenomenon, not measured from any specific dataset): the training loss and the validation loss, at several points in training."
+    },
+    {
+      "t": "table",
+      "head": ["Epoch", "Training loss", "Validation loss", "Gap"],
+      "rows": [
+        ["1", "2.10", "2.20", "0.10"],
+        ["2", "1.40", "1.50", "0.10"],
+        ["3", "1.05", "1.18", "0.13"],
+        ["5", "0.72", "0.95", "0.23"],
+        ["10", "0.40", "0.98", "0.58"],
+        ["20", "0.15", "1.25", "1.10"],
+        ["50", "0.03", "1.80", "1.77"]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Early on, both losses fall together: by epoch 3 the training loss is 1.05 and the validation loss 1.18, a gap of 0.13.",
+          "why": "The model is learning a pattern that transfers — the validation loss, measured on unseen data, improves alongside the training loss. This is healthy."
+        },
+        {
+          "md": "The validation loss reaches its lowest value, 0.95, at epoch 5. After that it stops falling while the training loss keeps dropping.",
+          "why": "Epoch 5 is the point to stop. The model is no longer improving on new data; further training only tightens its grip on the training set."
+        },
+        {
+          "md": "By epoch 50 the training loss is 0.03 and the validation loss has risen to 1.80 — a gap of $1.80 - 0.03 = 1.77$.",
+          "why": "The widening gap *is* the signature of overfitting. The training loss of 0.03 looks excellent in isolation and is misleading: on data the model has not seen, it is far worse than it was at epoch 5."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Early stopping on this run would have halted at epoch 5 and kept the model with validation loss 0.95 — better on unseen data than the epoch-50 model by a factor of nearly two, despite the epoch-50 model's training loss being thirty times smaller. **The training loss is not the number to report.** Any claim of quality has to come from data the model never trained on."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — what weight decay adds.** Take a model whose weights are $\\mathbf{w} = (3, 4)$ and set the strength $\\lambda = 0.01$. The penalty is $\\lambda \\sum_i w_i^2 = 0.01 \\times (3^2 + 4^2) = 0.01 \\times (9 + 16) = 0.01 \\times 25 = 0.25$. This is added to the ordinary loss: if the data loss were $1.00$, the value actually minimised becomes $1.25$. Weight decay thereby makes the model pay for large weights, and the gradient of the penalty ($2\\lambda w_i$ per weight) nudges each weight towards zero by an amount proportional to its own size."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "A model's training loss is 0.03 and its validation loss is 1.80. What does this combination indicate?",
+      "opts": [
+        {
+          "md": "The model has overfit: it fits the training data far more closely than the underlying pattern, so it performs poorly on unseen data",
+          "correct": true,
+          "expl": "Correct. A large gap in which training loss is much smaller than validation loss is the diagnostic signature of overfitting. The small training loss is not evidence of quality here — it is evidence of memorisation."
+        },
+        {
+          "md": "The model has underfit: it has not yet learned enough",
+          "expl": "Underfitting shows a *high* training loss as well — the model cannot fit even the data it sees. Here the training loss is tiny, so capacity to fit the seen data is not the problem."
+        },
+        {
+          "md": "The learning rate is too large",
+          "expl": "A too-large learning rate usually shows as a training loss that oscillates or rises (card 5). A very low training loss alongside a high validation loss points at generalisation, not step size."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A model has weights $\\mathbf{w} = (2, 2, 1)$ and weight decay strength $\\lambda = 0.1$. What penalty does the regularisation term $\\lambda \\sum_i w_i^2$ add to the loss?",
+      "answer": 0.9,
+      "tol": 0.01,
+      "hint": "Square each weight, add the three squares, then multiply by the strength.",
+      "sol": "Squared weights: $2^2 = 4$, $2^2 = 4$, $1^2 = 1$, summing to $9$. Multiply by $\\lambda = 0.1$: the penalty is $0.1 \\times 9 = 0.9$. This is added to whatever the data loss is, so the optimiser must reduce both.",
+      "unit": ""
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A validation set is held out of training. Why is it not also used, step by step, to update the weights?",
+      "opts": [
+        {
+          "md": "Because it is too small to compute a gradient from",
+          "expl": "A gradient could be computed from any subset of data. Size is not the reason; the role of the set is."
+        },
+        {
+          "md": "Because if the parameters were updated on it, it would stop measuring performance on unseen data — the very thing it exists to measure",
+          "correct": true,
+          "expl": "Correct. The validation set's whole value is that it is data the model has never been fitted to. Train on it and the gap closes artificially: you would be back to judging the model on data it has seen. This is also why a separate test set is held out from the decisions made using the validation set."
+        },
+        {
+          "md": "Because updating on two datasets doubles the computation",
+          "expl": "Cost may be a practical concern, but the deciding reason is validity of measurement, not compute. Doubling the work would be worth it if it preserved the measurement — and it does not."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A colleague removes the nonlinearity from every hidden layer of a deep network and adds more layers to compensate. Why does this not increase the model's expressive power?",
+      "opts": [
+        {
+          "md": "Because more layers always cause vanishing gradients",
+          "expl": "Vanishing gradients make deep networks hard to train, but they do not change what the network can represent. The problem here is representational, not optimisational."
+        },
+        {
+          "md": "Because a composition of linear layers is a single linear layer, so extra depth adds parameters without adding any shapes the model can draw",
+          "correct": true,
+          "expl": "Correct — the collapse proved in card 2. Without a nonlinearity between layers, the whole stack equals one matrix times the input, so adding layers changes the parameterisation and nothing else. The nonlinearity is what makes depth mean something."
+        },
+        {
+          "md": "Because the added layers have no bias terms",
+          "expl": "Biases are present in a standard linear layer and do not rescue expressiveness — they fold into a single combined bias. The missing ingredient is the nonlinearity."
+        }
+      ]
+    }
+  ],
+  "close": "**You are ready for the paper's own model.** Everything from here assumes the layer of card 2, the activation of card 3, a loss, gradient descent, and backpropagation. When the paper's Equation (1) introduces its hypergraph convolution, read it as a layer: a matrix-like operation, a bias, and a ReLU — trained exactly the way this section described."
+}

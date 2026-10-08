@@ -1,0 +1,161 @@
+{
+  "kind": "extension",
+  "title": "Concatenation and weighted sums: what each loses",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **weighted-sum fusion** picks two constants $\\alpha$ and $\\beta$, fixed when the model is designed, and combines a per-object scalar $s$ (the narrow signal, one number per row) with a per-object row $r = (r_1, \\dots, r_d)$ (the wide signal) by **broadcasting** the scalar: the output at column $j$ is $\\alpha\\, s + \\beta\\, r_j$. The output has the wide signal's width $d$. The constants $\\alpha$ and $\\beta$ are the **weights**; a downstream linear layer may afterwards multiply the whole output by any constant it learns, but it receives only the mixture.",
+      "plain": "Multiply each signal by a fixed number and add them. Since one signal is a single number per row, that number is spread across the row first, so the same contribution is added to every column."
+    },
+    {
+      "t": "p",
+      "md": "**Why anyone wants a weighted sum.** It is the cheapest possible fusion: no extra columns, two extra scalars, and one arithmetic operation. When the two signals are known in advance to be comparable — say, two measurements of the same quantity — a fixed blend is a reasonable prior. The trouble is exactly that word *fixed*."
+    },
+    {
+      "t": "p",
+      "md": "**What concatenation loses: representation share.** Concatenation preserves every value exactly, so it destroys no information. What it does not do is give the narrow signal a fair share of the representation. When a single column is joined to 200 columns, that column is 1 of 201 entries per row — under half a percent. The downstream weight matrix has one column of parameters for the structural signal against two hundred for the rule signal. Nothing forbids the layer from learning a large coefficient on that one column, but the architecture has offered it no head start and no interaction, and in a wide table a single coordinate is easy for training to neglect."
+    },
+    {
+      "t": "p",
+      "md": "**What a fixed weighted sum loses: separability and the ratio.** This one is sharper. Once $\\alpha\\, s + \\beta\\, r_j$ has been formed, the two parts are added into one number and cannot be told apart again. Two different pairs $(s, r_j)$ can produce the same sum, and no downstream layer can recover which pair it was. Worse, the ratio between the structural contribution $\\alpha\\, s$ and the rule contribution $\\beta\\, r_j$ is set by the constants alone. A downstream linear layer multiplies the mixed number by a single learned constant $c$, which multiplies *both* contributions by $c$ — leaving their ratio exactly as it was."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "The misconception worth naming: people assume a weighted sum is *more powerful* than concatenation because \"you can always concatenate and then learn the weights.\" That gets it backwards. Concatenation followed by a learned linear layer is strictly **more** general than a fixed weighted sum, because the learned coefficients are chosen per column and may include weighting one signal at zero. A fixed weighted sum is the special case in which that choice has already been made and frozen."
+    },
+    {
+      "t": "p",
+      "md": "**When each fails.** A weighted sum fails whenever the two signals should be weighted differently for different objects or different features — the ratio cannot depend on the input. Concatenation fails whenever the downstream layer is shallow, small, or under-trained, because in that case it will not discover the weighting that the narrow column needs; concatenation relies on something later doing the mixing."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the dilution, in three steps.** Join a width-1 signal to a width-200 signal and ask how much of the result is structural."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Add the widths: $1 + 200 = 201$ columns in the fused table.",
+          "why": "Concatenation adds widths because it places the blocks end to end; the rows are untouched."
+        },
+        {
+          "md": "The structural column's share is $1 / 201 = 0.004975$.",
+          "why": "One number out of every 201 in a row. Dividing entries, not widths, is what makes this a share rather than a count."
+        },
+        {
+          "md": "As a percentage that is $0.4975\\%$, while the rule signal takes $200/201 = 99.5025\\%$.",
+          "why": "Note it is a hair under half a percent, not exactly half: the denominator is 201, so the naive guess of \"1 in 200\" overshoots slightly. That difference is small here but the principle — the share is $1/(d+1)$, not $1/d$ — is worth holding on to."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — a fixed weighted sum, and why training cannot rebalance it.** Take a structural scalar $s = 0.8$, one rule entry $r = 4.0$, and fixed weights $\\alpha = \\beta = 0.5$."
+    },
+    {
+      "t": "calc",
+      "md": "fused entry  =  α·s + β·r  =  0.5 × 0.8 + 0.5 × 4.0  =  0.4 + 2.0  =  2.4"
+    },
+    {
+      "t": "p",
+      "md": "The structural part contributes $0.4$ and the rule part $2.0$ to the single number $2.4$ — the structural signal is $0.4 / 2.4 = 16.667\\%$ of the mixed value. Now suppose training drives the downstream layer to multiply this number by $c = 3$."
+    },
+    {
+      "t": "calc",
+      "md": "downstream output  =  3 × 2.4  =  7.2  =  (3 × 0.4) + (3 × 2.0)  =  1.2 + 6.0"
+    },
+    {
+      "t": "p",
+      "md": "The two contributions became $1.2$ and $6.0$. Their **ratio** is $1.2 : 6.0$, which is $1 : 5$ — exactly the $0.4 : 2.0$ we started with, because both were multiplied by the same $c = 3$. In terms of the original constants, the coefficients became $c\\alpha = 1.5$ and $c\\beta = 1.5$: still equal, still $50{:}50$. **Training can change the overall scale of the mixed number; it can never change the balance inside it.**"
+    },
+    {
+      "t": "p",
+      "md": "The merge is also irreversible. Choose a second pair with the same weights: $s = 2.4$ and $r = 2.4$ gives $0.5 \\times 2.4 + 0.5 \\times 2.4 = 1.2 + 1.2 = 2.4$ — the very same number as $(s = 0.8,\\, r = 4.0)$. Two different worlds, one observable value. A downstream layer handed $2.4$ cannot say which vertex it is looking at."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Contrast with concatenation, where the two blocks stay in separate columns. There a downstream layer is free to place a coefficient of $7$ on the structural column and $0.1$ on a rule column — a ratio of $7 : 0.1 = 70 : 1$, the opposite emphasis — and may choose a different ratio for every rule column. That freedom is exactly what the weighted sum gives up."
+    },
+    {
+      "t": "callout",
+      "md": "This example uses one rule entry and one pair of fixed weights. It shows the frozen ratio and the irreversibility of the sum; it does not show how a per-object weighting would be produced, which is the subject of card 3."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Concatenation preserves every value exactly. What, then, does card 2 say it \"loses\"?",
+      "opts": [
+        {
+          "md": "Representation share — the narrow signal occupies only 1 of every $d+1$ entries, and no interaction between the two signals is created",
+          "correct": true,
+          "expl": "Correct. It is not information loss; it is a loss of emphasis and of interaction. The narrow column is present but outnumbered, and a linear layer downstream reads the two blocks separately rather than combining them."
+        },
+        {
+          "md": "The exact values of the narrow signal, which are rounded during concatenation",
+          "expl": "Concatenation performs no arithmetic on the entries, so nothing is rounded or altered. Claiming a numeric loss here misreads \"share\" as \"precision\"."
+        },
+        {
+          "md": "The rows of the narrow signal, because the wider signal overwrites them",
+          "expl": "Nothing is overwritten — concatenation widens the table, it does not truncate it. The row count is unchanged and both blocks survive intact."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A fixed weighted-sum fusion uses weights $\\alpha = 0.4$ on the structural scalar and $\\beta = 0.6$ on a rule entry. The structural scalar is $s = 0.5$ and the rule entry is $r = 2.0$. What is the fused value?",
+      "answer": 1.4,
+      "tol": 0.01,
+      "hint": "Form each contribution first, then add. Do not simply average the two inputs — the weights are unequal.",
+      "sol": "Structural contribution: 0.4 × 0.5 = 0.2. Rule contribution: 0.6 × 2.0 = 1.2. Fused value: 0.2 + 1.2 = 1.4. The structural part is 0.2/1.4 ≈ 14.3% of the mixed number — a fixed share that no downstream scaling can change, since any such scaling multiplies 0.2 and 1.2 by the same constant.",
+      "unit": "value"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A weighted-sum fusion uses $\\alpha = \\beta = 0.5$. Training continues, updating downstream layers. Can the trained model make the structural signal count more than the rule signal inside a fused entry?",
+      "opts": [
+        {
+          "md": "No — a downstream layer multiplies the whole mixed number by one constant, scaling both contributions equally and leaving their ratio at $50{:}50$",
+          "correct": true,
+          "expl": "Correct. Scaling by c sends α and β to cα and cβ together, so the ratio α : β is invariant. The 50:50 balance was decided when the constants were set, and only a change to those constants — a redesign — can move it."
+        },
+        {
+          "md": "Yes — gradient descent will naturally push the structural contribution up if it helps the loss",
+          "expl": "Gradient descent can only move the parameters that exist. The ratio is not one of them; it was consumed at design time. Training can rescale the mixture but has no dial that adjusts the balance."
+        },
+        {
+          "md": "Yes — because the two signals enter through separate columns, their weights are learned separately",
+          "expl": "That describes concatenation, where the blocks do occupy separate columns with separately learned weights. A weighted sum has already added the two signals into one number before any learned layer sees them."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which is the more expressive design: concatenate the two signals and apply a learned linear layer, or add them with fixed weights?",
+      "opts": [
+        {
+          "md": "Concatenate and learn — the learned coefficients can take any value, including weighting one signal at zero, so the fixed weighted sum is a special case of it",
+          "correct": true,
+          "expl": "Correct. Every fixed weighted sum can be reproduced by a linear layer whose coefficients happen to be that fixed pair, but the linear layer can also choose any other pair per column. More freedom, not less — the intuition that \"learning a weight is the same as fixing it\" hides this direction of containment."
+        },
+        {
+          "md": "The fixed weighted sum — it is more general because it merges the signals",
+          "expl": "Merging is the opposite of generality: it discards the distinction between the two parts. A frozen pair α, β is one point in the space of choices the learned layer could make."
+        },
+        {
+          "md": "They are exactly equivalent",
+          "expl": "They coincide at exactly one setting — when the learned coefficients equal the fixed α and β. Everywhere else the learned version has options the fixed one rules out."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** neither of the first two mechanisms lets the emphasis depend on the object. The third row of the menu does — a gate computes the emphasis per object. The next card works the broadcast case numerically, and states honestly what a gate can and cannot do."
+}

@@ -1,0 +1,122 @@
+{
+  "id": "66",
+  "kind": "proof",
+  "chapter": "method",
+  "section": "5.7 The invariance proof",
+  "kicker": "5.7 · Invariance proof",
+  "title": "The column-permutation proof: what two lines actually establish",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A proof of invariance shows that a function's output does not change when its input is relabelled in a way that does not change the underlying object. Here the claim is that for any permutation $\\pi$ of the hyperedge index set, $\\varphi_s(\\pi(H)) = \\varphi_s(H)$ — the structural embedding is unchanged when the columns of the incidence matrix are reordered.",
+      "plain": "Shuffling the order of the relations in the file must not change any vertex's structural number. The paper proves this in two lines, and both lines are worth understanding — along with what they leave out."
+    },
+    {
+      "t": "p",
+      "md": "**The proof, as the paper gives it.** Let $\\pi(\\cdot)$ be a permutation of the column indices. Then:"
+    },
+    {
+      "t": "list",
+      "ordered": true,
+      "items": [
+        "**The sum is unchanged.** $\\sum_{e \\in \\mathcal{E}} \\pi(H)[v, \\pi(e)] = \\sum_{e \\in \\mathcal{E}} H[v,e]$. The reasoning is that addition does not care about order: adding a set of numbers in a different sequence gives the same total. What was column $e$ in the original is column $\\pi(e)$ in the permuted matrix, and the sum runs over all columns either way.",
+        "**The transformation is unaffected.** $\\rho$ is applied vertex-wise — that is, row by row. A column permutation reorders entries *within* each row, and $\\rho$ never looks across a row: it receives a single scalar per vertex and returns a single scalar. So the same input produces the same output.",
+        "**Therefore the composition is invariant.** $X_s$ is identical for $H$ and $\\pi(H)$."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**Why the proof is short: the encoder is trivial.** $\\rho$ is a scalar sigmoid, and a scalar function cannot see column order even in principle. The interesting content is not the proof's technique but its premise — that this encoder was *chosen* to be a function of the degree alone, and a degree is a symmetric function of a row, hence automatically permutation-invariant. The proof is short because the design pre-committed to invariance."
+    },
+    {
+      "t": "p",
+      "md": "**Which raises the question a reader should ask: if invariance was guaranteed, is the proof doing any work?** It is doing two things. It confirms that no implementation detail (an index-based lookup, a per-column weight) has crept in and broken the property — which does happen in practice and is worth asserting. And it makes the paper's claim explicit and checkable, which is better than leaving invariance as an unstated hope."
+    },
+    {
+      "t": "p",
+      "md": "**What the proof does not establish**, stated plainly, because a proof's boundary is as informative as its content: it says nothing about whether the degree is a *good* structural summary, nothing about invariance to row permutations (which holds, by the same elementwise argument, and just permutes the output rows), and nothing about any encoder other than this one."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — permute the columns and watch nothing happen.** Reuse the four-person graph's incidence matrix, with rows for vertices 1–4 and columns for edges $e_1=\\{1,2\\}$, $e_2=\\{2,3\\}$, $e_3=\\{2,4\\}$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Swap columns 1 and 3, so the column order becomes $e_3, e_2, e_1$. The matrix's rows are now $(0,0,1)$, $(1,1,1)$, $(0,1,0)$, $(1,0,0)$.",
+          "why": "This is what a program reading the hyperedge list in a different order produces. Nothing about the hypergraph has changed; only the file's layout has."
+        },
+        {
+          "md": "Row sums: $0+0+1 = 1$; $1+1+1 = 3$; $0+1+0 = 1$; $1+0+0 = 1$. Identical to the unpermuted rows $1, 3, 1, 1$.",
+          "why": "This is the first line of the proof, executed. The row sum is the same number however the columns are arranged, because it is a sum over the same multiset."
+        },
+        {
+          "md": "Apply $\\rho$ to each: the same four outputs in the same order.",
+          "why": "The second line of the proof. Since $\\rho$ acts on each row's total independently, and the totals are unchanged, the outputs are unchanged — including their order, because row permutation was not involved."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**A sharper observation about the choice of aggregation.** Over a 0/1 row, the three symmetric aggregations behave very differently. The **sum** gives the degree — informative. The **mean** gives the degree divided by $M$, the number of hyperedges — a constant multiple of the degree, hence informative in exactly the same way. The **max** gives 1 for every vertex that belongs to at least one hyperedge, and 0 otherwise — which collapses almost the entire graph to a single value. **Of the three standard symmetric functions, only two carry structural information at all, and one is degenerate.** That is the real reason the paper's encoder looks the way it does, and the proof does not mention it."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which fact alone makes the sum invariant to column permutation?",
+      "opts": [
+        {
+          "md": "That the incidence matrix is binary",
+          "expl": "Binary entries make the sum equal the degree, but invariance would hold for any entries. The reason is more basic than binary-ness."
+        },
+        {
+          "md": "That addition is commutative, so the total of a set of numbers does not depend on their order",
+          "correct": true,
+          "expl": "Correct. Permuting columns reorders the addends without changing which numbers are being added, so the total is unchanged. Combined with $\\rho$ acting row-wise, that is the whole proof."
+        },
+        {
+          "md": "That the sigmoid is monotone",
+          "expl": "Monotonicity ensures the output ordering matches the degree ordering; it plays no role in invariance. The invariance comes from the sum being symmetric and $\\rho$ being elementwise."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A vertex's row of the incidence matrix holds 30 entries, of which $d$ are 1. What does the **mean** aggregation return, as an expression in $d$? Answer with the arithmetic for $d = 6$ and 30 columns, to four decimals.",
+      "answer": 0.2,
+      "tol": 0.001,
+      "hint": "Divide the number of 1s by the number of entries in the row.",
+      "sol": "$6/30 = 0.2$. The mean is a constant multiple of the degree (here $1/30$), so it carries the same information as the sum — the two differ only by a known scale factor. This is why the paper can use the sum without worrying about the mean, and why the *max* is the only one of the three that actually throws information away.",
+      "unit": "mean value"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "What is the appropriate inference from the fact that the proof is only three sentences long?",
+      "opts": [
+        {
+          "md": "The proof is weak and the claim is probably overstated",
+          "expl": "Short proofs are not weak proofs. A short proof of a simple property is exactly what one should expect, and the property here genuinely is simple."
+        },
+        {
+          "md": "The encoder was designed to be a function of the degree only, so invariance follows almost automatically — the proof's interest lies in the design commitment, not the technique",
+          "correct": true,
+          "expl": "Correct. Reading a proof's length as a signal about its content is a good habit: a two-line proof tells you the property is structural, and here that means the encoder had no choice about being invariant given its form. If the paper had claimed a much richer structural encoder, the proof would necessarily have been longer and more delicate."
+        },
+        {
+          "md": "The authors have omitted steps that a reviewer should have demanded",
+          "expl": "There are no omitted steps — you have just executed both of them manually in the walkthrough. The proof is complete for the claim it makes."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the second encoder and its pipeline figure — the part of the method that produces a wide row of numbers per vertex rather than a single one."
+}

@@ -1,0 +1,53 @@
+<!-- ============ c45 Table VIII 层数 ============ -->
+<section class="card" data-c="45" data-title-zh="表 VIII · 层数消融（过平滑的实测账单）" data-title-en="Table VIII · layer ablation (over-smoothing's bill)">
+  <div class="card-inner">
+    <div class="card-kicker k-fig"><span class="len">Table VIII · the bill comes due</span><span class="lz">表 VIII · 账单来了</span></div>
+    <h2><span class="lz">表 VIII：多叠几层，成绩会怎样</span><span class="len">Table VIII: what more layers do to the score</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">第 17 卡许过的愿在这里兑现：<b>过平滑的代价到底多大？</b>表 VIII 只拧一个旋钮——打分机器叠几层（2 / 4 / 6 / 8 层），看普通 HGNN、RD-HGNN、DD-HGNN 三列的准确率怎么塌。</p>
+    <p class="len">Card 17's promise comes due here: <b>how costly is over-smoothing, really?</b> Table VIII twists one knob — how many layers the scoring machine stacks (2 / 4 / 6 / 8) — and watches plain HGNN, RD-HGNN and DD-HGNN collapse.</p>
+    <p class="lz"><b><span class="hl">读数前记牢第 22 卡的机制：每多一层 = 多一轮"沿超边平均"。层数就是平均次数——平均越多，顶点特征越趋同（过平滑），个性越薄。</span></b>所以这张表读的是"平均轮数的账"。</p>
+    <p class="len"><b><span class="hl">Recall card 22's mechanism before reading: every extra layer = one more round of "averaging along hyperedges". Layers are averaging rounds — more rounds homogenize vertices (over-smoothing), thinning their individuality.</span></b> This table is the ledger of averaging rounds.</p>
+    <div class="figbox">
+      <img data-fig="tab8" alt="Table VIII of the paper: experiments on the number of HGNN layers">
+      <div class="figcap"><span class="lz">论文表 VIII 原图（Feng et al., TPAMI 2026）。数据集 CC-Cora（40 类的分类任务，随机瞎猜的底线是 2.5%）。</span><span class="len">Original Table VIII (Feng et al., TPAMI 2026). Dataset CC-Cora (a 40-class task: blind guessing bottoms out at 2.5%).</span></div>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>走查 1（普通 HGNN 列：一场雪崩）：</b>逐行 73.41（2 层）→ 51.10（4 层）→ 43.19（6 层）→ <b>30.22</b>（8 层）。落差 73.41 − 30.22 = <b>43.19</b>——整整跌掉 43 个百分点！参照系：40 类任务随机瞎猜只有 2.5%，8 层时只剩 30.22，"个性"被平均掉了一大半。<b>这张表第一次把"过平滑"从叙事场的灰色封面变成了一个可量化的数字。</b></p>
+    <p class="len"><b>Walk 1 (the plain HGNN column: an avalanche):</b> row by row 73.41 (2 layers) → 51.10 (4) → 43.19 (6) → <b>30.22</b> (8). The plunge is 73.41 − 30.22 = <b>43.19</b> — a 43-point loss! Frame of reference: blind guessing on 40 classes scores 2.5%; at 8 layers only 30.22 remains — more than half the individuality averaged away. <b>This table turns over-smoothing from the story's gray covers into a number.</b></p>
+    <p class="lz"><b>走查 2（三列并排比"谁耐叠"）：</b>DD：76.06 → 62.45 → 57.83 → <b>49.53</b>（落差 76.06 − 49.53 = <b>26.53</b>）；RD：74.39 → 50.95 → 39.50 → 40.39（RD 的落差是多少？下一题请你亲手算）。把三列放在一起看：<b>DD 跌得最少（26.5），普通 HGNN 跌得最狠（43.2，走查 1 已算）</b>。读法：层数加深时，"两路知识"里至少结构账不参与平均（第 24 卡），所以 DD 的底线最高；普通 HGNN 全靠平均撑着，一叠就散。顺带注意 RD 在 8 层反超了 6 层（40.39 > 39.50）——这条小波动说明"跌"不是一条直线，但大方向不变。</p>
+    <p class="len"><b>Walk 2 (three columns race for depth-endurance):</b> DD: 76.06 → 62.45 → 57.83 → <b>49.53</b> (a drop of 76.06 − 49.53 = <b>26.53</b>); RD: 74.39 → 50.95 → 39.50 → 40.39 (RD's drop? The next exercise asks you to compute it). Side by side: <b>DD loses least (26.5), plain HGNN most (43.2, from walk 1)</b>. Reading: as depth grows, at least the structural ledger never joins the averaging (card 24), so DD keeps the highest floor; plain HGNN lives on averaging alone and crumbles with each stack. Note also RD at 8 layers edges its own 6-layer score (40.39 > 39.50) — the fall is not a clean line, yet the trend holds.</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">为什么"层数"能等同于"过平滑的程度"？</span><span class="len">Why can "layers" stand in for "how much over-smoothing"?</span></p>
+      <div class="opts">
+        <button class="opt" data-correct="1" data-expl="对！每多叠一层，每个顶点就被"沿超边平均"多一遍；层数=平均轮数，轮数越多、个性越薄——表 VIII 就是这条链的实测账单。"><span class="lz">每层 = 一轮沿超边的平均；层数就是平均轮数，轮数越多个性越薄</span><span class="len">Each layer is one round of hyperedge averaging; layers are rounds, and more rounds thin individuality</span></button>
+        <button class="opt" data-expl="层数与计算量确实相关，但表 VIII 量的是准确率——塌陷的原因是"平均轮数"，不是速度。"><span class="lz">因为层数越多训练越慢，模型来不及收敛</span><span class="len">More layers train slower, so the model never converges</span></button>
+        <button class="opt" data-expl="参数多了确实更易过拟合，但表 VIII 的机制在"平均"本身——就算参数不变、只加纯平均层，成绩照塌（第 9 卡沙盒连按 8 次即演示）。"><span class="lz">因为层数多 = 参数多 = 必然过拟合</span><span class="len">More layers means more parameters, hence overfitting</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="34" data-tol="0.05" data-hint="找 RD-HGNN 列：2 层与 8 层两个数相减。" data-sol="74.39 − 40.39 = 34.00——RD 的落差（34.0 个百分点）。对照：普通 HGNN 掉 43.19、DD 只掉 26.53——三列的"耐叠"次序由此排序。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：表 VIII 里 RD-HGNN 从 2 层到 8 层掉了多少个百分点？</span><span class="len">Numeric: by how many points does Table VIII's RD-HGNN fall from 2 to 8 layers?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：如果任务需要很深的网络（比如很多跳的关系推理），表 VIII 建议你优先选哪个型号？为什么？</span><span class="len">Transfer: if a task demands a deep network (many-hop relational reasoning), which model does Table VIII favor?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="普通 HGNN 恰是全表塌得最狠的——8 层只剩 30.22，深网络选它等于自废武功。"><span class="lz">普通 HGNN：越简单越稳</span><span class="len">Plain HGNN: simpler is steadier</span></button>
+        <button class="opt" data-correct="1" data-expl="正确！DD 的落差最小（26.5）、8 层时底线最高（49.53）——因为它的结构账不参与平均，叠得越深、这个"不受平均影响"的支路越值钱。表 VIII 的实用结论：深网络优先 DD。"><span class="lz">DD-HGNN：结构账不参与平均，叠得越深这笔"不缩水的底账"越值钱，8 层底线最高</span><span class="len">DD-HGNN: its structural ledger never joins the averaging, so the deeper the stack the more that un-shrinking floor matters — highest 8-layer score</span></button>
+        <button class="opt" data-expl="RD 居中（34.0）——它没有结构账托底，深叠时不如 DD；表里的排序写得很清楚。"><span class="lz">RD-HGNN：它 8 层比 6 层还高，说明不受影响</span><span class="len">RD-HGNN: it beats its own 6-layer score at 8, so depth does not matter</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout good">
+      <b><span class="lz">第 17 卡的伏笔结账：</span><span class="len">Card 17's foreshadowing settled:</span></b>
+      <span class="lz">"结构细节被归一化冲走"与"平均太多轮特征趋同"这两笔账，现在都有了实测数字（43.19 / 34.00 / 26.53）——而这正是论文把"知识嵌入"插在打分机器前面的全部理由。</span>
+      <span class="len">The two bills — "structural detail washed out by normalization" and "too many averaging rounds homogenize features" — now carry measured numbers (43.19 / 34.00 / 26.53): the whole reason the paper inserts knowledge embedding ahead of the scoring machine.</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>
+
+<!-- NEXT-CARD -->

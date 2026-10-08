@@ -1,0 +1,110 @@
+{
+  "id": "76",
+  "kind": "method",
+  "chapter": "method",
+  "section": "5.17 The nearest predecessor",
+  "kicker": "5.17 · Section IV-D-1",
+  "title": "The line against BGNN: what is taken from the trees",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "The paper positions itself against BGNN, a prior method that combines boosted trees with graph neural networks. Its stated distinction is that BGNN \"employ[s] GBDT as a preprocessing module that transforms heterogeneous tabular node features into representations subsequently refined by GNNs\", whereas this paper encodes both rule content and rule position explicitly and fuses them with hypergraph structural knowledge through MDK-Fusion.",
+      "plain": "Both methods put a tree ensemble in front of a graph network. The difference the paper claims is what each one takes out of the trees."
+    },
+    {
+      "t": "p",
+      "md": "**The distinction, stated at its sharpest.** A fitted boosted ensemble offers two quite different things. It offers an **output**: run a vertex's features through it and get a prediction, or a leaf index, or some function of the leaves. And it offers a **structure**: a set of questions, arranged by depth, which describe the feature space the ensemble learned to carve up. BGNN, on the paper's account, takes the first. This paper takes the second."
+    },
+    {
+      "t": "table",
+      "head": ["", "Taking the ensemble's output", "Taking the ensemble's questions"],
+      "rows": [
+        ["What is used", "The fitted model as a function: features in, a representation out", "The inner nodes and their depths"],
+        ["What it depends on", "The ensemble's accuracy — a better ensemble gives a better representation", "The questions only; the ensemble's accuracy is irrelevant"],
+        ["Interpretability", "None — the output is a vector", "Full — each coordinate is a readable predicate"],
+        ["Length", "Chosen by the designer", "Forced by the ensemble: one coordinate per question"],
+        ["Fails when", "The ensemble is poorly fitted, or its output is low-dimensional", "The ensemble asks few questions, or the same question repeatedly"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**A caveat about verifying this, stated honestly.** The characterisation above is the *taught paper's* summary of BGNN. To check it properly you have to read BGNN, and this site has not — so treat the table as a description of the contrast the paper draws, not as an independently verified account of what BGNN does. If the distinction turns out to be thinner than the paper suggests, the novelty claim narrows accordingly. **Whenever a paper's novelty rests on a contrast with one specific predecessor, that predecessor is the first thing worth reading yourself.**"
+    },
+    {
+      "t": "p",
+      "md": "**Why the distinction, if it holds, is substantive.** The two choices differ in what they inherit from the tree ensemble. Taking the output means inheriting its *errors*: if the ensemble is wrong about a vertex, its representation is wrong in an unreadable way. Taking the questions means inheriting its *vocabulary*: even a poorly fitted ensemble's questions are legible predicates, and a vertex's answers to them are facts about the vertex rather than predictions about it. This also explains why this paper can discard the ensemble's accuracy entirely, as earlier cards noted."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the two extractions, from one fitted ensemble.** Take the two-tree ensemble of Figure 2 and a vertex with features $x_1 = 0$, $x_2 = 1$, $x_3 = 9$."
+    },
+    {
+      "t": "list",
+      "items": [
+        "**Output extraction.** Run the vertex down both trees. In $T_1$ it takes the branch $x_2 \\ge 2$ → false, then $x_1 \\ge 1$ → false, landing in some leaf; in $T_2$ it takes $x_3 \\ge 5$ → true, then one of the two depth-1 questions. The extraction is the leaf indices, or the leaves' values, as a short vector — length two here, one entry per tree, regardless of tree size.",
+        "**Question extraction.** Evaluate all five inner-node predicates against the vertex: $(1,\\; 1,\\; 0,\\; 1,\\; 0)$. Length five, one entry per question."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**Compare the two vectors' dependence on the ensemble's correctness.** The leaf vector changes if the ensemble is refitted with a different random seed, because different trees mean different leaves. The question vector also changes — but *locally*: only the coordinates whose predicates moved change, and each coordinate still says something legible about the vertex. That locality is the practical difference between the two designs, and it is why the paper's embedding can be audited by a human while an output-based embedding cannot."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does the paper say distinguishes its use of GBDT from BGNN's?",
+      "opts": [
+        {
+          "md": "It trains a larger ensemble",
+          "expl": "Ensemble size is a hyperparameter, not a conceptual difference, and the paper makes no claim of training differently."
+        },
+        {
+          "md": "BGNN uses the ensemble as a feature generator, whereas this paper encodes the rules' content and position and fuses them with structural knowledge",
+          "correct": true,
+          "expl": "Correct, on the paper's own account. The distinction is about what is extracted from the trees — an output versus the questions themselves — and about whether that extraction is fused with the graph's structure or merely placed in front of it."
+        },
+        {
+          "md": "BGNN works on graphs and this paper works on hypergraphs",
+          "expl": "That is a difference in setting, not the distinction the paper draws here — and it would be a weak basis for novelty, since hypergraph networks predate both methods."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Under output-based extraction with 2 trees, the representation has 2 entries. Under question-based extraction with the same two trees, how many entries does it have?",
+      "answer": 5,
+      "tol": 0.01,
+      "hint": "Count the inner nodes of both trees.",
+      "sol": "5 — $T_1$ contributes 2 and $T_2$ contributes 3. The two extraction schemes have different lengths by construction: output extraction gives one entry per tree, question extraction one entry per inner node. This is why the taught paper's embedding width is tied to the ensemble's depth while a leaf-index embedding is not.",
+      "unit": "entries"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A paper's novelty rests on a contrast with one specific predecessor. What is the first thing to do?",
+      "opts": [
+        {
+          "md": "Accept the contrast, since it is stated in a reviewed paper",
+          "expl": "Reviewers check that the claim is defensible; they do not guarantee that the characterisation of a competitor is the one its authors would recognise."
+        },
+        {
+          "md": "Read the predecessor, because the novelty claim is exactly as strong as the contrast is accurate",
+          "correct": true,
+          "expl": "Correct. This is the highest-leverage reading a paper's reference list offers: one extra paper can settle whether a contribution is new or a refinement. It applies with full force here, where the classification stage is the paper's main claim and its distinctness from BGNN is the load-bearing argument for it."
+        },
+        {
+          "md": "Check whether the predecessor is recent enough to matter",
+          "expl": "Recency is not the issue — a 2020 method is entirely current. What matters is what it actually does."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the two interactive laboratories, where you run both encoders by hand — the hypergraph smoothing layer of Equation (1) and the rule pipeline of Equations (4)–(8)."
+}

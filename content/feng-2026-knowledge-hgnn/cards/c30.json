@@ -1,0 +1,8 @@
+{
+  "id": "30",
+  "kind": "include",
+  "library": "metrics",
+  "chapter": "pre",
+  "section": "2.5 How results are read",
+  "kicker": "Extension · Classification metrics"
+}

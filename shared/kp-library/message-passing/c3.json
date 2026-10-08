@@ -1,0 +1,178 @@
+{
+  "kind": "check",
+  "title": "Over-smoothing, and the skip check",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Over-smoothing** is the failure of a deep message-passing network in which repeated neighbour aggregation makes the feature vectors of distinct vertices converge to nearly the same value, so the network can no longer separate them and its accuracy collapses. It is not caused by a bug and it is not overfitting; it is what the aggregation operation does when it is applied enough times.",
+      "plain": "Run the neighbour-averaging long enough and every vertex ends up holding roughly the same numbers. There is then nothing left for the classifier to tell apart."
+    },
+    {
+      "t": "p",
+      "md": "**Why it happens.** One message-passing layer replaces each vertex's value with a blend of its neighbours' values. A blend cannot increase the spread of the values, so each layer shrinks the differences between vertices a little. After $L$ layers a vertex's value depends on its whole $L$-hop neighbourhood — every vertex reachable within $L$ edges. Once $L$ is comparable to the graph's diameter (the longest shortest path between any two vertices), every vertex's $L$-hop neighbourhood is the entire graph, so every vertex is averaging over the same thing and all the values drift to one number. The features have been smoothed away rather than propagated. The example below works this out on a path graph."
+    },
+    {
+      "t": "p",
+      "md": "**The mitigations.** Depth is useful — some tasks need information from distant vertices — so the goal is to gain reach without collapsing the features. Three standard responses:"
+    },
+    {
+      "t": "table",
+      "head": ["Mitigation", "What it does"],
+      "rows": [
+        ["Keep depth small (two or three layers)", "keeps the receptive field smaller than the graph diameter, so different vertices still average over different neighbourhoods"],
+        ["Residual (skip) connections", "add each layer's input back to its output, $h^{(l+1)} = h^{(l)} + f(h^{(l)})$, so a vertex keeps a copy of its earlier, more distinctive state alongside the smoothed one"],
+        ["Jumping knowledge", "keep every layer's output and let the final classifier read all of them, so the shallow, still-distinctive layers stay available even when the deep one has collapsed"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**A common misreading.** Over-smoothing is not the same as overfitting. Overfitting is a model that has memorised the training set and does worse on unseen data; the cure is regularisation or more data. Over-smoothing is a model that has become too weak to separate even its own training vertices, and more data does not help. If both training and test accuracy fall as layers are added, the cause is over-smoothing, not overfitting."
+    },
+    {
+      "t": "p",
+      "md": "**What this section established.**"
+    },
+    {
+      "t": "list",
+      "items": [
+        "Write the message-passing update: aggregate the neighbours symmetrically, transform the summary and the vertex's own feature with learned matrices, add the two, and apply a nonlinearity.",
+        "Explain why the aggregation must be symmetric — a vertex's neighbours have no canonical order, and only a symmetric function can consume an unordered bag.",
+        "Give a concrete failure of positional weighting: two orderings of the same bag produce two different outputs.",
+        "Name the symmetric aggregators — sum, mean, max, min, product — and say what the sum preserves that the mean and max discard: the size of the neighbourhood.",
+        "Explain over-smoothing: repeated averaging drives all vertices to the same value, and the mitigations are fewer layers, residual connections and jumping knowledge."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The questions below are the check. The bar is not a score — it is that none of them made you think hard. If the over-smoothing walkthrough in the example still needs reading, the paper's own depth tables will read as arbitrary numbers rather than as consequences."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — one round, four vertices.** A path graph is four vertices in a line, $1 - 2 - 3 - 4$, carrying the values $(0, 4, 8, 12)$. The averaging rule here is: replace each vertex's value by the average of its neighbours' values. The two endpoints have one neighbour each and copy it; the two interior vertices have two neighbours and average them."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Vertex 1 (endpoint): its only neighbour is vertex 2, so its new value is $4$.",
+          "why": "With a single neighbour the average is that neighbour's value. This is the degree-1 case."
+        },
+        {
+          "md": "Vertex 2 (interior): neighbours 1 and 3, so the average is $(0 + 8) / 2 = 4$.",
+          "why": "Two neighbours, both read and averaged. The vertex's own value does not enter this rule."
+        },
+        {
+          "md": "Vertex 3 (interior): neighbours 2 and 4, so the average is $(4 + 12) / 2 = 8$. Vertex 4 (endpoint) copies vertex 3, giving $8$.",
+          "why": "The right half of the line still holds the larger values, so it stays high for this round."
+        },
+        {
+          "md": "The new values are $(4, 4, 8, 8)$. The range — the largest value minus the smallest — has fallen from $12$ to $4$ in one step.",
+          "why": "Averaging pulls every value towards its neighbours, so the extremes move inwards. The range is the quantity that over-smoothing ultimately destroys."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the same rule run for many rounds.** Now five vertices in a line, $1 - 2 - 3 - 4 - 5$, with values $(1, 2, 3, 4, 5)$. The rule is unchanged: each vertex becomes the average of its neighbours. The first round, vertex by vertex, is: vertex 1 copies vertex 2, giving $2$; vertex 2 averages $1$ and $3$, giving $(1 + 3)/2 = 2$; vertex 3 averages $2$ and $4$, giving $(2 + 4)/2 = 3$; vertex 4 averages $3$ and $5$, giving $(3 + 5)/2 = 4$; vertex 5 copies vertex 4, giving $4$. Round by round, from there:"
+    },
+    {
+      "t": "table",
+      "head": ["Round", "Values at vertices 1, 2, 3, 4, 5", "Range (max − min)"],
+      "rows": [
+        ["0 (start)", "1, 2, 3, 4, 5", "4"],
+        ["1", "2, 2, 3, 4, 4", "2"],
+        ["2", "2, 2.5, 3, 3.5, 4", "2"],
+        ["3", "2.5, 2.5, 3, 3.5, 3.5", "1"],
+        ["4", "2.5, 2.75, 3, 3.25, 3.5", "1"],
+        ["5", "2.75, 2.75, 3, 3.25, 3.25", "0.5"],
+        ["6", "2.75, 2.875, 3, 3.125, 3.25", "0.5"],
+        ["8", "2.875, 2.9375, 3, 3.0625, 3.125", "0.25"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "By round eight the range has fallen from $4$ to $0.25$, and it keeps halving roughly every two rounds: by round forty every one of the five values agrees with $3$ to within $0.000002$. The limit is $3$, which is exactly the average of the starting values ($1 + 2 + 3 + 4 + 5 = 15$, and $15 / 5 = 3$). The centre vertex never moved, because it began at the average and every average leaves it there. Every other vertex was pulled in."
+    },
+    {
+      "t": "callout",
+      "md": "This rule uses no learned weights and no self term — it is the purest form of the operation. A trained layer is a weighted version of the same averaging and inherits the same pull towards a common value; the weights change which common value is approached and how fast, not whether the spread collapses."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does stacking message-passing layers eventually erase the differences between vertices?",
+      "opts": [
+        {
+          "md": "Because the learned matrices lose rank as layers are stacked",
+          "expl": "Rank loss is a separate pathology. The standard over-smoothing effect happens even when the per-layer updates look well behaved, because the averaging itself shrinks the spread of the values."
+        },
+        {
+          "md": "Because after enough layers every vertex's neighbourhood is the whole graph, so every vertex averages over the same values",
+          "correct": true,
+          "expl": "Correct. A vertex's value after L layers depends on its L-hop neighbourhood; once that reaches the whole graph, all vertices are blending the same values and converge to a common one. That is why depth is a liability."
+        },
+        {
+          "md": "Because the loss function has a single minimum",
+          "expl": "The loss always has minima, and finding them is the point of training. Over-smoothing is a property of the forward pass, before any loss is considered."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A path graph has vertices $1 - 2 - 3 - 4$ carrying values $(2, 4, 6, 10)$. Apply one round of the rule \"each vertex becomes the average of its neighbours' values\" (endpoints copy their single neighbour). What is the new range — the largest value minus the smallest?",
+      "answer": 3,
+      "tol": 0.01,
+      "hint": "Work out all four new values first, then subtract the smallest from the largest. The two endpoints copy; only the interior vertices average two values.",
+      "sol": "Vertex 1 copies vertex 2's value: 4. Vertex 2 averages 1 and 3: (2 + 6) / 2 = 4. Vertex 3 averages 2 and 4: (4 + 10) / 2 = 7. Vertex 4 copies vertex 3's value: 6. The new values are (4, 4, 7, 6), whose largest is 7 and smallest is 4, so the range is 7 − 4 = 3. The starting range was 10 − 2 = 8, so one round cut it from 8 to 3.",
+      "unit": "range"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Training accuracy and test accuracy both fall as you add layers to a message-passing network. Which response addresses the likely cause?",
+      "opts": [
+        {
+          "md": "Add regularisation, since the model is overfitting",
+          "expl": "Overfitting shows training accuracy rising while test accuracy falls. Both falling together points to a model that can no longer separate even the training vertices, which regularisation does not repair."
+        },
+        {
+          "md": "Add residual connections or let the classifier read the shallow layers too, so that less-smoothed features survive",
+          "correct": true,
+          "expl": "Correct. Both accuracies falling is the signature of over-smoothing, and both mitigations keep a less-smoothed copy of the features available — a residual connection adds the layer's input to its output, and jumping knowledge keeps every layer's output for the classifier."
+        },
+        {
+          "md": "Add more layers, since the model is underfitting",
+          "expl": "More layers make the smoothing worse, not better. The accuracy falls because depth is already being spent on averaging, so adding more deepens the problem."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A message-passing layer must combine a vertex's neighbours' features without a fixed ordering. Which single property must the combining function have?",
+      "opts": [
+        {
+          "md": "It must be linear",
+          "expl": "Linearity is a modelling preference, not a requirement. A max aggregator is not linear and is a perfectly standard, legal choice."
+        },
+        {
+          "md": "It must be symmetric — the same output for every ordering of the inputs",
+          "correct": true,
+          "expl": "Correct. The neighbour bag has no canonical order, so a function that reads it positionally would return different answers for the same graph written two ways. Sum, mean, max, min and product are symmetric; \"the first neighbour\" is not."
+        },
+        {
+          "md": "It must divide by the vertex's degree",
+          "expl": "Degree normalisation is one useful choice, used by GCN, but it is not required: an unnormalised sum is equally order-independent, and it is the aggregator the paper's own statistics lean on."
+        }
+      ]
+    }
+  ],
+  "close": "**You are ready for the paper's own layer.** The message-passing template above is what the paper's equations instantiate once a hyperedge replaces the pairwise neighbour. If you skipped, the depth tables in its experiments are the over-smoothing effect this card measured — come back then."
+}

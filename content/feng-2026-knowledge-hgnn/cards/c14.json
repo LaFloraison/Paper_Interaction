@@ -1,0 +1,113 @@
+{
+  "id": "14",
+  "kind": "kp-b",
+  "kp": "kp-decision-tree",
+  "chapter": "pre",
+  "section": "2.2 In this paper",
+  "kicker": "Pre-knowledge · in this paper",
+  "title": "Decision trees in this paper: read as a list of questions, never as a predictor",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "In this paper a decision tree appears only through its **inner nodes**: the set $O_{\\mathrm{in}}$ of nodes, each carrying a predicate on a single feature, is enumerated and each member becomes one coordinate of a vertex's rule embedding. The tree's leaves, its predictions, and its structure as a graph play no role in any equation.",
+      "plain": "The paper takes a trained tree, ignores what it predicts, and keeps only the questions. Every question becomes one slot in a vector."
+    },
+    {
+      "t": "p",
+      "md": "**Why this is worth stating as its own point.** The general section on decision trees covered what a tree is, how it chooses its splits, and when it fails. All of that matters here, but for one purpose only: to make the questions intelligible. The paper's usage is unusual enough that a reader who assumes \"the paper uses a decision tree to make predictions\" will misread every equation that follows."
+    },
+    {
+      "t": "table",
+      "head": ["Aspect of a decision tree", "Does this paper use it?"],
+      "rows": [
+        ["Its predictions", "**No.** The ensemble's output is computed during pre-training and then discarded"],
+        ["Its inner nodes (the questions)", "**Yes** — one coordinate per inner node"],
+        ["Its depth structure", "**Yes**, but only as a single number per node: the node's depth, used as an importance weight"],
+        ["Its leaves", "**No.** Figure 2 draws them with class colours only to show what was trained"],
+        ["Its impurity or split criteria", "**No.** The tree is used after training; how it chose its splits never appears"],
+        ["Its axis-parallel cut structure", "**Indirectly** — it is why each question involves one feature and a threshold"]
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "This is a general pattern worth naming: **a trained model can be used as a source of structure rather than as a function.** A tree is a flowchart built to predict, but the flowchart is also a learned description of the feature space, and that description can be repurposed. The paper's contribution is essentially an opinion about what to keep from a tree — the questions and their depths — and what to throw away."
+    },
+    {
+      "t": "p",
+      "md": "**One consequence to hold on to.** Because only inner nodes are used, the size of the rule embedding is determined by how many questions the ensemble asks, not by how many leaves it has or how accurate it is. A larger, more accurate ensemble produces a longer embedding — so the feature dimension and the model's capacity are coupled to a hyperparameter that was chosen to suit a *different* purpose."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the two trees of the paper's own Figure 2, read the paper's way.** Tree $T_1$ asks $x_2 \\ge 2$ and then $x_1 \\ge 1$; tree $T_2$ asks $x_3 \\ge 5$, then $x_1 \\ge 2$ and $x_2 \\ge 1$."
+    },
+    {
+      "t": "list",
+      "items": [
+        "**Kept:** five questions, in the order the trees present them — $x_2 \\ge 2$, $x_1 \\ge 1$, $x_3 \\ge 5$, $x_1 \\ge 2$, $x_2 \\ge 1$. Each is one slot.",
+        "**Kept:** each question's depth — 0, 1, 0, 1, 1 respectively — converted to an importance weight by Equation (6).",
+        "**Discarded:** the leaves' class labels. The figure colours them orange, green and blue so you can see that the ensemble was trained to classify, but no equation refers to them.",
+        "**Discarded:** which leaf a vertex reaches. Equation (5) tests every question against the vertex independently, so the leaf reached is never computed."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "Note what the four kept-details have in common: **they are all local to a node.** The paper never needs to know how a vertex flows through a tree, only which questions its features happen to satisfy. That is what makes the encoding computable in parallel over all vertices and all nodes at once — and it is also why the encoding can describe a vertex using questions from branches it would never reach."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which part of a trained decision tree does this paper encode?",
+      "opts": [
+        {
+          "md": "Its leaves, since they hold the predictions",
+          "expl": "The leaves are drawn in the paper's Figure 2 and then never used. The predictions of the ensemble are computed during pre-training and discarded."
+        },
+        {
+          "md": "Its inner nodes — one coordinate per question",
+          "correct": true,
+          "expl": "Correct. Each inner node carries a predicate on a single feature, and each becomes one coordinate of the rule embedding. This is why Equation (7)'s output dimension is stated as the number of inner nodes rather than the number of leaves."
+        },
+        {
+          "md": "Its edges, which record the order of the questions",
+          "expl": "No edge is encoded. The only structural quantity that survives is each node's depth, and depth is a single number attached to a node rather than a description of the tree's shape."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "An ensemble contains 4 trees with 3, 5, 2 and 4 inner nodes. How many coordinates does a vertex's rule embedding have?",
+      "answer": 14,
+      "tol": 0.01,
+      "hint": "The per-tree vectors are concatenated, so their lengths add up.",
+      "sol": "$3 + 5 + 2 + 4 = 14$. Multiplication would give 120, which is not a quantity in this construction — nothing is taken across trees. Note that this number is exactly the sum of inner-node counts, which is why a paper reporting a large tree count and depth is implicitly committing to a wide embedding.",
+      "unit": "coordinates"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The paper evaluates each question against a vertex even when the vertex could never reach that node during a normal traversal. What does this make the encoding?",
+      "opts": [
+        {
+          "md": "An error, since unreachable nodes should not be evaluated",
+          "expl": "It is a deliberate design, not a mistake, and its consequences are worth stating rather than dismissing: the encoding describes a vertex by every question the ensemble learned about the feature space, not merely by the path it took."
+        },
+        {
+          "md": "A fixed questionnaire over the whole feature space, rather than a record of one path",
+          "correct": true,
+          "expl": "Correct. The consequence is that the encoding is well defined for a brand-new vertex without re-traversing anything, which is what lets it be computed for inductive test vertices; and that two vertices on opposite branches can still agree in most slots, since agreement is about feature values rather than about location in the tree."
+        },
+        {
+          "md": "A one-hot encoding of the leaf reached",
+          "expl": "No leaf is referenced. One-hot over leaves would give a vector whose length is the number of leaves and whose entries are almost all zero; this encoding has length equal to the number of inner nodes and is not sparse in general."
+        }
+      ]
+    }
+  ],
+  "close": "**Next in this chapter:** the ensemble those trees came from. The paper's trees are not standalone — they are members of a gradient-boosted team, which is why depth carries information about importance at all."
+}

@@ -1,0 +1,48 @@
+<!-- ============ c41 Table V 主结果 ============ -->
+<section class="card" data-c="41" data-title-zh="表 V · 主结果（transductive）" data-title-en="Table V · main results (transductive)">
+  <div class="card-inner">
+    <div class="card-kicker k-fig"><span class="len">Table V · the score sheet</span><span class="lz">表 V · 成绩单</span></div>
+    <h2><span class="lz">表 V：十份考卷的总成绩</span><span class="len">Table V: the total score sheet</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz"><b><span class="hl">表 V 是全篇最重的一张表：七个方法（列）× 十个数据集（行）的分类准确率（%），每格写成"均值 ± 波动"，最后一行是平均排名——数字越小越好。</span></b>方法分四族：纯特征派（MLP、GBDT）、结构派（GCN、HGNN）、树网混合（TLF）、本文（RD-HGNN、DD-HGNN）。</p>
+    <p class="len"><b><span class="hl">Table V is the paper's heaviest table: seven methods (columns) × ten datasets (rows) of classification accuracy (%), each cell "mean ± spread", with average ranks in the last row — lower is better.</span></b> The methods fall into four camps: feature-only (MLP, GBDT), structure-only (GCN, HGNN), tree-net hybrid (TLF), and this paper (RD-HGNN, DD-HGNN).</p>
+    <p class="lz">三个读表工具先备好：① <b>± 后面的数</b>是五次不同随机种子的波动（第 20 卡的规矩）——两方法之差若小于波动，就不该当真；② <b>加粗/下划线</b>标出该行最优与次优；③ <b>平均排名</b>把十行的相对位置折成一个数，防止"只挑最好的一行说事"。</p>
+    <p class="len">Three reading tools first: (1) the number after <b>±</b> is the spread over five random seeds (card 20's rule) — a gap smaller than the spread should not be taken seriously; (2) <b>bold/underline</b> mark each row's best and runner-up; (3) <b>average rank</b> folds ten relative positions into one number, preventing cherry-picking.</p>
+    <div class="figbox">
+      <img data-fig="tab5" alt="Table V of the paper: main transductive results">
+      <div class="figcap"><span class="lz">论文表 V 原图（Feng et al., TPAMI 2026）。TLF 是"树+网络"混合的前人工作（第 36 卡提过的 BGNN 同族）。</span><span class="len">Original Table V (Feng et al., TPAMI 2026). TLF is a predecessor hybrid of trees plus networks (same family as card 36's BGNN).</span></div>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>走查 1（读一行的冠军与差距）：</b>Cora 行七格：MLP 69.04、GCN 83.63、GBDT 74.30、HGNN 81.81、TLF 65.11、<b>RD 88.64</b>、DD 87.22。冠军 RD 比最强的结构派 GCN 高 88.64 − 83.63 = <b>5.01</b> 个百分点；比同族基础 HGNN 也高出一截（差多少，稍后习题请你亲手算）。读数时顺带看波动：RD 的 ±1.34 远小于这 5 个点的差距——<b>这个优势不是运气。</b></p>
+    <p class="len"><b>Walk 1 (read one row's champion and margin):</b> Cora's seven cells: MLP 69.04, GCN 83.63, GBDT 74.30, HGNN 81.81, TLF 65.11, <b>RD 88.64</b>, DD 87.22. Champion RD beats the strongest structure-only GCN by 88.64 − 83.63 = <b>5.01</b> points, and its own base HGNN by a margin the exercises will have you compute. Note the spreads while at it: RD's ±1.34 is far below a 5-point margin — <b>this advantage is not luck.</b></p>
+    <p class="lz"><b>走查 2（读最后一行 + 复算两个"论文声称"）：</b>平均排名：MLP 5.8、GCN 3.9、GBDT 5.1、HGNN 3.3、TLF 6.1、<b>RD 1.7、DD 1.5</b>——本文两个型号分列第一、第二。我们复算了这张排名表：RD 十行名次之和 = 17（均值 1.7 ✓）、DD = 15（1.5 ✓）。<br>再验两个正文声称：<b>①"平均增益 5.86"</b>——复算 DD 列十行均值 87.648 减 GBDT 均值 81.792 = <b>5.86 ✓</b>（口径 = DD 对 GBDT）。<b>②"平均排名 1.9 和 1.7"</b>——表格最后一行明明白白写着 <b>1.7 和 1.5</b>；正文这两个数与自己的表对不上（第 48 批判卡记账）。</p>
+    <p class="len"><b>Walk 2 (read the last row + recompute two paper claims):</b> average ranks: MLP 5.8, GCN 3.9, GBDT 5.1, HGNN 3.3, TLF 6.1, <b>RD 1.7, DD 1.5</b> — the paper's two models place first and second. We recomputed this rank table: RD's ten ranks sum to 17 (mean 1.7 ✓), DD to 15 (1.5 ✓).<br>Then two text claims checked: <b>(1) "average gain 5.86"</b> — DD's column mean 87.648 minus GBDT's 81.792 = <b>5.86 ✓</b> (DD-versus-GBDT convention). <b>(2) "average ranks 1.9 and 1.7"</b> — the table's last row plainly reads <b>1.7 and 1.5</b>; the text disagrees with its own table (card 48 keeps the account).</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">最后一行的"平均排名"为什么比"只挑几个数据集比"更可信？</span><span class="len">Why is the last row's "average rank" more trustworthy than comparing a few chosen datasets?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="它不消除波动——每次实验仍有 ±；平均排名的作用是防“只挑赢的那几行说事”，把十行的相对位置汇总成一个数。"><span class="lz">因为它消除了随机波动</span><span class="len">Because it removes random fluctuation</span></button>
+        <button class="opt" data-correct="1" data-expl="对！单看某几行容易被“挑数据”误导；平均排名强制把十个数据集一起算账——赢要赢得多、输要输得少，总分才是真的。而且第一名与第二名只差 0.2，说明本文两型号几乎并列。"><span class="lz">它强制把全部十个数据集的相对名次一起结算，防止挑行；且 1.7 与 1.5 说明两型号几乎并列</span><span class="len">It forces all ten datasets' relative ranks into one settlement, preventing cherry-picking — and 1.7 vs 1.5 means the two models nearly tie</span></button>
+        <button class="opt" data-expl="排名不涉及绝对分——它只看“在每一行里排第几”，与准确率高低是两个维度。"><span class="lz">因为它把准确率换算成了百分比</span><span class="len">Because it converts accuracy into percentages</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="6.83" data-tol="0.02" data-hint="在 Cora 行里找 RD-HGNN 与 HGNN 两格，把两个准确率相减。" data-sol="88.64 − 81.81 = 6.83——同族升级的直接增量：RD-HGNN 与 HGNN 用同一台打分机器，只把输入从原始特征换成了规则账 Xr。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：表 V 的 Cora 行里，RD-HGNN 比 HGNN 高多少个百分点（两位小数）？</span><span class="len">Numeric: in Table V's Cora row, by how many points (two decimals) does RD-HGNN beat HGNN?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：一个方法在 10 个数据集里的 9 个上小幅领先、1 个上惨败——只看"平均准确率"和只看"平均排名"，评价会很不同。为什么？</span><span class="len">Transfer: a method leads slightly on 9 of 10 datasets and collapses on 1 — "average accuracy" and "average rank" will judge it very differently. Why?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="两把尺子量的是不同东西——一个量“赢多少分”，一个量“排第几”；都该看，但要用对场合（结论稳健性看排名，绝对水平看准确率）。"><span class="lz">两者其实是一回事，只是算法不同</span><span class="len">They are the same thing computed differently</span></button>
+        <button class="opt" data-correct="1" data-expl="正确！平均准确率里，10 个点的小胜压不过 1 个点的大败（惨败那一格把均值拖下去）；平均排名只看名次，9 次第一就是 9 个 1——一败只记一笔。所以论文同时报两者：排名说“稳”，准确率说“水平”。"><span class="lz">准确率按分值算账（一次大败能拖垮均值）；排名按名次算账（九次第一就是九个 1，惨败只记一笔）——一稳健一水平</span><span class="len">Accuracy settles by points (one collapse sinks the mean); ranks settle by placement (nine wins are nine 1s; one collapse counts once) — one shows steadiness, the other level</span></button>
+        <button class="opt" data-expl="排名与准确率不冲突——它们恰好互补：一个敏感于“差距多大”，一个敏感于“赢没赢”。论文两个都报，正是为了不偏听。"><span class="lz">排名是更高级的指标，可以替代准确率</span><span class="len">Rank is the superior metric and can replace accuracy</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>
+
+<!-- NEXT-CARD -->

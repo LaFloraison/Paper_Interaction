@@ -1,0 +1,224 @@
+{
+  "kind": "extension",
+  "title": "CART: Gini impurity, binary splits, and regression",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**CART** (classification and regression trees) is a family of trees with three defining restrictions. Every split is **binary**: a numeric feature is tested as $x_j \\le t$, and a categorical feature with $k$ levels is tested as $x_j \\in S$ for a chosen subset $S$ of those levels, so a $k$-level feature is handled by search over groupings rather than by one branch per level. The impurity of a classification node is the **Gini impurity** $\\mathrm{Gini}(S) = 1 - \\sum_k p_k^2$, where $p_k$ is the proportion of class $k$ in the node. For a regression node, the impurity is instead the **sum of squared errors** $\\sum_i (y_i - \\bar{y})^2$ around the node's mean $\\bar{y}$, and the best split is the one that minimises the total of that quantity over the two children — equivalently, that maximises the reduction in squared error. CART then prunes the grown tree by cost-complexity pruning.",
+      "plain": "CART always splits a node into exactly two parts, measures how mixed a classification node is with the Gini impurity, measures how spread out a regression node is with its squared error, and cuts the finished tree back."
+    },
+    {
+      "t": "p",
+      "md": "**Reading Gini as a probability.** Draw two rows independently from the node. The probability that both are of class $k$ is $p_k \\cdot p_k$, so the probability that the pair matches is $\\sum_k p_k^2$, and the probability that the pair disagrees is one minus that. Gini impurity is therefore exactly the chance that two randomly drawn rows carry different labels, which is the most literal possible reading of \"mixed up\". It needs no logarithm, and that absence is why CART is the faster of the two families to fit: the Gini of a candidate split is computed with additions and multiplications only."
+    },
+    {
+      "t": "formula",
+      "tex": "\\mathrm{Gini}(S) = 1 - \\sum_{k=1}^{K} p_k^{2}, \\qquad \\text{gain}(S, A) = \\mathrm{Gini}(S) - \\sum_{v} \\frac{|S_v|}{|S|} \\mathrm{Gini}(S_v)",
+      "note": "The classification criterion. It has the same shape as information gain — impurity before, weighted impurity after, difference is the score — with a different impurity function. Its maximum over $K$ equally frequent classes is $1 - 1/K$, so 0.5 for the two-class problems here.",
+      "gloss": [
+        {
+          "sym": "p_k",
+          "md": "the proportion of class $k$ in the node; the proportions sum to 1"
+        },
+        {
+          "sym": "p_k^2",
+          "md": "the probability that two independently drawn rows are both of class $k$"
+        },
+        {
+          "sym": "1 - \\sum_k p_k^2",
+          "md": "the probability that two independently drawn rows disagree — the mixed-up-ness"
+        },
+        {
+          "sym": "|S_v| / |S|",
+          "md": "the same size weighting as in information gain: larger children count for more, which prevents a split from scoring well by isolating a single row"
+        }
+      ]
+    },
+    {
+      "t": "formula",
+      "tex": "\\mathrm{SSE}(S) = \\sum_{i \\in S} (y_i - \\bar{y}_S)^2, \\qquad \\bar{y}_S = \\frac{1}{|S|}\\sum_{i \\in S} y_i",
+      "note": "The regression criterion. A regression node's impurity is how far its targets are spread around their own mean, and the score of a split is $\\mathrm{SSE}(S) - \\mathrm{SSE}(S_{\\text{left}}) - \\mathrm{SSE}(S_{\\text{right}})$. The prediction at a regression leaf is $\\bar{y}_S$ of the rows that reached it.",
+      "gloss": [
+        {
+          "sym": "y_i",
+          "md": "the numeric target of row $i$"
+        },
+        {
+          "sym": "\\bar{y}_S",
+          "md": "the mean of the targets in the node — which is also the constant a regression tree predicts inside that node"
+        },
+        {
+          "sym": "y_i - \\bar{y}_S",
+          "md": "the residual of row $i$ against the node's own mean; its square is the error the node would incur on that row"
+        },
+        {
+          "sym": "\\sum_i",
+          "md": "summed over the rows of the node. This is the total squared error of predicting the single best constant for this set of rows."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Binary-only is a real cost, not a stylistic preference.** A categorical feature with $k$ levels has $2^{k-1} - 1$ distinct ways to be split into two subsets, and finding the best one exactly is expensive. For binary targets there is an efficient ordering trick that reduces the search, but for multi-class targets and unordered categories CART must search groupings heuristically. This is why the same table can be a comfortable fit for C4.5 and an awkward one for CART. The compensation is that a binary tree has leaves that are simple two-way comparisons, which is what makes the regression version and the boosting machinery clean."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the six-row dataset, scored by Gini.** The same data as card 3: 3 rows labelled Yes and 3 labelled No at the root, Outlook and Wind as candidates."
+    },
+    {
+      "t": "calc",
+      "md": "Parent node: $p_{\\text{Yes}} = p_{\\text{No}} = 0.5$, so $\\mathrm{Gini} = 1 - (0.5^2 + 0.5^2) = 1 - 0.5 = 0.5$. This is the maximum for two classes."
+    },
+    {
+      "t": "calc",
+      "md": "Outlook branches. Sunny holds rows 1 to 4, labels No, No, No, Yes: proportions $0.75$ and $0.25$, so $\\mathrm{Gini} = 1 - (0.75^2 + 0.25^2) = 1 - 0.625 = 0.375$. Rain holds rows 5 and 6, both Yes: $\\mathrm{Gini} = 1 - (1^2 + 0^2) = 0$. Weighted: $(4/6)(0.375) + (2/6)(0) = 0.2500 + 0 = 0.2500$. Gini gain $= 0.5000 - 0.2500 = 0.2500$."
+    },
+    {
+      "t": "calc",
+      "md": "Wind branches. Weak holds rows 1, 2, 5, labels No, No, Yes: proportions $0.6667$ and $0.3333$, so $\\mathrm{Gini} = 1 - (0.4444 + 0.1111) = 0.4444$. Strong holds rows 3, 4, 6, labels No, Yes, Yes, which is the mirror image and gives $0.4444$ as well. Weighted: $(3/6)(0.4444) + (3/6)(0.4444) = 0.4444$. Gini gain $= 0.5000 - 0.4444 = 0.0556$."
+    },
+    {
+      "t": "p",
+      "md": "Outlook wins, 0.2500 against 0.0556 — the same conclusion ID3 reached by a different route with different numbers. The absolute values are not comparable across the two criteria (gain 0.4591 bits against Gini gain 0.2500), but the ordering is identical, and on this dataset it always will be. The two measures disagree on the winner only on data where two candidate splits are extremely close in quality, which is a known and practically small effect."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "**Step 1 — a regression parent.** Four rows with numeric targets $y = 10, 12, 30, 32$. The parent mean is $(10 + 12 + 30 + 32)/4 = 84/4 = 21$. Its squared error: $(10-21)^2 + (12-21)^2 + (30-21)^2 + (32-21)^2 = 121 + 81 + 81 + 121 = 404$.",
+          "why": "This 404 is the total error of the best constant prediction for these four rows. Prediction error is what the split is trying to reduce, so this number is the budget available, exactly as the parent entropy of 1 bit was the budget in card 3."
+        },
+        {
+          "md": "**Step 2 — split between 12 and 30.** Left child holds 10, 12 with mean 11 and squared error $(10-11)^2 + (12-11)^2 = 1 + 1 = 2$. Right child holds 30, 32 with mean 31 and squared error $(30-31)^2 + (32-31)^2 = 1 + 1 = 2$.",
+          "why": "Each child now predicts its own mean, so the residual of every row is halved in magnitude. That is the mechanism: a regression tree reduces error by giving different regions different constants."
+        },
+        {
+          "md": "**Step 3 — total the children and take the difference.** Total child error is $2 + 2 = 4$, so the reduction is $404 - 4 = 400$.",
+          "why": "A reduction of 400 out of 404 means the split explains almost all the variation, which is correct here: the data is two tight clusters 20 apart, and the split is exactly the boundary between them."
+        },
+        {
+          "md": "**Step 4 — compare with a bad split.** The alternative split between 12 and 30 is not the only one; consider putting 10, 12, 30 on the left and 32 on the right. The left mean is $52/3 = 17.3333$, with squared error $(10-17.3333)^2 + (12-17.3333)^2 + (30-17.3333)^2 = 53.7778 + 28.4444 + 160.4444 = 242.6667$. The right child is a single row and costs 0. The reduction is $404 - 242.6667 = 161.3333$.",
+          "why": "161.3 is far below 400, so the first split is strongly preferred — and the reason is visible in the arithmetic: the bad split leaves 10 and 30 in the same child, and their 20-unit gap contributes 160 of the residual error on its own. A criterion that separated the two clusters cleanly had to win."
+        }
+      ]
+    },
+    {
+      "t": "table",
+      "head": [
+        "",
+        "ID3",
+        "C4.5",
+        "CART"
+      ],
+      "rows": [
+        [
+          "Split criterion",
+          "Information gain",
+          "Gain ratio, on candidates whose gain is above average",
+          "Gini impurity gain (classification); squared-error reduction (regression)"
+        ],
+        [
+          "Impurity function",
+          "Entropy, with a logarithm",
+          "Entropy, with a logarithm",
+          "Gini for classes, squared error for numbers; no logarithm"
+        ],
+        [
+          "Feature types",
+          "Categorical by default; numeric handling is an extension",
+          "Categorical and numeric; numeric handled by threshold",
+          "Categorical and numeric natively; both handled by two-way splits"
+        ],
+        [
+          "Split shape",
+          "One branch per value of the feature",
+          "One branch per value for categorical; two-way for numeric",
+          "Always two branches, for every feature type"
+        ],
+        [
+          "Pruning",
+          "None built in; stopping rules only",
+          "Pruning after growing, by estimated error",
+          "Cost-complexity pruning after growing, with a parameter to search"
+        ],
+        [
+          "Typical use",
+          "The historical origin; teaching and simple categorical problems",
+          "Mixed tables with both categorical and numeric columns, small to medium size",
+          "The modern default, and the base learner inside every boosted tree ensemble"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**Why the paper's model sits on CART.** Gradient boosting adds trees one at a time, each fitted to the residuals of the model so far. That construction needs each new tree's output to be a number it can be multiplied by a learning rate and added — which forces regression trees, and forces the squared-error criterion of this card's second formula. It also needs the split search to be cheap, because it happens hundreds of times per fit; Gini and squared error cost no logarithms. Both requirements point at CART rather than at ID3 or C4.5, which is why essentially every modern boosting library implements CART."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "For a two-class node, why can the Gini impurity never exceed 0.5?",
+      "opts": [
+        {
+          "md": "Because $\\sum_k p_k^2$ is at least one half whenever there are two classes",
+          "correct": true,
+          "expl": "Correct. With two proportions summing to 1, the sum of squares is minimised at p = 0.5, where it equals 0.25 + 0.25 = 0.5 — this is the exact case where the two classes are as mixed as possible. So 1 - Σ p_k^2 is at most 1 - 0.5 = 0.5. The general bound for K equally frequent classes is 1 - 1/K, which reduces to the same 0.5 when K = 2."
+        },
+        {
+          "md": "Because Gini is a probability and probabilities are bounded by one half in classification",
+          "expl": "Probabilities run over the whole interval from 0 to 1, so this reason is not available. The 0.5 comes from the specific expression, not from a general property of probabilities."
+        },
+        {
+          "md": "Because CART normalises the impurity so that information gain and Gini gain are on the same scale",
+          "expl": "CART does no such normalisation, and the two gains are not on the same scale — Example 1 gives 0.4591 bits against 0.2500 of Gini gain for the same split. The bound is intrinsic to the formula."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A regression node holds four targets: 2, 4, 10, 12. A candidate split puts 2 and 4 on the left and 10 and 12 on the right. By how much does this split reduce the total squared error?",
+      "answer": 64,
+      "tol": 0.01,
+      "hint": "Compute the parent's squared error around its own mean first, then each child's squared error around its own mean, and subtract.",
+      "sol": "Parent mean = (2 + 4 + 10 + 12)/4 = 28/4 = 7, so parent squared error = (2-7)^2 + (4-7)^2 + (10-7)^2 + (12-7)^2 = 25 + 9 + 9 + 25 = 68. Left child mean = 3, error = (2-3)^2 + (4-3)^2 = 1 + 1 = 2. Right child mean = 11, error = (10-11)^2 + (12-11)^2 = 1 + 1 = 2. Total child error = 4, so the reduction is 68 - 4 = 64. The same structure as the worked example, on different numbers: the split is worth almost the whole budget because it separates the two clusters exactly.",
+      "unit": "reduction in squared error"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A classification node of 6 rows is split into a left branch of 4 rows with Gini impurity 0.375 and a right branch of 2 rows with Gini impurity 0.5. What is the weighted Gini impurity of the two children?",
+      "answer": 0.4167,
+      "tol": 0.01,
+      "hint": "Weight each child by its share of the parent's rows before adding. The branch with the higher impurity is not the one that dominates.",
+      "sol": "The weights are 4/6 = 0.6667 and 2/6 = 0.3333. Weighted impurity = (0.6667)(0.375) + (0.3333)(0.5) = 0.2500 + 0.1667 = 0.4167. Ignoring the weights would have given (0.375 + 0.5)/2 = 0.4375, a different number — the larger branch is the less impure one here, so the unweighted average overstates the total impurity.",
+      "unit": "Gini impurity"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why can the regression version of CART not simply use Gini impurity on the target values?",
+      "opts": [
+        {
+          "md": "Gini is defined only for class proportions, and a numeric target has no classes to take proportions of",
+          "correct": true,
+          "expl": "Correct, and the fix has to say something different. A class proportion p_k is meaningful because the labels are a small finite set; a target of 10.37 has no proportion. So the regression criterion replaces \"how mixed are the labels\" with \"how spread out are the numbers\", measuring spread by squared deviation from the node's own mean. The mean is the right summary for squared error precisely because it is the constant that minimises it, which is why the leaf prediction and the criterion share the same bar{y}."
+        },
+        {
+          "md": "Gini would work if the targets were first sorted and then treated as ordered classes",
+          "expl": "Binning a continuous target into classes throws away exactly the numeric information that regression needs, and the resulting tree could only predict bin labels. The squared-error criterion uses the actual distances between targets, which is what lets a regression tree predict a value it never saw as a target."
+        },
+        {
+          "md": "Gini can be used on numeric targets but is slower than squared error",
+          "expl": "The obstacle is not speed but meaning. With hundreds of distinct target values, each row would be its own class, every p_k would be 1/n, and the impurity would be 1 - 1/n at every node regardless of the data — the measure would report nothing."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** every tree in this section has been grown to the limit of its stopping rule, and a tree grown to the limit memorises its training rows. Card 6 is about cutting it back."
+}

@@ -1,0 +1,131 @@
+{
+  "id": "12",
+  "kind": "kp-b",
+  "kp": "kp-hypergraph",
+  "chapter": "pre",
+  "section": "2.2 In this paper",
+  "kicker": "Pre-knowledge · in this paper",
+  "title": "Hypergraphs in this paper: the object every equation runs on",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "This paper writes a hypergraph as $\\mathcal{H} = (\\mathcal{V}, \\mathcal{E})$ with $N = |\\mathcal{V}|$ vertices and $M = |\\mathcal{E}|$ hyperedges, and represents it throughout by its incidence matrix $H \\in \\{0,1\\}^{N \\times M}$. Every dataset in the paper is expressed in this form before anything is learned, and Equation (3) sums a row of $H$ to obtain each vertex's structural knowledge.",
+      "plain": "In this paper the hypergraph is not the setting — it is the thing being processed. The paper writes it as a 0/1 table and every later equation is arithmetic on that table."
+    },
+    {
+      "t": "p",
+      "md": "**What the paper commits to, in two decisions.** The general section left open four questions: are the groups native or constructed, is the object kept or expanded, is it normalised, and what counts as a group. This paper answers three of them explicitly and leaves the fourth — the construction parameter — open, which is exactly what Chapter 7 will press on."
+    },
+    {
+      "t": "table",
+      "head": ["Decision", "This paper's answer", "Consequence"],
+      "rows": [
+        ["Keep or expand?", "**Keep.** No clique or star expansion anywhere.", "Relations of arity 982 stay intact — Equation (1) is written on the incidence matrix, not on a graph"],
+        ["Normalise?", "**Yes**, on both the vertex and the hyperedge side", "One 982-member hyperedge cannot swamp its 982 members' every result"],
+        ["Native or constructed?", "**Both.** Six datasets arrive as hypergraphs; four are built from plain graphs", "The four graph rows of Table I are not construction-free"],
+        ["What counts as a group? (constructed case)", "**$k$-nearest neighbours in feature space**, $k$ chosen by judgement", "Every hyperedge of those datasets is an artefact of one untested parameter — see Chapter 7"]
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The notation carries one trap worth fixing now. The paper uses $\\mathcal{H}$ for the hypergraph and $H$ for its incidence matrix; both appear in the same equations. It also uses $\\mathcal{E}$ for the hyperedge set and $E$ for experimental settings in Chapter 6's tables. Read each symbol by what it is doing in its line, not by its letter."
+    },
+    {
+      "t": "p",
+      "md": "**Where the object enters the method.** Equation (3) computes each vertex's structural knowledge by summing one row of $H$ — the vertex degree, which the graph-theory section showed you how to count. Equation (1) multiplies by $H$ and then by $H^{\\mathsf T}$, which is the vertex → hyperedge → vertex round trip. Both operations were already carried out by hand in the two extension sections; nothing new is required here."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — read the paper's own extreme case.** Table I's DBLP-Conf row: $N = 4{,}057$ authors, $M = 20$ hyperedges, average edge degree 982.2, average vertex degree 4.8."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Write the incidence matrix: $4{,}057$ rows and $20$ columns, so $81{,}140$ entries in total.",
+          "why": "Shapes first, always. Comparing that against an adjacency matrix's $4{,}057 \\times 4{,}057 = 16{,}459{,}249$ entries shows why the incidence form is the compact one for this data."
+        },
+        {
+          "md": "Only 19,644 of those entries are 1, because $20 \\times 982.2 = 19{,}644$ — about a quarter of the table.",
+          "why": "Compare the size of the two encodings rather than their density: the adjacency form of this dataset would need $4{,}057 \\times 4{,}057 = 16{,}459{,}249$ entries, roughly two hundred times as many as the $81{,}140$ here. Sparsity is what makes the incidence form usable at this scale, and it is why implementations store edge lists rather than the matrix itself."
+        },
+        {
+          "md": "Sum a row and you get a vertex degree; average them and you get 4.84, which rounds to the 4.8 the table prints.",
+          "why": "The identity from the graph-theory section, now on the paper's own numbers. You have reproduced a column of Table I from the other two columns — which is precisely the kind of check Chapter 6 will ask you to perform on every table."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — what the paper does to the four graph datasets.** Cora, Github and the two Amazon datasets arrive as plain graphs: pairwise citations, follows and co-purchases. The method needs relations of the hypergraph form, so hyperedges are constructed for them."
+    },
+    {
+      "t": "list",
+      "items": [
+        "The construction is $k$-nearest neighbours in feature space: each vertex plus its $k$ most similar vertices becomes one hyperedge.",
+        "So **all ten datasets are hypergraphs by the time the method runs**. Table I's *Type* column records what each dataset arrived as, not what the network consumes.",
+        "The consequence is that the four 'graph' rows are not a control group free of preprocessing. Whatever governed the construction of their hyperedges is inherited by every score in those rows."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "This is the single most important thing to carry from this card into Chapter 6. When you read Table I's *Type* column, you are reading a statement about provenance — and when Chapter 7 asks whether the untested $k$ undermines the results, the question applies to all ten rows, not only to the six labelled as hypergraphs."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "How does this paper represent a hypergraph internally?",
+      "opts": [
+        {
+          "md": "As an adjacency matrix over the expanded pairwise graph",
+          "expl": "The paper explicitly does not expand. That is one of its stated design choices, and Equation (1) would not be written the way it is if it had expanded — an expanded graph has no edge columns of size 982."
+        },
+        {
+          "md": "As an incidence matrix $H$ with one row per vertex and one column per hyperedge",
+          "correct": true,
+          "expl": "Correct. Equation (3) sums a row of it and Equation (1) multiplies by it and by its transpose. Every quantity the paper computes descends from that one matrix."
+        },
+        {
+          "md": "As a list of hyperedges, with no matrix form",
+          "expl": "Implementations do store edge lists for efficiency, but the paper's mathematics is written on the matrix. The two are the same object, and the matrix is the one the equations act on."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "For DBLP-Conf, how many entries of its incidence matrix equal 1? (Use $M = 20$ and average edge degree 982.2.)",
+      "answer": 19644,
+      "tol": 1,
+      "hint": "The number of 1s is the total membership count — column direction, not the whole matrix size.",
+      "sol": "$20 \\times 982.2 = 19{,}644$. The matrix itself has $4{,}057 \\times 20 = 81{,}140$ entries, so fewer than a quarter of them are 1. Note which wrong answers are available: 81,140 is the matrix size and 4,057 is the vertex count — both appear in this card, and neither is the answer.",
+      "unit": "entries"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Table I labels Cora as a graph. What follows for a reader trying to judge the fairness of the results on that row?",
+      "opts": [
+        {
+          "md": "Nothing — graph datasets need no preprocessing, so the row is a clean baseline",
+          "expl": "This is the misreading the card is written against. The label describes the input format, not the processing. Hyperedges still had to be built for Cora before the method could run on it."
+        },
+        {
+          "md": "The row's hyperedges were constructed by the authors, so its scores depend on a construction parameter that Table I does not report",
+          "correct": true,
+          "expl": "Correct. This is a concrete, checkable observation about the paper — not a complaint about its methods but a limit on what the table alone can tell you. A results table is only as interpretable as the preprocessing it presupposes."
+        },
+        {
+          "md": "The row should be excluded from the comparison",
+          "expl": "Excluding it would discard real evidence about the method. The right response is to read the number with knowledge of how it was produced, not to remove it."
+        }
+      ]
+    }
+  ],
+  "close": "**Next in this chapter:** the paper's method also mines knowledge out of decision trees, so the chapter now turns to that model — what a decision tree is, how it chooses its questions, and when it fails. The extension section builds it from zero."
+}

@@ -1,0 +1,51 @@
+<!-- ============ c40 Table IV 超参 ============ -->
+<section class="card" data-c="40" data-title-zh="表 IV · 超参数配置" data-title-en="Table IV · hyper-parameter configuration">
+  <div class="card-inner">
+    <div class="card-kicker k-fig"><span class="len">Table IV · the recipe cards</span><span class="lz">表 IV · 配方卡</span></div>
+    <h2><span class="lz">表 IV：每个数据集的"配方卡"</span><span class="len">Table IV: a recipe card per dataset</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz"><b><span class="hl">表 IV 是复现实验的钥匙：每个数据集一行，记着训练用的全部可调项——学习率、树队的棵数、隐层维度、树的最大深度，以及位置公式的两个旋钮 α、β。</span></b>表 I/II/III 描述"考什么、怎么切"，这张表描述"怎么练"。</p>
+    <p class="len"><b><span class="hl">Table IV is the reproducibility key: one row per dataset recording every tunable in training — learning rate, number of trees, hidden width, tree depth, and the position formula's two knobs α, β.</span></b> Tables I–III describe what is examined and how it splits; this table describes how the model trains.</p>
+    <p class="lz">六列各管一处，其中三列你在方法篇已经亲自用过：<b>α、β</b> 就是第 30 卡位置公式的两只旋钮；<b>树数</b>决定规则账的长度（第 32 卡的 Cr）；<b>最大深度</b>决定每棵树的提问点上限（第 13 卡算过深度 4 → 15 个内部节点）。</p>
+    <p class="len">Six columns, each minding one thing — three of which you have already handled in the method part: <b>α, β</b> are card 30's two knobs; <b>number of trees</b> sets the ledger's length (card 32's Cr); <b>max depth</b> caps each tree's question nodes (card 13 counted 15 inner nodes at depth 4).</p>
+    <div class="figbox">
+      <img data-fig="tab4" alt="Table IV of the paper: hyper-parameter configuration of datasets">
+      <div class="figcap"><span class="lz">论文表 IV 原图（Feng et al., TPAMI 2026）。最后一对列 α、β 正是位置公式 μ<sub>p</sub> = α/(d+β) 的旋钮。</span><span class="len">Original Table IV (Feng et al., TPAMI 2026). The last two columns α, β are the knobs of μ<sub>p</sub> = α/(d+β).</span></div>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>走查 1（读 CC-Cora 行，接上方法篇）：</b>学习率 0.4；树 140 棵；隐层 128 维；最大深度 3；<b>α = 9、β = 8</b>——正是第 30 卡例 1 用过的那组！回看那张小表：第 0 层权重 9÷8 = 1.125、第 2 层 9÷10 = 0.9——你当时算的数就是从这一行取的。这就是复现的意义：每个数字都能追到出处。</p>
+    <p class="len"><b>Walk 1 (read CC-Cora's row, joining the method part):</b> learning rate 0.4; 140 trees; 128 hidden units; max depth 3; <b>α = 9, β = 8</b> — card 30's Example 1 exactly! Look back at that little table: layer 0 weighs 9÷8 = 1.125, layer 2 weighs 0.9 — the numbers you computed came from this row. That is reproducibility: every figure traces to its source.</p>
+    <p class="lz"><b>走查 2（竖着读两列，看规律）：</b>树数列从 20（Tencent、Heloc）到 190（Amazon-P、Amazon-C、ModelNet40），跨度近十倍——数据集越大、特征越繁，配方里的树就越多。再看<b>隐层维度一列：十行全是 128</b>——这是全表唯一的"统一参数"，说明论文没有为每个数据集单独调它，保持了配置的简洁。最后看 α、β：每一行都不重样（10/6、9/8、6/6、6/10……）——这两只旋钮是逐数据集网格搜索出来的（第 30 卡提过），因为树的深度分布各数据集不同。</p>
+    <p class="len"><b>Walk 2 (read two columns vertically for patterns):</b> the tree column runs from 20 (Tencent, Heloc) to 190 (Amazon-P, Amazon-C, ModelNet40), a tenfold span — bigger data, busier features, more trees. Now the <b>hidden-width column: all ten rows read 128</b> — the table's only uniform setting, so the paper never hand-tuned it per dataset, keeping the recipe lean. Finally α, β: no two rows repeat (10/6, 9/8, 6/6, 6/10 …) — the two knobs came from per-dataset grid search (noted at card 30), because tree-depth profiles differ across datasets.</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">表 IV 与表 I 的分工是什么？</span><span class="len">How do Tables IV and I divide the labor?</span></p>
+      <div class="opts">
+        <button class="opt" data-correct="1" data-expl="对！表 I 记数据本身的规模（几个点、几类），表 IV 记训练时的可调项（学习率、树数、αβ）——一个描述“原料”，一个描述“火候”。"><span class="lz">表 I 描述数据（点/类/特征的规模）；表 IV 描述训练配方（可调项）</span><span class="len">Table I describes the data; Table IV the training recipe</span></button>
+        <button class="opt" data-expl="两表没有重复列——表 I 的顶点数、类别数在表 IV 里根本不出现，它们各记各的。"><span class="lz">两表内容基本重复，只是排版不同</span><span class="len">The two tables largely repeat each other</span></button>
+        <button class="opt" data-expl="顺序反了——数据在表 I，配方在表 IV；“报告结果的表”是表 V/VI。"><span class="lz">表 IV 记数据、表 I 记训练参数</span><span class="len">Table IV records data, Table I records training settings</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="1.25" data-tol="0.01" data-hint="先找到 Cora 那一行的 α、β 两个数，再按第 30 卡的公式算第 2 层的权重（d=2）。" data-sol="Cora 行：α = 10、β = 6 → μ<sub>p</sub>(2) = 10 ÷ (2 + 6) = 10 ÷ 8 = 1.25。换个数据集（CC-Cora 的 9、8）同一层就是 9÷10 = 0.9——配方不同，权重表也不同。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：按表 IV 里 Cora 行的旋钮，第 2 层规则的权重 μ<sub>p</sub>(2) 是多少？</span><span class="len">Numeric: with Cora's knobs from Table IV, what is a layer-2 rule's weight μ<sub>p</sub>(2)?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：为什么 α、β 要逐数据集搜，而学习率、树数也逐数据集不同，隐层维度却敢全表统一？</span><span class="len">Transfer: why grid-search α, β per dataset — and vary learning rate and tree count too — yet fix the hidden width for all?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="不是“不敏感”——第 21 卡说过 β 一动成绩就动。理由是工程量：候选很多、收益递减，统一值够用；而风险高的旋钮（α、β）才值得每个数据集搜一遍。"><span class="lz">因为隐层维度对成绩毫无影响</span><span class="len">Because hidden width does not affect accuracy</span></button>
+        <button class="opt" data-correct="1" data-expl="正确！α、β 直接改变“规则账的形状”（第 30 卡消融：β 一动成绩就动），值得逐个搜；学习率/树数与数据规模强相关，也需适配；隐层维度对这类任务的收益递减、候选又少，统一 128 是省算力的合理取舍——三列不同的处理方式，背后是同一笔“收益 vs 成本”的账。"><span class="lz">α·β 直接影响账本形状（值得逐个搜）；学习率/树数随规模适配；隐层维度收益递减、统一值够用——同一笔收益/成本账</span><span class="len">α, β shape the ledger (worth per-dataset search); rate and trees track scale; hidden width has diminishing returns — one cost-benefit calculus</span></button>
+        <button class="opt" data-expl="论文没解释隐层维度的选择——但“没解释”不等于“随机”，统一 128 本身就是一个可观察的设计决策。"><span class="lz">纯属随意，不必深究</span><span class="len">Purely arbitrary; do not read into it</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout good">
+      <b><span class="lz">实验篇第一站小结：</span><span class="len">First stop of the experiment part:</span></b>
+      <span class="lz">表 I 交代"考生是谁"，表 II/III 交代"怎么考"，表 IV 交代"怎么练"——下一张开始看成绩单（表 V）。</span>
+      <span class="len">Table I says who the candidates are, Tables II/III say how they are examined, Table IV says how they train — the score sheets start next (Table V).</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

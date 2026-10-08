@@ -1,0 +1,148 @@
+{
+  "kind": "check",
+  "title": "Skip check: the two failures, and how the paper answers them",
+  "what": [
+    {
+      "t": "p",
+      "md": "This section made two failures precise — over-smoothing and over-squashing — and previewed how the taught paper responds to each. Below is that response, then the recap; if you can do everything in the recap unaided, skip ahead."
+    },
+    { "t": "h3", "md": "How the taught paper responds" },
+    {
+      "t": "p",
+      "md": "**To over-smoothing, a structural embedding computed once.** The paper's High-Order Incidence Encoder reads the incidence matrix $H$ and produces, for every vertex, a single structural number $X_s$ — how many relations the vertex belongs to. This is computed *before* the propagation and then injected as an input feature; its width is deliberately $C_s = 1$. The move does not fight the averaging; it changes what the averaging is given. The paper's sharper framing is that the layer already *uses* each vertex's degree inside its normalisation and then discards it, so the encoder's job is to expose that degree as a feature the network can read."
+    },
+    {
+      "t": "p",
+      "md": "**To compression, a second channel built without aggregating neighbours.** The Task-Driven Rule Encoder runs a gradient-boosted tree ensemble — many small decision trees, where a decision tree is a sequence of yes/no questions about a single vertex's features, and the trees' answers are combined into one prediction — on each vertex's own feature vector, and returns a per-vertex embedding $X_r$. Every step of that construction reads one vertex at a time, so no neighbour averaging enters it anywhere. That yields a description of the vertex which is a function of the vertex alone, available to the network before the first smoothing step — exactly the kind of signal a fixed-width neighbourhood summary was destroying."
+    },
+    {
+      "t": "table",
+      "head": ["Failure", "The paper's answer", "What it addresses", "What it does not"],
+      "rows": [
+        ["**Over-smoothing**", "HOI-Encoder: $X_s$ computed once from $H$, injected as an input feature", "Gives the network a structural quantity that neighbour-averaging was never going to produce", "Does not alter the layer — the propagation still averages, so representations still contract with depth"],
+        ["**Feature compression** (= over-squashing)", "TDR-Encoder: $X_r$ from a tree ensemble on each vertex's features, built with no neighbour aggregation", "Gives the network a per-vertex channel whose construction does not depend on the size of a neighbourhood", "Does not widen the representation or shrink the receptive field, so one very large relation is still summarised into a fixed-width vector"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The honest bottom line, and the number that settles it.** The paper does not stop over-smoothing; it enriches the layer's input. Its own layer-count ablation (Table VIII on CC-Cora) shows the contraction is still there. The plain HGNN falls from $73.41$ at 2 layers to $30.22$ at 8 layers — a drop of $43.19$ points. DD-HGNN, which carries both encoders, also falls: $76.06 \\to 49.53$, a drop of $26.53$ points. Enriched input makes the model *more robust* to depth; it does not make it *immune*. The paper attributes the decline to overfitting — whether the smoothing contraction better explains the shape is exactly what a later chapter examines."
+    },
+    { "t": "h3", "md": "Recap" },
+    {
+      "t": "list",
+      "items": [
+        "**Over-smoothing:** with depth, vertex representations converge to a common value, the range shrinks to zero, and a classifier can no longer separate vertices.",
+        "**Its mechanism:** every layer is a weighted average, so no value leaves the previous round's range, and the range strictly shrinks unless the signal is already flat.",
+        "**Over-squashing:** the receptive field grows with reach while the representation width is fixed; once the field carries more numbers than the width, the summary map cannot be injective and distant detail is lost.",
+        "**The two are different:** different causes (depth versus reach-and-width), different symptoms, different remedies — which is why the paper uses two encoders rather than one.",
+        "**The paper's answer:** two encoders that compute information outside the propagation — a structural embedding from $H$, and a rule embedding from a tree ensemble on per-vertex features — spliced into the layer's input rather than replacing the layer."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The questions below are the check. The bar is not a score; it is that you did not have to think hard about any of them. If you hesitated on why depth and reach are different causes, stay: the chapter that checks the paper's evidence leans on exactly that distinction."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk — the arithmetic behind the bottom line.** The claim that the paper's answer does not stop the contraction is a claim about numbers, and the numbers are in the paper's own ablation."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Read the plain HGNN column at 2 layers and at 8 layers: $73.41$ and $30.22$.",
+          "why": "Both are accuracies on the same 40-class task, so they are comparable. Blind guessing scores $100/40 = 2.5$ percent — the floor the deep plain model is crawling towards."
+        },
+        {
+          "md": "Subtract: $73.41 - 30.22 = 43.19$ points lost from 2 layers to 8.",
+          "why": "A model that got worse as it got deeper is the signature of over-smoothing, not of a model that merely lacked capacity."
+        },
+        {
+          "md": "Read the DD-HGNN column at the same two depths: $76.06$ and $49.53$. Subtract: $76.06 - 49.53 = 26.53$ points.",
+          "why": "DD-HGNN carries both encoders, so this comparison isolates the paper's answer. It loses less than the plain HGNN, but it still loses — richer input slows the decline without reversing it."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "That contrast is the whole preview: $43.19$ points of decline without the encoders, $26.53$ with them. Smaller, not zero."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In one line: which failure is caused by depth, and which by the size of the receptive field?",
+      "opts": [
+        {
+          "md": "Depth causes over-squashing; receptive-field size causes over-smoothing",
+          "expl": "Reversed. Depth adds averaging rounds, which is over-smoothing; a receptive field too large for the fixed width is over-squashing."
+        },
+        {
+          "md": "Depth causes over-smoothing; receptive-field size causes over-squashing",
+          "correct": true,
+          "expl": "Correct. One is a convergence problem driven by how many layers run; the other a capacity problem driven by how much has to be summarised relative to the fixed width."
+        },
+        {
+          "md": "Both are caused by depth",
+          "expl": "Only over-smoothing is. Over-squashing can appear at shallow depth when relations are large, which is why a fix for depth does not fix it."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "On CC-Cora, DD-HGNN scores 76.06 at 2 layers and 49.53 at 8 layers. By how many points does it fall?",
+      "answer": 26.53,
+      "tol": 0.02,
+      "hint": "Subtract the deeper score from the shallower one; the answer is a positive number of points lost.",
+      "sol": "76.06 − 49.53 = 26.53 points. The plain HGNN loses 73.41 − 30.22 = 43.19 points over the same range, so the encoders reduce the depth-decline by about 16.66 points — roughly 39 percent of the plain loss. Reduced, not removed.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The paper's answer to over-smoothing is best described as:",
+      "opts": [
+        {
+          "md": "Removing the averaging from the layer",
+          "expl": "The layer is unchanged: it still averages neighbours. Removing the averaging would change the paradigm, which the paper does not do."
+        },
+        {
+          "md": "Enriching the input to the layer, so it starts from information that averaging would otherwise have diluted, without changing the layer itself",
+          "correct": true,
+          "expl": "Correct. The structural number is computed once and injected; the smoothing operator is untouched. That is why the contraction continues even though accuracy improves."
+        },
+        {
+          "md": "Reducing the number of layers in the installed HGNN",
+          "expl": "The paper's method keeps the HGNN and adds encoders; it does not cut depth. It varies depth only to measure the effect."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The rule encoder builds each vertex's embedding from that vertex's features alone. What does that buy against over-squashing?",
+      "opts": [
+        {
+          "md": "It widens the representation, so more of a wide relation fits",
+          "expl": "The fixed width is unchanged. The channel is added alongside the existing one, not enlarged in place; widening the representation is a different remedy the paper does not adopt."
+        },
+        {
+          "md": "It supplies a description of the vertex that was never squeezed through a neighbourhood summary, so distinction that aggregation would crush is still available to the network",
+          "correct": true,
+          "expl": "Correct. Because the tree reads one vertex at a time, the resulting description is not a product of any neighbourhood summary, so the squashing that happens inside the aggregation does not touch it."
+        },
+        {
+          "md": "It removes the hyperedges that make relations large",
+          "expl": "The structure is untouched. The encoder adds information; it does not delete relations."
+        }
+      ]
+    }
+  ],
+  "close": "**You are ready for the chapter that checks the evidence.** It reads the paper's layer-count table and per-dataset results against exactly the two predictions made here: accuracy should fall with depth (over-smoothing), and a fix should help most where relations are largest (over-squashing). If you skipped, both names come back the moment the introduction lists them."
+}

@@ -1,0 +1,34 @@
+[
+  {
+    "slug": "feng-2026-knowledge-hgnn",
+    "title": "Knowledge-Embedded Hypergraph Neural Networks",
+    "short": "Knowledge HGNN",
+    "authors": "Yifan Feng, Yifan Zhang, Shaoyi Du, Shihui Ying, Zongze Wu, Yue Gao",
+    "affil": "Tsinghua · Xi'an Jiaotong · Shanghai University · Shenzhen University",
+    "venue": "IEEE TPAMI, vol. 48, no. 7, 2026, pp. 8613–8625",
+    "site": "sites/feng-2026-knowledge-hgnn.html",
+    "decomposed": "2026-10-08",
+    "cards": 140,
+    "kps": 6,
+    "spec": "v5",
+    "status": "complete",
+    "keywords": ["hypergraph", "graph neural network", "GNN", "HGNN", "gradient boosting", "GBDT", "decision tree", "knowledge embedding", "rule extraction", "node classification", "incidence matrix", "over-smoothing", "over-squashing"],
+    "oneline": "Conventional hypergraph networks only smooth features along relations. This paper computes two kinds of knowledge first — a structural ledger from hyperedge counts, a rule ledger from a boosted tree ensemble — fuses them, and only then runs the network."
+  },
+  {
+    "slug": "perrault-2020-game-focused",
+    "title": "End-to-End Game-Focused Learning of Adversary Behavior in Security Games",
+    "short": "Game-Focused Learning",
+    "authors": "Andrew Perrault, Bryan Wilder, Eric Ewing, Aditya Mate, Bistra Dilkina, Milind Tambe",
+    "affil": "Harvard CRCS · USC CAIS",
+    "venue": "AAAI-20, pp. 1379–1386",
+    "site": "sites/perrault-2020-game-focused.html",
+    "decomposed": "2026-09-30",
+    "cards": 66,
+    "kps": 13,
+    "spec": "v4",
+    "status": "complete",
+    "keywords": ["Stackelberg game", "security game", "game theory", "decision-focused learning", "quantal response", "SUQR", "counterfactual", "predict-then-optimize", "mixed strategy", "loss function", "cross-entropy"],
+    "oneline": "Instead of predicting adversary behaviour accurately and hoping the decision follows, this paper trains the predictor on the decision it feeds — differentiating through the defender's optimisation so that the loss is the security outcome itself."
+  }
+]

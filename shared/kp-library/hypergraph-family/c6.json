@@ -1,0 +1,110 @@
+{
+  "kind": "extension",
+  "title": "Converting back: three ways to turn a hypergraph into a graph",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "An expansion converts a hypergraph into a graph so that graph-based methods can be applied to it. The clique expansion replaces each hyperedge $e$ by all $\\binom{|e|}{2}$ pairs of its members. The star expansion introduces one auxiliary vertex per hyperedge and connects it to every member. The line (or dual) expansion swaps the roles, making each hyperedge a vertex and joining two hyperedges when they share a member.",
+      "plain": "If you already have a tool that works on pairs and you do not want to write a new one for groups, you can rewrite the groups as pairs — three standard ways, each throwing away something different."
+    },
+    {
+      "t": "p",
+      "md": "**Why this is a live option rather than a historical curiosity.** The graph-learning toolbox is vast and mature; the hypergraph toolbox is small. Expansion lets a hypergraph problem be solved with an off-the-shelf graph network, which is exactly what several of this paper's baselines do. The paper's own approach is the opposite bet: keep the hypergraph intact and handle it directly."
+    },
+    {
+      "t": "table",
+      "head": ["Expansion", "What is added", "What is lost", "Cost for a hyperedge of size $s$"],
+      "rows": [
+        ["Clique", "$\\binom{s}{2}$ pairwise edges", "the group as a unit; all pairs look independent", "$s(s-1)/2$ — quadratic"],
+        ["Star", "$s$ edges plus 1 auxiliary vertex", "auxiliary vertices are meaningless objects", "$s + 1$ — linear"],
+        ["Line / dual", "one vertex per hyperedge", "the distinction between members and relations", "roles swap, not expand"],
+        ["**Keeping it**", "nothing", "nothing", "**1 relation, unchanged**"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "The row that matters is the last one. Every expansion trades structure for compatibility, and the trade is irreversible: once a 982-member hyperedge is expanded, no downstream method can recover the fact that those 481,671 pairs were one event. **This is the precise sense in which this paper's \"keep the hypergraph\" stance is a real choice and not a stylistic one.**"
+    }
+  ],
+  "example": [
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Take a hyperedge of size 10 — a ten-author paper, say.",
+          "why": "Small enough to enumerate. The pattern is what matters."
+        },
+        {
+          "md": "Clique expansion: all pairs of the 10 authors, which is $10 \\times 9 / 2 = 45$ edges.",
+          "why": "The relation's arity has been paid for quadratically — 45 edges for 1 event. And all 45 are now indistinguishable from 45 independent collaborations."
+        },
+        {
+          "md": "Star expansion: introduce one auxiliary vertex (the paper itself) and connect all 10 authors to it — 10 edges, plus 1 new vertex.",
+          "why": "Linear instead of quadratic, and it preserves the grouping: everyone connected to the same auxiliary vertex was on the same paper. The price is a graph in which 10 of the 11 vertices are people and one is an artefact."
+        },
+        {
+          "md": "Line expansion: make the paper a vertex and the authors into... nothing, since an author with several papers would need to be a hyperedge itself.",
+          "why": "This is the dual view the bipartite formulation already gives you. It is the right move when the *relations* are the objects of interest — for instance when classifying venues rather than authors."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — why the choice shows up in the results.** Apply clique expansion to DBLP-Conf and one 982-member hyperedge becomes 481,671 edges. Run a graph network on that and the structure is dominated by a handful of enormous conferences; run it on the star expansion and the auxiliary vertices are 20 out of 4,077. **The same dataset, two graphs, two different sets of numbers** — which is why a results table is only interpretable alongside the construction it used."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which expansion introduces new vertices that were not in the original data?",
+      "opts": [
+        {
+          "md": "Clique expansion",
+          "expl": "Clique expansion adds only edges, no vertices — every pair is made of two original members."
+        },
+        {
+          "md": "Star expansion",
+          "correct": true,
+          "expl": "Correct: one auxiliary vertex per hyperedge, standing for the relation itself. This is what makes it linear rather than quadratic in cost — you connect $s$ members through one new node instead of creating $s(s-1)/2$ pairs."
+        },
+        {
+          "md": "Line expansion",
+          "expl": "It does not add vertices either — it promotes the existing hyperedges to vertices, so the count of vertices becomes the count of hyperedges. A promotion is not an addition."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Clique expansion is applied to a hyperedge of size 8. How many pairwise edges does it produce?",
+      "answer": 28,
+      "tol": 0.01,
+      "hint": "$s(s-1)/2$ with $s = 8$.",
+      "sol": "$8 \\times 7 / 2 = 56 / 2 = 28$. Answering 56 double-counts each pair. Compare with the star expansion, which would need $8 + 1 = 9$ elements — the difference between quadratic and linear becomes dramatic as groups grow.",
+      "unit": "edges"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why would a research group choose to keep the hypergraph rather than expand it, given the maturity of graph-learning tooling?",
+      "opts": [
+        {
+          "md": "Because expansion is computationally impossible at scale",
+          "expl": "It is expensive but not impossible; star expansion is linear and scales fine. The reason to avoid expansion is about information, not cost."
+        },
+        {
+          "md": "Because every expansion destroys the grouping — the very structure that made the hypergraph worth using",
+          "correct": true,
+          "expl": "Correct. Clique expansion loses that the pairs came from one event; star expansion preserves it but injects meaningless vertices; line expansion swaps what is being modelled. If the group is the point, expanding it away is self-defeating. This is the argument this paper makes for handling the hypergraph directly, and it is a sound one."
+        },
+        {
+          "md": "Because graph networks cannot handle weighted edges",
+          "expl": "They can, routinely. Weighting is a well-trodden path and is not the obstacle."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** having seen where hyperedges come from and how they can be converted away, card 7 assembles the section and states the rule this all implies for reading a results table."
+}

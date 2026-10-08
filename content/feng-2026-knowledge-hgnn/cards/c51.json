@@ -1,0 +1,122 @@
+{
+  "id": "51",
+  "kind": "intro",
+  "chapter": "intro",
+  "section": "4.2 The three failure modes",
+  "kicker": "4.2 · The introduction",
+  "title": "The three failures of the smoothing paradigm",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Over-smoothing** is the convergence of vertex features to a common value as a graph network is applied repeatedly, because each layer replaces every vertex's representation with a blend of its neighbours'. **Over-squashing** is the loss of information that occurs when a set of neighbours which grows quickly must be compressed into a fixed-size representation. Both are properties of the smoothing operation itself, not of any particular dataset.",
+      "plain": "Smoothing has two ways to hurt. Apply it too many times and everything converges to the same average — that is over-smoothing. Force a vertex with a thousand neighbours to summarise all of them into one short vector and detail is crushed — that is over-squashing."
+    },
+    {
+      "t": "p",
+      "md": "**Why the paper cares, and what it does about each.** The introduction names three failures of the paradigm \"structure guides the smoothing of vertex features\". Two of them are consequences of the operation; the third is a statement about what the operation ignores."
+    },
+    {
+      "t": "table",
+      "head": ["Failure", "Mechanism", "Evidence that would show it is real", "The paper's answer"],
+      "rows": [
+        ["**Over-smoothing**", "Each layer replaces a vertex's features with a blend of its neighbours', so distinctness decays with depth", "A deeper standard network should score *worse* than a shallower one — an inversion", "The **structural encoder**: inject a per-vertex quantity that no amount of neighbour-averaging can produce"],
+        ["**Feature compression** (= over-squashing)", "A rapidly expanding neighbourhood must be squeezed into a fixed-size vector, so distinctive signals are distorted", "Performance should degrade on datasets with large edges — the bigger the typical hyperedge, the worse the compression", "The **rule encoder**: add a second, independent channel about each vertex that does not pass through the aggregation at all"],
+        ["**No mechanism for domain knowledge**", "The paradigm consumes structure and features and nothing else, so any knowledge expressed as rules has nowhere to enter", "Not directly measurable — this is the weakest of the three, and it is a statement about the architecture rather than a phenomenon", "Both encoders, by construction: they are the mechanism"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The third row deserves the scepticism it invites.** \"The standard approach typically lacks a mechanism to explicitly capture and leverage domain-specific knowledge\" is true as stated — the layer has no input for anything but features and structure. But \"domain-specific knowledge\" is not a quantity, so no experiment can measure its absence. The honest reading is that this row is a **motivation for a design**, not a diagnosed failure; the first two rows are diagnosed failures, because each implies a prediction that can be tested."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "This distinction — diagnosed failure versus design motivation — is one of the most transferable things in this chapter. Ask of every claimed deficiency: **what observation would be different if the deficiency were not there?** If there is an answer, the deficiency is empirical and the paper's experiments should address it. If there is none, it is a framing device."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — test the over-smoothing prediction on a small case.** Chapter 2's graph-theory section already showed the mechanism on four vertices: repeatedly multiplying by the Laplacian drives every value towards the graph average."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Start with a signal that is deliberately distinctive: $x = (10, 20, 30, 40)$ on four vertices of the star.",
+          "why": "The spread here is 30. Any process that reduces the spread is destroying exactly the information a classifier needs."
+        },
+        {
+          "md": "Apply the neighbour-averaging operation once and the spread shrinks; apply it many times and all four values converge to a common number.",
+          "why": "The prediction is therefore an inequality across *depth*: a model with many layers should do worse than one with few. That is a testable, falsifiable statement about a real architecture."
+        },
+        {
+          "md": "Now look at what this predicts for the paper's own results: the standard baseline should show accuracy *falling* as layers are added.",
+          "why": "Hold that prediction. Chapter 6's layer-ablation table is where it is checked — and the shape of that table is the evidence for the paper's first failure mode."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the over-squashing prediction is about edge size, not depth.** If a fixed-size vector must summarise a growing neighbourhood, the damage should scale with how large a typical relation is. DBLP-Conf, whose hyperedges average 982 members, should therefore be a worse case than Cora, whose relations have two."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "This prediction is the more interesting one, and the paper tests it less directly. It claims the *structural* encoder is what helps most on datasets with large hyperedges — a claim about **which datasets benefit**, which is exactly the kind of claim a per-dataset results table can support or undermine. Chapter 6 checks it."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is the difference between over-smoothing and over-squashing?",
+      "opts": [
+        {
+          "md": "Over-smoothing is about depth; over-squashing is about the size of a neighbourhood being compressed",
+          "correct": true,
+          "expl": "Correct. Over-smoothing is a convergence phenomenon — features become alike as layers stack. Over-squashing is a capacity phenomenon — too much information is forced through too narrow a channel. They have different causes and therefore different remedies, which is why the paper addresses them with two different encoders."
+        },
+        {
+          "md": "They are two names for the same phenomenon",
+          "expl": "The paper does treat \"feature compression\" as a form of over-squashing, but it keeps over-smoothing separate — and it distinguishes them in the introduction by giving each its own mechanism sentence."
+        },
+        {
+          "md": "Over-smoothing applies to hypergraphs; over-squashing applies to plain graphs",
+          "expl": "Both apply to both. The paper's argument is that hypergraphs make over-squashing worse, because one relation can have hundreds of members rather than two."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Table I gives DBLP-Conf an average edge degree of 982.2 and CA-Cora 4.5. Roughly how many times more information must one relation's summary compress in the first case, to the nearest whole number?",
+      "answer": 218,
+      "tol": 1,
+      "hint": "Divide the larger average edge size by the smaller.",
+      "sol": "$982.2 / 4.5 = 218.27\\ldots$, so about **218 times**. Both datasets must summarise each relation into a vector of the same width, because the width is fixed by the architecture — so DBLP-Conf asks that vector to carry over two hundred times as much as CA-Cora does. Both figures are read from Table I; the ratio is the mechanism's prediction about which dataset should suffer more.",
+      "unit": "times"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Which of the paper's three claimed failures is *not* directly measurable by any experiment?",
+      "opts": [
+        {
+          "md": "Over-smoothing",
+          "expl": "Directly measurable — it predicts that accuracy falls as depth increases, which a layer-ablation table tests."
+        },
+        {
+          "md": "The absence of a mechanism for domain knowledge",
+          "correct": true,
+          "expl": "Correct. The claim is that the architecture has no input for knowledge, which is true by inspection but implies no observable difference. You cannot run an experiment to detect the absence of a channel — you can only observe that the channel is absent, which is an architectural fact rather than an empirical finding. Recognising this does not make the motivation wrong; it makes it a motivation rather than a diagnosis."
+        },
+        {
+          "md": "Feature compression",
+          "expl": "Measurable in principle: the mechanism predicts that performance degrades with typical relation size. It is the harder of the two to test, but it is not unobservable."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the four contributions the introduction claims, taken one at a time, with what each commits the paper to delivering."
+}

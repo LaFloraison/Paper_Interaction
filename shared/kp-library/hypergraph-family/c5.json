@@ -1,0 +1,119 @@
+{
+  "kind": "extension",
+  "title": "Where hyperedges come from (2): inventing them from the data",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A hypergraph is called **constructed** when the data supplies no groups and the hyperedges are produced by a stated procedure — most commonly by joining each vertex to its $k$ nearest neighbours under some similarity, or by expanding an existing graph. In that case the hypergraph is an artefact of the procedure and its parameters, not a record of the data.",
+      "plain": "Sometimes there are no groups in the data at all — just a table of numbers. Then you have to manufacture the groups yourself, and how you manufacture them decides what the model sees."
+    },
+    {
+      "t": "p",
+      "md": "**Why anyone would do this.** Many datasets are tables: a patient with a set of clinical measurements, a point cloud with coordinates, a credit application. There is no relation recorded anywhere. But the rows still resemble each other, and similarity is enough to build structure — join every row to the rows most like it, and call each neighbourhood a hyperedge."
+    },
+    {
+      "t": "table",
+      "head": ["Procedure", "How the hyperedge is formed", "Characteristic weakness"],
+      "rows": [
+        ["$k$-nearest neighbours", "each vertex plus its $k$ most similar vertices", "every group has the same size; similarity is forced even where none exists"],
+        ["Clique expansion", "every pair inside a dense region becomes an edge", "quadratic blow-up; the group ceases to be a unit"],
+        ["Star expansion", "add an auxiliary vertex per group and connect it", "the auxiliary vertex carries no meaning of its own"],
+        ["Threshold / attribute", "all vertices of one category, or above a similarity cut", "group sizes swing wildly; the threshold is another hidden parameter"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The consequence to hold onto: the hypergraph is now a hyperparameter.** Two datasets of the same underlying data, processed with $k = 5$ and $k = 50$, are different hypergraphs — different edge degrees, different vertex degrees, different numbers of relations. Every reported number describes one point in that space, and none of the differences came from the data."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "This is the sharpest critical question you can put to a paper that constructs its hyperedges: **the choice of construction is a free parameter, so what happens at other settings?** Hold that question; Chapter 7 returns to it with this paper's own numbers."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a point cloud becomes a hypergraph.** ModelNet40 is a collection of 3D shapes; each shape is a cloud of points with coordinates. Nothing in it is a relation. This paper turns it into a hypergraph in three steps."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Convert each point cloud into a table: one row per shape, columns for geometric features.",
+          "why": "Nothing relational has happened yet. This is an ordinary feature matrix, the kind a decision tree would eat directly."
+        },
+        {
+          "md": "Measure similarity between rows — here, distance in feature space.",
+          "why": "Similarity is the raw material a constructed hypergraph is made of. It exists whether or not the data intends it: two shapes will always be nearer or farther."
+        },
+        {
+          "md": "For each row, take its $k$ nearest neighbours and declare that set of $k+1$ rows one hyperedge.",
+          "why": "The hypergraph now exists. Note precisely what decided its shape: **a distance function and a number $k$**, neither of which came from ModelNet40 itself. Change $k$ and every column of Table I's ModelNet40 row changes."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — how much a single number moves.** With $|V| = 1{,}000$ rows and $k = 5$, each vertex belongs to 6 hyperedges only if neighbourhoods are perfectly symmetric; in general the count varies. Push $k$ to 50 and every hyperedge grows tenfold while the number of vertices does not move at all."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "The honest reading of a constructed hypergraph is therefore: **\"this is what the data looks like under the procedure and parameter I chose.\"** That is not a criticism — it is what any feature engineering is. It only becomes a problem when the paper reports the hypergraph as though it were a property of the dataset. Both Heloc (credit data) and ModelNet40 in this paper's Table I are of this kind."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In a $k$-nearest-neighbour construction, what determines the size of a hyperedge?",
+      "opts": [
+        {
+          "md": "The number of vertices in the dataset",
+          "expl": "$|V|$ sets the *number* of hyperedges — one per vertex — but not their size. The two quantities are independent knobs."
+        },
+        {
+          "md": "The parameter $k$: each hyperedge holds the vertex and its $k$ nearest neighbours",
+          "correct": true,
+          "expl": "Correct, so $k+1$ members. This is why $k$ is the parameter to interrogate: it sets the arity of every relation in the dataset simultaneously, and it is chosen by the experimenter."
+        },
+        {
+          "md": "The similarity threshold between neighbours",
+          "expl": "Threshold constructions exist (see the table) but that is a different procedure. In plain $k$-NN there is no threshold — you always take exactly $k$, however dissimilar the $k$-th neighbour turns out to be."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A dataset of 800 rows is turned into a hypergraph with $k = 9$. How many members does each hyperedge hold?",
+      "answer": 10,
+      "tol": 0.01,
+      "hint": "Do not forget the vertex itself — it is part of its own neighbourhood.",
+      "sol": "Each hyperedge holds the vertex plus its 9 neighbours: $9 + 1 = 10$ members. Answering 9 is the standard slip, and it is worth catching here because it feeds the degree counts — a vertex is a member of its own hyperedge as well as of the hyperedges its neighbours created.",
+      "unit": "members"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A paper constructs hyperedges by $k$-NN with $k$ chosen from a small range and reports no experiments at other values. What is the precise nature of the concern?",
+      "opts": [
+        {
+          "md": "The results are wrong",
+          "expl": "Nothing suggests an error. The reported numbers may be perfectly correct for the configuration used — the concern is about scope, not accuracy."
+        },
+        {
+          "md": "The results describe one point in a space of possible hypergraphs, and the reader cannot tell how sensitive they are to that choice",
+          "correct": true,
+          "expl": "Correct, and this is a general habit rather than a quibble about this paper. Whenever a value was chosen by judgement and never varied, the honest report is \"this is what happened at the setting we picked\". A sensitivity study is what upgrades it to a claim about the method. Chapter 7 lists this among the paper's open questions."
+        },
+        {
+          "md": "The hypergraph should have been native",
+          "expl": "It could not be — the data had no groups. Constructing them was the only option available, and the question is how that construction was validated, not whether it should have been done."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** whenever a constructed hypergraph is used, the model it feeds is being evaluated on an artefact of a parameter choice. Card 6 turns to the last question in this section: given a hypergraph, why would anyone convert it *back* into a plain graph?"
+}

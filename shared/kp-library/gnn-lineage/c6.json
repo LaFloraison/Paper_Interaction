@@ -1,0 +1,122 @@
+{
+  "kind": "extension",
+  "title": "Depth, and why stacking layers hurts",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Over-smoothing** is the degradation of a graph network's vertex features under repeated neighbour-aggregation: as layers are stacked, each layer replaces a vertex's feature with a blend of itself and its neighbours, so features of neighbouring vertices become increasingly alike, vertex-to-vertex differences shrink, and beyond a few layers the representations can no longer be told apart well enough to classify.",
+      "plain": "Each layer averages a vertex with its neighbours. Do that often enough and every vertex ends up carrying approximately the same vector, so there is nothing left to distinguish them and accuracy falls."
+    },
+    {
+      "t": "p",
+      "md": "**Why anyone would want depth.** Every layer moves information one hop. Stack $L$ layers and a vertex's final feature can depend on anything within $L$ hops of it. If the quantity you are predicting depends on something far away — a label set by a distant part of the graph — you need enough layers for that information to arrive. Short paths need few layers; long paths need more. This is the genuine motivation for depth, and it is not wrong."
+    },
+    {
+      "t": "p",
+      "md": "**Why depth nevertheless backfires.** The same aggregation that carries information also destroys it, and it does both things at once. A layer is a local averaging, and averaging pulls values towards each other: a vertex above its neighbours is lowered, a vertex below is raised. Apply it once and differences soften but survive; apply it repeatedly and they are driven towards zero. **The signal that spread is the signal that got flattened.** There is a second, subtler limitation too, called *over-squashing*: when information from many hops away is funnelled through one vertex's fixed-size feature vector, the number of sources grows exponentially while the vector's capacity does not, so long-range information is compressed into a bottleneck. Over-smoothing and over-squashing are distinct failures, and both make depth a liability. This card covers over-smoothing; the paper discusses both in more depth elsewhere."
+    },
+    {
+      "t": "p",
+      "md": "**How the paper measures it.** This paper's own Table VIII reports a baseline hypergraph network with eight layers dropping from $73.41$ to $30.22$ — a collapse, not a gentle decline, and it is what motivates the paper's attention to layer count and its residual design. The drop is the phenomenon in a single pair of numbers: the same architecture, the same data, differing only in depth, losing more than forty points of accuracy."
+    },
+    {
+      "t": "list",
+      "items": [
+        "**Use fewer layers.** Most graph networks are best at two or three layers. If the task's dependencies are short, depth was never needed; the cost of the third layer is already often net negative.",
+        "**Residual connections.** Add a vertex's *input* feature back to its output, $h^{(l+1)} \\leftarrow h^{(l+1)} + h^{(l)}$, so a layer is free to learn a small correction rather than being forced to rewrite the feature entirely. This gives the network a route by which the original, un-smoothed information survives to the last layer.",
+        "**Jumping knowledge.** Concatenate or aggregate the outputs of *all* layers, not only the last, so the read-out can use the sharper early-layer features alongside the smoothed later ones. The network decides how much depth it actually wants per vertex.",
+        "**Watch the normalisation.** A degree-weighted average smooths hubs differently from leaves, so the normalisation interacts with how fast smoothing proceeds — one reason the symmetric normalisation of card 3 behaves differently from a plain row-stochastic mean."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "The misconception to discard: that a graph network is like a deep feedforward network, where adding layers adds expressiveness and you should make it as deep as compute allows. On graphs the reverse is often true. Adding a layer adds a smoothing operation, and smoothing is destructive at scale. Depth is a resource you spend to reach distant neighbours, not a resource whose quantity is a proxy for power."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — watching a signal flatten.** Take the path $1\\!-\\!2\\!-\\!3\\!-\\!4$ and put the values $(0, 0, 6, 6)$ on it. At each round, every vertex replaces its value with the mean of itself and its neighbours (so each vertex includes itself, the self-loop of card 2). Compute by hand for a few rounds and watch the range — the largest value minus the smallest — shrink."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Round 1. Vertex 1 keeps $(0+0)/2 = 0$; vertex 2 becomes $(0+0+6)/3 = 2$; vertex 3 becomes $(0+6+6)/3 = 4$; vertex 4 keeps $(6+6)/2 = 6$. The values are now $(0, 2, 4, 6)$ and the range is still $6$.",
+          "why": "The two ends have nothing new to learn yet, so the range holds. The interior has already moved towards the middle. This is information *propagating*, and it is the useful part of depth."
+        },
+        {
+          "md": "Round 2. Vertex 1 becomes $(0+2)/2 = 1$; vertex 2 becomes $(0+2+4)/3 = 2$; vertex 3 becomes $(2+4+6)/3 = 4$; vertex 4 becomes $(4+6)/2 = 5$. Values $(1, 2, 4, 5)$, range $4$.",
+          "why": "The ends have now moved inwards. The range has fallen from $6$ to $4$ — the signal is spreading and shrinking at the same time."
+        },
+        {
+          "md": "Round 3. Values become $(1.5,\\ 2.333,\\ 3.667,\\ 4.5)$, range $3$. Round 4: $(1.917,\\ 2.5,\\ 3.5,\\ 4.083)$, range about $2.17$. Round 5: range about $1.58$.",
+          "why": "Each round shrinks the spread by roughly the same factor. The sequence of ranges $6,\\ 6,\\ 4,\\ 3,\\ \\dots$ is the collapse in slow motion. The limit is the global mean, $(0+0+6+6)/4 = 3$ — all four vertices converge to $3$, and every distinction the input carried is gone."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — depth is set by how far the signal must travel.** Consider a path on six vertices, $1\\!-\\!2\\!-\\!3\\!-\\!4\\!-\\!5\\!-\\!6$. To predict something about vertex $1$ that genuinely depends on vertex $6$, information has to travel the five edges between them. Since each message-passing layer moves data exactly one hop, you need at least five layers for that information to arrive. But Example 1 says that by five layers the features have largely flattened. This is the central tension of graph depth compressed into one graph: the quantity that tells you how many layers you *need* (the distance) is the same quantity that makes those layers *harmful*."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "A precise caveat about Example 1. That averaging used the row-stochastic mean, which converges to a single constant. The *symmetric* normalised operator of card 3 does not converge to one constant: applied repeatedly to the four-vertex hub graph with features $(2,4,6,8)$ it settles towards values proportional to $\\sqrt{\\hat d}$, so the hub keeps a larger magnitude than the leaves. Over-smoothing still occurs — vertices of *equal* degree converge to the same value and become indistinguishable — but \"everything becomes one number\" is a property of the averaging normalisation, not of every graph operator."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is over-smoothing?",
+      "opts": [
+        {
+          "md": "Training a network for too many epochs so it overfits the training vertices",
+          "expl": "That is ordinary overfitting, and it happens in the training loop. Over-smoothing is a property of the *architecture's depth* — it occurs even with a perfectly regularised model, because it is the repeated aggregation itself that destroys the differences."
+        },
+        {
+          "md": "Repeated neighbour-averaging across many layers driving vertex features towards each other until they can no longer be distinguished",
+          "correct": true,
+          "expl": "Correct. Each layer blends a vertex with its neighbours; stack enough and every neighbourhood looks like the graph average, so the classification signal — which lives in the differences between vertices — is gone. This paper's Table VIII shows a baseline collapsing from 73.41 to 30.22 at eight layers."
+        },
+        {
+          "md": "Averaging the features of vertices that have different degrees, which biases the result",
+          "expl": "Degree bias is a real issue and the degree normalisation of card 3 addresses it, but it is a separate concern. Over-smoothing happens even when degrees are handled correctly."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A graph is a path on six vertices, $1\\!-\\!2\\!-\\!3\\!-\\!4\\!-\\!5\\!-\\!6$. How many message-passing layers are needed before vertex $1$'s information can reach vertex $6$?",
+      "answer": 5,
+      "tol": 0.01,
+      "hint": "Count the edges between the two vertices — information crosses one edge per layer.",
+      "sol": "The distance from vertex $1$ to vertex $6$ is $5$ edges. One layer moves information one hop, so $5$ layers are the minimum. This is the pressure *toward* depth; Example 1 is the pressure *against* it, since by five layers the features on the path have already flattened substantially.",
+      "unit": "layers"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A team finds that their three-layer graph network outperforms a ten-layer one, and responds by adding residual connections to the ten-layer version. What are they hoping to achieve, and is it well founded?",
+      "opts": [
+        {
+          "md": "They are reducing over-smoothing by giving the original features a path to the output, which is a standard and well-founded mitigation",
+          "correct": true,
+          "expl": "Correct. A residual connection lets each layer produce a small correction rather than a full replacement, so the un-smoothed signal survives to the end, and the read-out can use it. This is one of the standard remedies, alongside reading multiple layers' outputs and using fewer layers. It softens over-smoothing; it does not make true depth free, since the added aggregation still mixes neighbours."
+        },
+        {
+          "md": "They are fixing over-squashing, since residuals widen the bottleneck",
+          "expl": "Residuals do not widen the feature vector through which many-hop information is compressed, so they do not address over-squashing directly. They were introduced here for the smoothing problem."
+        },
+        {
+          "md": "They are increasing the number of parameters so the model can fit more",
+          "expl": "The motivation for depth here was never strictly more parameters — the three-layer model already won. The aim is to retain informative features through depth, not to enlarge the model."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** everything in this section has assumed each relation joins exactly two vertices. Card 7 removes that assumption — the point at which the section becomes the paper's own setting."
+}

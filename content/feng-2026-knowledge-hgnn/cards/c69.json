@@ -1,0 +1,126 @@
+{
+  "id": "69",
+  "kind": "formula",
+  "chapter": "method",
+  "section": "5.10 Equations (4) and (5)",
+  "kicker": "5.10 · Equations (4)–(5)",
+  "title": "Equations (4) and (5): the rule content mapping",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Equation (4) declares two mappings over the inner nodes of a tree: a content mapping $\\mu_c : (\\mathbb{R}^C \\times O_{\\mathrm{in}}) \\to \\{0,1\\}$ and a position mapping $\\mu_p : O_{\\mathrm{in}} \\to \\mathbb{R}$. Equation (5) defines the first: $\\mu_c(x,o) = 0$ if the feature vector $x$ satisfies the rule $r_o$ attached to node $o$, and $1$ otherwise.",
+      "plain": "For each question a tree asks, look at the vertex's features and write down one bit: 0 if the question is satisfied, 1 if it is not."
+    },
+    {
+      "t": "formula",
+      "tex": "\\mu_c : (\\mathbb{R}^C \\times O_{\\mathrm{in}}) \\to \\{0,1\\}, \\qquad \\mu_p : O_{\\mathrm{in}} \\to \\mathbb{R} \\\\[4pt] \\mu_c(x,o) = \\begin{cases} 0 & \\text{if } x \\text{ satisfies rule } r_o \\\\ 1 & \\text{otherwise} \\end{cases}",
+      "note": "Equation (5) is a predicate test, and its output is a single bit. The domain in Equation (4) is worth reading: $\\mu_c$ takes a feature vector and a node, so it is defined for **any** pair of those — not only for nodes that the vector could reach during a traversal.",
+      "gloss": [
+        { "sym": "x", "md": "a vertex's feature vector, of length $C$" },
+        { "sym": "o", "md": "an inner node of some tree — that is, one question" },
+        { "sym": "r_o", "md": "the rule attached to $o$: a threshold test on one feature, or a boolean check, as the paper puts it" },
+        { "sym": "O_{\\mathrm{in}}", "md": "the set of inner nodes of the tree; the paper also calls these chance nodes" },
+        { "sym": "\\mu_c(x,o)", "md": "one bit: 0 when the rule covers $x$, 1 when it does not" }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The direction is inverted, and it is the single most error-prone convention in the paper.** A satisfied rule yields **0**. A reader who assumes 1 means \"yes\" will invert the meaning of every rule embedding while still getting the arithmetic right — the worst kind of error, because it produces no symptom. Section IV-B-2 gives no reason for the choice; what the choice *achieves* is a ledger of what the rules failed to explain, which is developed below."
+    },
+    {
+      "t": "p",
+      "md": "**What the 0/1 bit is, in words.** A 0 says \"this rule already accounts for you\" and a 1 says \"this rule has nothing to say about you — other rules must\". So a vertex's bit-vector is not a description of the vertex; it is a **list of where the ensemble's explanations leave off**. Two vertices with identical bit-vectors are indistinguishable to the rule encoder regardless of their actual features, provided only that every question happens to agree about them."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — every question against every vertex.** Using the five questions of the paper's Figure 2 ensemble, compute $\\mu_c$ for three vertices."
+    },
+    {
+      "t": "table",
+      "head": ["Vertex", "$x_1$", "$x_2$", "$x_3$", "$\\mu_c$ for $x_2\\ge2,\\; x_1\\ge1,\\; x_3\\ge5,\\; x_1\\ge2,\\; x_2\\ge1$"],
+      "rows": [
+        ["P", "3", "5", "7", "$(0,\\; 0,\\; 0,\\; 0,\\; 0)$"],
+        ["Q", "0", "1", "9", "$(1,\\; 1,\\; 0,\\; 1,\\; 0)$"],
+        ["R", "0", "0", "0", "$(1,\\; 1,\\; 1,\\; 1,\\; 1)$"]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Take R, with every feature zero. The first question is $x_2 \\ge 2$: $0 \\ge 2$ is false, so the rule is not satisfied and the entry is **1**. Repeating for all five gives an all-ones vector.",
+          "why": "An all-ones vector means no rule in the ensemble covers this vertex — it sits entirely outside what the ensemble learned about the feature space. That is a meaningful state, not a degenerate one."
+        },
+        {
+          "md": "Take Q, with $x_1 = 0$, $x_2 = 1$, $x_3 = 9$. Check each: $x_2 \\ge 2$ fails (1); $x_1 \\ge 1$ fails (1); $x_3 \\ge 5$ holds (0); $x_1 \\ge 2$ fails (1); $x_2 \\ge 1$ holds (0).",
+          "why": "The fourth and fifth entries are the instructive ones. $x_2 = 1$ **satisfies** $x_2 \\ge 1$ but **fails** $x_2 \\ge 2$ — the same feature, two thresholds, opposite verdicts. This is why a single feature can occupy several coordinates of the embedding and why they are not redundant."
+        },
+        {
+          "md": "Take P, with $x_1 = 3$, $x_2 = 5$, $x_3 = 7$. Every question is satisfied, so the vector is all zeros.",
+          "why": "P is fully explained by the ensemble, and its rule embedding is therefore zero. Hold this case — it is the one that makes Equation (9)'s behaviour comprehensible."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The all-zeros row has a consequence that propagates through the whole method.** For vertex P, the rule embedding is $0$; the structure-aware embedding of Equation (9) is $X_s \\odot 0 = 0$; and the fused feature is $0 \\Vert 0 = 0$. **A vertex that the ensemble explains completely receives an all-zero feature vector and enters the network indistinguishable from a vertex whose every slot is zero for other reasons.** With a real ensemble of hundreds of questions this is essentially unreachable — the odds that a vertex satisfies every one of hundreds of thresholds are negligible — but for small ensembles it is a real failure mode, and it follows directly from choosing 0 to mean \"covered\"."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does an entry of 0 in $\\mu_c$ mean?",
+      "opts": [
+        {
+          "md": "The feature value is zero",
+          "expl": "The bit records a predicate outcome, not a feature value. A vertex with all features equal to zero produces entries of 1 wherever its zero values fail the thresholds — as vertex R does."
+        },
+        {
+          "md": "The vertex satisfies the rule attached to that node",
+          "correct": true,
+          "expl": "Correct — the inverted convention. The paper stores *failure*: 0 means the rule covers this vertex and therefore has nothing further to say about it."
+        },
+        {
+          "md": "The node was not reached during traversal",
+          "expl": "Nothing about traversal enters Equation (5). The predicate is evaluated for every node regardless of whether the vertex could reach it."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A vertex has $x_2 = 3$. For a tree containing the questions $x_2 \\ge 2$, $x_2 \\ge 5$ and $x_2 \\ge 1$, how many of those three entries equal 1?",
+      "answer": 1,
+      "tol": 0.01,
+      "hint": "Count the questions the value fails, not the ones it satisfies.",
+      "sol": "$3 \\ge 2$ holds → 0; $3 \\ge 5$ fails → 1; $3 \\ge 1$ holds → 0. So exactly one entry is 1. Two of the three thresholds are satisfied by the same value, which is the point: coordinates sharing a feature are not duplicates, because different thresholds split the value range differently.",
+      "unit": "entries"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A vertex satisfies every question in the ensemble. What happens to its fused feature vector, and why does it matter?",
+      "opts": [
+        {
+          "md": "It is unchanged, since the rule contribution is additive",
+          "expl": "Nothing in the method is additive. Equation (9) multiplies the rule embedding by the structural scalar, so an all-zero rule embedding produces an all-zero product."
+        },
+        {
+          "md": "It becomes all zero, because both the gated product and the concatenated original are zero",
+          "correct": true,
+          "expl": "Correct. This follows from the inverted convention: a fully explained vertex has no failures to record, so its entire rule embedding vanishes and with it the fused vector. Chapter 7 notes this as a structural consequence of the encoding choice — not a bug in any implementation, but a property of defining the ledger in terms of uncovered cases."
+        },
+        {
+          "md": "It keeps its structural value, since that comes from the other encoder",
+          "expl": "The structural value survives only through the multiplication $X_s \\odot X_r$, and multiplying anything by zero gives zero. The concatenation then appends the same zeros. The structural encoder cannot rescue the case, which is exactly why the case is worth knowing about."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Equation (6), the other half of the rule encoding — the mapping that turns each question's depth into an importance weight."
+}

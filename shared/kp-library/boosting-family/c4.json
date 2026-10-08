@@ -1,0 +1,195 @@
+{
+  "kind": "extension",
+  "title": "Gradient boosting: fitting the negative gradient",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Gradient boosting** builds the ensemble by initialising a constant prediction $F_0$, then repeating for $m = 1, 2, \\dots, M$: compute the **pseudo-residual** $r_i = -\\left[\\frac{\\partial L(y_i, F)}{\\partial F}\\right]_{F = F_{m-1}(x_i)}$ for every training row, fit a small regression tree $h_m$ to the pairs $(x_i, r_i)$, and update the ensemble $F_m(x) = F_{m-1}(x) + \\nu\\,h_m(x)$ with a **learning rate** $\\nu$ (also called the shrinkage factor). The negative gradient $r_i$ is the direction in which the current prediction must move to reduce the loss fastest.",
+      "plain": "Start with a constant guess. At each round, ask each training row 'which way, and by how much, should my prediction move to make the loss smaller?' — that answer is the negative gradient. Train a small tree to predict those moves, add it to the running prediction, and repeat. For the squared-error loss the answer turns out to be the gap between the target and the current prediction, i.e. the residual."
+    },
+    {
+      "t": "p",
+      "md": "**Why a gradient, and not just the error?** Boosting's job in card 3 was \"make the next model fix what the ensemble gets wrong\". To make that precise you need a definition of *wrong* — a loss function $L$ — and a way to ask which change to the predictions reduces it fastest. Calculus answers that: the gradient of the loss with respect to the prediction points in the direction of *increasing* loss, so moving *against* it decreases loss. Fitting a tree to that negative gradient is the machine-learning version of gradient descent, one whole tree per step instead of one coordinate per step."
+    },
+    {
+      "t": "p",
+      "md": "**The squared-error case collapses to residuals.** Let the loss for one row be the squared error, halved so its derivative is clean: $L = \\frac{1}{2}(y - F)^2$. Differentiating with respect to the prediction $F$ gives $\\frac{\\partial L}{\\partial F} = -(y - F)$. Negating to get the negative gradient gives $r = y - F$ — the **residual**, plain and simple. So for squared error, \"fit each tree to the negative gradient\" and \"fit each tree to the residual\" are the same sentence. That equivalence is what makes the worked example below hand-checkable; for other losses (logistic, Poisson, ranking) the negative gradient is a different quantity but the procedure is unchanged."
+    },
+    {
+      "t": "formula",
+      "tex": "r_i = -\\frac{\\partial L(y_i, F)}{\\partial F}\\bigg|_{F = F_{m-1}(x_i)}, \\qquad F_m(x) = F_{m-1}(x) + \\nu\\, h_m(x)",
+      "note": "The first expression defines what the next tree is fitted to. The second adds that tree, scaled by $\\nu$, to the running prediction. With squared-error loss the first becomes $r_i = y_i - F_{m-1}(x_i)$, the residual.",
+      "gloss": [
+        {
+          "sym": "L",
+          "md": "the loss function — the number you are trying to make small; it measures how wrong a prediction is"
+        },
+        {
+          "sym": "F_{m-1}(x_i)",
+          "md": "the ensemble's prediction for row $i$ before round $m$"
+        },
+        {
+          "sym": "r_i",
+          "md": "the pseudo-residual — the target the next tree is fitted to; equals the ordinary residual for squared error"
+        },
+        {
+          "sym": "h_m",
+          "md": "the small regression tree fitted to the pseudo-residuals in round $m$"
+        },
+        {
+          "sym": "\\nu",
+          "md": "the learning rate, a small positive number (often $0.01$–$0.3$) that shrinks each tree's contribution"
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Why the learning rate is there.** Fitting the residual and adding the tree in full is a greedy, large step that follows the training data very closely and overfits fast. Scaling each tree by $\\nu < 1$ makes every round take a smaller step in the same direction, so the ensemble reaches a similar fit only after many more, gentler rounds — the same idea as a small step size in gradient descent. A smaller $\\nu$ usually needs more trees; the pair is traded off against each other."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Common misconception.** \"Gradient boosting fits each tree to the target $y$.\" It does not — it fits each tree to the negative gradient, which for squared error is the residual $y - F$, the part of $y$ the ensemble has *not* explained yet. Fitting every tree to $y$ would make the rounds nearly identical instead of mutually correcting."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — confirm that the negative gradient is the residual.** Use $L = \\frac{1}{2}(y-F)^2$ and a current ensemble prediction $F = 15$. For the row with $y = 6$, the gradient is $\\frac{\\partial L}{\\partial F} = -(6 - 15) = +9$, so the negative gradient is $-9$ — exactly the residual $y - F = 6 - 15 = -9$. For the row with $y = 20$, the gradient is $-(20 - 15) = -5$ and the negative gradient is $+5$, again exactly the residual. A finite-difference check of the derivative agrees to four decimal places. The tree in each round is therefore being trained on residuals."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — a full boosting run on six rows.** One feature $x$, target $y$:"
+    },
+    {
+      "t": "table",
+      "head": [
+        "row",
+        "x",
+        "y"
+      ],
+      "rows": [
+        [
+          "1",
+          "1",
+          "6"
+        ],
+        [
+          "2",
+          "2",
+          "8"
+        ],
+        [
+          "3",
+          "3",
+          "10"
+        ],
+        [
+          "4",
+          "4",
+          "20"
+        ],
+        [
+          "5",
+          "5",
+          "22"
+        ],
+        [
+          "6",
+          "6",
+          "24"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Initialise with the constant that minimises squared error — the mean: $F_0 = (6 + 8 + 10 + 20 + 22 + 24)/6 = 90/6 = 15$.",
+          "why": "Starting from zero would waste the first rounds just finding the average level. Starting from the mean is the standard squared-error initialisation and is itself the first constant model."
+        },
+        {
+          "md": "Compute the residuals $r_i = y_i - F_0$: $6-15=-9$, $8-15=-7$, $10-15=-5$, $20-15=5$, $22-15=7$, $24-15=9$. So $r = (-9, -7, -5, 5, 7, 9)$, which sums to $0$.",
+          "why": "These are the negative gradients — the direction and size of the move each prediction still needs. They sum to zero because the mean is exactly the constant that leaves no net error."
+        },
+        {
+          "md": "Fit a depth-1 tree to the residuals. Trying each threshold, the split $x \\le 3.5$ minimises the total squared residual. Its left leaf covers rows 1–3 with residuals $-9, -7, -5$, whose mean is $-21/3 = -7$; its right leaf covers rows 4–6 with residuals $5, 7, 9$, whose mean is $21/3 = 7$.",
+          "why": "A regression tree predicts the *mean of the residuals* in each leaf, because the mean minimises squared error within a leaf. Here the two group means $-7$ and $+7$ are equal and opposite, so the tree is a clean two-value corrector."
+        },
+        {
+          "md": "Update with learning rate $\\nu = 1$ for this first pass: $F_1 = F_0 + h_1 = 15 - 7 = 8$ on the left leaf and $15 + 7 = 22$ on the right. So $F_1 = (8, 8, 8, 22, 22, 22)$.",
+          "why": "Each prediction is nudged by its leaf's residual. Rows 1–3 were all approximately $7$ too high, so they drop by $7$; rows 4–6 were $7$ too low, so they rise by $7$."
+        },
+        {
+          "md": "Check the loss, mean squared error $\\frac{1}{n}\\sum (y_i - F_i)^2$. Before: $(81+49+25+25+49+81)/6 = 310/6 = 51.667$. After round 1: $(4+0+4+4+0+4)/6 = 16/6 = 2.667$. One tree has cut the error by roughly a factor of $19$.",
+          "why": "The residual vector after round 1 is exactly the part of the target the two-value tree could not represent — the small within-group spread. That is the signal the next tree must chase."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 3 — the second round recomputes and repeats.** Recompute the residuals against $F_1$: $6-8=-2$, $8-8=0$, $10-8=2$, $20-22=-2$, $22-22=0$, $24-22=2$, giving $(-2, 0, 2, -2, 0, 2)$. The best depth-1 tree on these residuals splits at $x \\le 1.5$: the left leaf holds only row 1 with mean $-2$, and the right leaf holds rows 2–6 with mean $(0+2-2+0+2)/5 = 0.4$."
+    },
+    {
+      "t": "callout",
+      "md": "This greedy split is lopsided — it isolates a single row. The threshold $x \\le 5.5$ fits the residuals equally well (identical total squared residual $11.2$), and a tie is broken arbitrarily. Warning sign or not, the mechanism is what matters: the tree takes the greedy best split it can find, and the residual it leaves behind is what round 3 will attack."
+    },
+    {
+      "t": "calc",
+      "md": "Add the second tree: $F_2 = F_1 + h_2 = (8-2,\\; 8+0.4,\\; 8+0.4,\\; 22+0.4,\\; 22+0.4,\\; 22+0.4) = (6,\\, 8.4,\\, 8.4,\\, 22.4,\\, 22.4,\\, 22.4)$. The mean squared error falls again, from $2.667$ to $(0 + 0.16 + 2.56 + 5.76 + 0.16 + 2.56)/6 = 11.2/6 = 1.867$. **Shrinkage variant:** had we used $\\nu = 0.5$ in round 1 instead of a full step, $F_1$ would be $(11.5, 11.5, 11.5, 18.5, 18.5, 18.5)$ and the error $14.917$ — better than the untrained $51.667$ but far short of the full step's $2.667$, which is why a small $\\nu$ needs many more rounds to catch up."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is each new tree in a gradient-boosted ensemble fitted to?",
+      "opts": [
+        {
+          "md": "The original target values $y$",
+          "expl": "Fitting y again in every round would reproduce the same tree each time. The whole point is that the trees correct one another rather than repeat one another."
+        },
+        {
+          "md": "The negative gradient of the loss with respect to the current predictions, which equals the residual for squared error",
+          "correct": true,
+          "expl": "Correct. The negative gradient is the direction that reduces the loss fastest, and for squared-error loss it simplifies to y - F, the residual. Each tree is trained on the part of the target the ensemble has not yet explained."
+        },
+        {
+          "md": "A bootstrap resample of the training rows",
+          "expl": "That is bagging's device. Boosting's members are fitted to gradients, not to resampled targets."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "In the worked example, the initial prediction is the mean $F_0 = 15$. A particular training row has $y = 10$. What is its pseudo-residual (the negative gradient for squared error) at round 1?",
+      "answer": -5,
+      "tol": 0.01,
+      "hint": "For squared-error loss the pseudo-residual is the same as the ordinary residual: target minus current prediction.",
+      "sol": "The pseudo-residual is y - F_0 = 10 - 15 = -5. The negative sign means the ensemble is currently predicting above this row's target, and this round's tree will push the prediction down by 5. (Equivalently, the gradient is -(10 - 15) = +5, and its negation is -5.)",
+      "unit": "pseudo-residual"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You reduce the learning rate $\\nu$ from $1.0$ to $0.1$ and keep the number of trees fixed. What do you expect, and why?",
+      "opts": [
+        {
+          "md": "A better fit, because smaller steps are always more accurate",
+          "expl": "Smaller steps reduce overfitting per round but also make less progress per round. With the tree count held fixed, the ensemble simply has not travelled far enough."
+        },
+        {
+          "md": "A worse fit, because the same number of trees now take much smaller steps toward the target",
+          "correct": true,
+          "expl": "Correct. Each tree is still fitted to the residuals, but it is added at only a tenth of its size, so after M rounds the ensemble has covered roughly a tenth of the ground. The usual remedy is to lower the learning rate and raise M — many small steps chase the residual more gently and generalise better."
+        },
+        {
+          "md": "No change at all; the learning rate only affects speed, not the result",
+          "expl": "It changes the size of every update, so it changes the prediction after any fixed number of rounds. Only as the number of rounds grows without bound can the two settings converge to similar fits."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** this is the exact loop the paper's model runs. The next card shows what the three big implementations — XGBoost, LightGBM and CatBoost — changed in the loop to make it faster and more regularised."
+}

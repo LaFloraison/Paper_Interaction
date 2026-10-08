@@ -1,0 +1,8 @@
+{
+  "id": "15",
+  "kind": "include",
+  "library": "boosting-family",
+  "chapter": "pre",
+  "section": "2.3 Learning from features",
+  "kicker": "Extension · Boosting and ensembles"
+}

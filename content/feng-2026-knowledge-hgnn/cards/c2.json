@@ -1,0 +1,108 @@
+{
+  "id": "2",
+  "kind": "title",
+  "chapter": "title",
+  "section": "1.1 Hypergraph",
+  "kicker": "Title decoded 1/5 · Hypergraph",
+  "title": "Hypergraph: one edge can hold a whole group",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A hypergraph is a pair $H = (V, E)$, where $V$ is a finite set whose elements are called vertices and $E$ is a set of non-empty subsets of $V$; each element $e \\in E$ is called a hyperedge and may contain any number of vertices. An ordinary graph is the special case in which every hyperedge contains exactly two vertices.",
+      "plain": "In a normal graph an edge ties exactly two things together. In a hypergraph one edge can tie a whole group together at once — and that edge is called a hyperedge."
+    },
+    {
+      "t": "p",
+      "md": "**Why anyone needs this.** Many real relations are group-shaped, not pair-shaped. A dorm of four roommates, a paper with six authors, a conference that gathers nine hundred researchers — these are single relations over a whole crowd. Forcing them into pairwise edges means drawing every pair *inside* the group and then having no way to say that those pairs were really one thing."
+    },
+    {
+      "t": "p",
+      "md": "A hypergraph therefore has exactly two parts: a **vertex set** $V$ (the objects) and a **hyperedge set** $E$ (the group relations). This paper counts them as $N$ and $M$. That is all you need at this point — *hyperedge = a group*."
+    },
+    {
+      "t": "callout",
+      "md": "An ordinary graph is not a different species. It is the case where every hyperedge happens to have size 2. Every fact you will learn about hypergraphs contains the facts you already know about graphs."
+    }
+  ],
+  "example": [
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Dorm 302 houses three students: Zhang, Li and Wang. Give each person one vertex — three vertices: $\\{Zhang, Li, Wang\\}$.",
+          "why": "Vertices are the objects being related. Here, people."
+        },
+        {
+          "md": "\"Lives in dorm 302\" is one relation over all three at once. Draw it as a single hyperedge $e = \\{Zhang, Li, Wang\\}$.",
+          "why": "One relation, one hyperedge — no matter how many members it has. This is the whole idea."
+        },
+        {
+          "md": "Done. That is a hypergraph: three vertices, one hyperedge of size 3.",
+          "why": "Now try to express the same thing as an ordinary graph. You would need three edges (Zhang–Li, Li–Wang, Zhang–Wang) — and the graph could no longer tell you whether those three pairs came from one household or from three unrelated friendships."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the same idea at the paper's own scale.** One of the paper's ten datasets, DBLP-Conf, has **4,057 authors** and only **20 hyperedges**. The paper says those hyperedges group authors who co-authored a paper, used the same terms, or published at the same venue; it never breaks the twenty down by criterion, so the mix is not stated. The table prints its average edge degree as **982.2**, meaning one hyperedge embraces about 982 authors on average."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Look at those two numbers together: 20 relations, 4,057 objects. **Few edges, each enormous** — that is exactly the regime where a hypergraph is compact and a plain graph becomes unwieldy. To express 982 people as pairwise links you would need up to $982 \\times 981 / 2 = 481{,}671$ edges for that one relation alone."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is the essential difference between a hypergraph and an ordinary graph?",
+      "opts": [
+        {
+          "md": "A hypergraph has more edges",
+          "expl": "It usually has far *fewer* — DBLP-Conf manages 4,057 authors with 20 of them. The difference is not quantity but what a single edge is allowed to be."
+        },
+        {
+          "md": "A hyperedge may join any number of vertices at once",
+          "correct": true,
+          "expl": "Correct. Everything else follows from this one relaxation. An ordinary graph is the special case where every hyperedge has exactly two vertices, so all graph facts still apply."
+        },
+        {
+          "md": "Hypergraph vertices are special",
+          "expl": "The vertices are ordinary objects — papers, people, words. Nothing changes about them; only the relations do."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A hypergraph has 6 vertices and 4 hyperedges. In this paper's notation the vertex count is $N$. What is $N$?",
+      "answer": 6,
+      "tol": 0.01,
+      "hint": "Do not add anything. $N$ is one of the two counts, not their total.",
+      "sol": "$N$ is the number of vertices, so $N = 6$. The other count, $M = 4$, would be the number of hyperedges. A common slip is answering 10, which is neither of them.",
+      "unit": "vertices"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Which of these datasets is best represented as one hyperedge per group?",
+      "opts": [
+        {
+          "md": "Call logs between friends",
+          "expl": "A phone call genuinely involves two parties, so this is the case ordinary graphs were built for. Forcing it into hyperedges of size 2 would gain nothing."
+        },
+        {
+          "md": "Supermarket receipts: the items on one receipt",
+          "correct": true,
+          "expl": "Correct. The receipt is one relation over a crowd of items, and the group itself is meaningful — \"bought together\". A pairwise graph would record every item-pair and silently lose the receipt as one event. This is precisely why the paper's Amazon datasets exist."
+        },
+        {
+          "md": "Match results between teams",
+          "expl": "A match is between two teams; it is pairwise by nature. The interesting question there is direction and repeated meetings, not group size."
+        }
+      ]
+    }
+  ],
+  "close": "**How this paper uses it:** the hypergraph is the object the entire method runs on. Every dataset in Table I is either a genuine hypergraph or has been turned into one, and Equation (1) — the network layer — is written in terms of the incidence matrix of $H$. **Next:** the second word of the title, *Knowledge-Embedded*."
+}

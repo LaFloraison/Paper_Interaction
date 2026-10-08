@@ -1,0 +1,97 @@
+{
+  "kind": "check",
+  "title": "Skip check: can you leave this section?",
+  "what": [
+    {
+      "t": "p",
+      "md": "This section was not about a definition — the definition of a hypergraph was settled in Chapter 1. It was about **provenance**: where the groups in your data come from, and what the answer changes. If you can do all five of the following unaided, skip ahead."
+    },
+    {
+      "t": "list",
+      "items": [
+        "Say which restriction a hypergraph relaxes, and name two structures that relax other restrictions instead.",
+        "State the two equivalent definitions of a hypergraph and translate one column of an incidence matrix back into a set.",
+        "Say whether a given dataset's hyperedges are native or constructed, and what follows from the answer.",
+        "Name two procedures for constructing hyperedges when the data has none, and say what parameter each introduces.",
+        "Explain why keeping a hypergraph intact is a substantive choice rather than a stylistic one."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The bar is unaided recall on all five. The fourth one is the one that carries a chapter of consequences — if you hesitate there, stay for cards 4 and 5, because Chapter 7's critique of the untested $k$ is written directly on top of them."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which pair of structures relaxes *different* restrictions from a hypergraph?",
+      "opts": [
+        {
+          "md": "Multigraph and weighted graph",
+          "expl": "Both relax restrictions on edges between an existing pair, and both still require exactly two endpoints. They sit alongside the hypergraph rather than covering its ground."
+        },
+        {
+          "md": "Directed graph and bipartite graph",
+          "correct": true,
+          "expl": "Correct: direction and kinds are independent axes from arity. This is why the paper's citation and follow datasets involve a *different* simplification — treating directed relations as undirected — that has nothing to do with the hypergraph machinery."
+        },
+        {
+          "md": "Laplacian and incidence matrix",
+          "expl": "Those are two ways of writing a structure down, not structures in their own right. Both can describe a graph or a hypergraph."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A dataset of 600 users and their 2,000 shopping sessions has sessions of 7 items on average. How many memberships does the item-side hypergraph contain?",
+      "answer": 14000,
+      "tol": 1,
+      "hint": "Sessions × average basket size. The user count is a distractor.",
+      "sol": "$2{,}000 \\times 7 = 14{,}000$ memberships. The 600 users are irrelevant to this count — they do not appear in the item hypergraph at all. Noticing that an irrelevant number has been supplied is a habit worth building; problems rarely announce their distractors.",
+      "unit": "memberships"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Two papers report results on the same named dataset, but one builds its hyperedges by $k$-NN with $k = 5$ and the other by co-authorship. Their numbers differ substantially. What has happened?",
+      "opts": [
+        {
+          "md": "One of them made an error",
+          "expl": "Not necessarily — and assuming an error is the least useful of the available conclusions. Both constructions are defensible, and both produce a real hypergraph over the same underlying records."
+        },
+        {
+          "md": "They are reporting on functionally different objects that share a name, so the numbers are not directly comparable",
+          "correct": true,
+          "expl": "Correct. A dataset name identifies the records, not the structure built from them. This is a common and quiet source of apparent disagreement in the literature, and it is why the method section matters as much as the results table."
+        },
+        {
+          "md": "The dataset must have been updated between the two papers",
+          "expl": "Possible in general, but it is a specific claim that needs evidence. The construction difference is visible in the two methods sections and accounts for the discrepancy without any such assumption."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why does the choice to keep a hypergraph intact rather than expand it matter beyond computational cost?",
+      "opts": [
+        {
+          "md": "Because expansion cannot represent weighted relations",
+          "expl": "Weights survive expansion perfectly well — you can weight a clique's edges. The problem is representation of *groups*, not of magnitudes."
+        },
+        {
+          "md": "Because every expansion destroys the fact that certain relations constituted one event, and no downstream method can recover it",
+          "correct": true,
+          "expl": "Correct. The information is gone at expansion time. This is the strongest argument for this paper's design stance, and it is worth crediting as a genuine strength when Chapter 7 turns to criticism."
+        },
+        {
+          "md": "Because expanded graphs are always denser than the machine can store",
+          "expl": "Density is a real problem at scale — 481,671 edges from one hyperedge — but it is a practical limit, not the conceptual one. Star expansion stays linear and still loses the grouping."
+        }
+      ]
+    }
+  ],
+  "close": "**Section complete.** The next card is paper-specific: how *this* paper uses hypergraphs — the incidence matrix in its notation, the ten datasets, and the counting equation that opens Chapter 5."
+}

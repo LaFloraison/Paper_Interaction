@@ -1,0 +1,56 @@
+<!-- ============ c31 公式(7) φr ============ -->
+<section class="card" data-c="31" data-title-zh="公式 (7) · 单树编码 φ<sub>r</sub>" data-title-en="Eq. (7) · Per-tree encoding φr">
+  <div class="card-inner">
+    <div class="card-kicker k-math"><span class="len">Equation 7 · one tree's column of scores</span><span class="lz">公式 7 · 一棵树的一列得分</span></div>
+    <h2><span class="lz">式 (7)：内容分 × 位置分 = 一条规则的得分</span><span class="len">Eq. (7): content × position = one rule's score</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">两份登记都齐了：内容登记说"满不满足"（0 或 1），位置登记说"分量多重"（一个正数）。现在把同一棵树的所有规则<b>逐条算分、排成一列</b>——这就是式 (7)。</p>
+    <p class="len">Both registries are ready: content says satisfied-or-not (0 or 1), position says how heavy (a positive number). Now every rule of one tree gets <b>scored and lined up</b> — that is Eq. (7).</p>
+    <p class="lz"><b><span class="hl">每条规则的得分 = 内容分 × 位置分；一棵树所有规则的得分按顺序排成的一列，就是这棵树对某个顶点的"编码"——位数等于这棵树的提问点个数。</span></b>逐个相乘得到什么？两个直觉读法，见下方的"读法"框。</p>
+    <p class="len"><b><span class="hl">A rule's score = its content × its position; all of one tree's scores in order form that tree's "encoding" of a vertex — as many slots as the tree has question nodes.</span></b> What does multiplying produce? Two intuitive readings in the box below.</p>
+    <div class="callout">
+      <b><span class="lz">乘出来的数怎么读（两句话）：</span><span class="len">How to read the product (two sentences):</span></b>
+      <span class="lz">① 规则被满足（内容 = 0）→ 乘积 <b>0</b>："这条规则把你说清楚了，不留悬账"。② 规则没满足（内容 = 1）→ 乘积 <b>= 位置分</b>："记一笔悬账，越靠根的悬账越大"。所以这一列读作：<b>该顶点在各条规则上"没被解释"的程度清单</b>。</span>
+      <span class="len">(1) Rule satisfied (content = 0) → product <b>0</b>: "this rule explains you; no unsettled account". (2) Rule missed (content = 1) → product <b>= the position weight</b>: "an unsettled entry, heavier near the root". So the column reads: <b>the vertex's degree of being unexplained, rule by rule</b>.</span>
+    </div>
+    <span class="tex-display" data-tex="\varphi_r^{i}(\mathbf{x}, T_i) = \big(\mu_p(o_1)\mu_c(\mathbf{x}, o_1),\; \mu_p(o_2)\mu_c(\mathbf{x}, o_2),\; \dots,\; \mu_p(o_{|\mathcal{O}_{in}|})\mu_c(\mathbf{x}, o_{|\mathcal{O}_{in}|})\big)^{\top}"></span>
+    <p class="formula-note"><span class="lz">逐符号：φ<sub>r</sub><sup>i</sup> = 第 i 棵树的编码函数；x = 顶点特征串；T<sub>i</sub> = 第 i 棵树；每个括号项 = "第 k 个提问点的位置分 × 内容分"；上标 ⊤ 只是"立成一列"的排版记号；|O<sub>in</sub>| = 这棵树的提问点个数（第 11 卡数过）。<b>整式一句话：把每对（位置, 内容）乘起来、排成一列。</b></span><span class="len">Symbol by symbol: φ<sub>r</sub><sup>i</sup> = tree i's encoding function; x = the vertex's features; T<sub>i</sub> = the i-th tree; each bracket term = "position of question k × content of question k"; the ⊤ superscript just means "stack into a column"; |O<sub>in</sub>| = the tree's question count (counted at card 11). <b>The whole line in a breath: multiply each (position, content) pair and line them up.</b></span></p>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>例 1（顶点甲的 T₁、T₂ 逐位乘，参数 α=9、β=8）：</b>T₁ 的两条规则在 0、1 层，位置分 = 1.125、1.0；内容分 = 0、0（第 29 卡例 1）→ 逐位乘：1.125 × 0 = <b>0</b>；1.0 × 0 = <b>0</b>。T₁ 的输出 = <b>[0, 0]</b>：T₁ 的两个问题全被满足，不留悬账。</p>
+    <p class="len"><b>Example 1 (vertex A through T₁, T₂, position by position; α = 9, β = 8):</b> T₁'s two rules sit at layers 0 and 1, positions 1.125 and 1.0; contents 0 and 0 (card 29's Example 1) → multiply slot by slot: 1.125 × 0 = <b>0</b>; 1.0 × 0 = <b>0</b>. T₁'s output = <b>[0, 0]</b> — both of T₁'s questions satisfied, nothing left unsettled.</p>
+    <p class="lz"><b>例 1 续（T₂ 三位）：</b>T₂ 的三条在 0、1、1 层，位置分 = 1.125、1.0、1.0；内容分 = 1、1、0 → 逐位乘：1.125 × 1 = <b>1.125</b>；1.0 × 1 = <b>1.0</b>；1.0 × 0 = <b>0</b>。T₂ 的输出 = <b>[1.125, 1.0, 0]</b>：前两条是悬账（第一条还挂在根上，分量最大），第三条已被解释。</p>
+    <p class="len"><b>Example 1, continued (T₂'s three slots):</b> T₂'s three rules sit at layers 0, 1, 1 with positions 1.125, 1.0, 1.0; contents 1, 1, 0 → slot by slot: 1.125 × 1 = <b>1.125</b>; 1.0 × 1 = <b>1.0</b>; 1.0 × 0 = <b>0</b>. T₂'s output = <b>[1.125, 1.0, 0]</b> — two unsettled entries (the first hangs off the root, heaviest), the third already explained.</p>
+    <p class="lz"><b>例 2（换顶点乙 x = (3, 1, 6)，列全变）：</b>T₁ 内容 = 1、0（x₂ ≥ 2？1 ≥ 2 不满足；x₁ ≥ 1？3 ≥ 1 满足）→ [1.125 × 1, 1.0 × 0] = <b>[1.125, 0]</b>；T₂ 内容 = 0、0、0（6 ≥ 5 满足、3 ≥ 2 满足、1 ≥ 1 满足）→ <b>[0, 0, 0]</b>。同一个坐标系里，甲和乙的得分列判若两人——这正是"特征知识"被显式写下来的样子。</p>
+    <p class="len"><b>Example 2 (switch to vertex B, x = (3, 1, 6); the column reshuffles):</b> T₁'s contents = 1, 0 (x₂ ≥ 2? 1 ≥ 2 missed; x₁ ≥ 1? 3 ≥ 1 satisfied) → [1.125 × 1, 1.0 × 0] = <b>[1.125, 0]</b>; T₂'s contents = 0, 0, 0 (6 ≥ 5, 3 ≥ 2, 1 ≥ 1 all satisfied) → <b>[0, 0, 0]</b>. In the same coordinate frame, A's and B's score columns are night and day — this is feature knowledge written out explicitly.</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">一条规则的得分里，乘积为 0 意味着什么？</span><span class="len">What does a product of 0 mean for a rule's score?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="位置分永远是正数（α、d、β 都为正）——乘积为 0 只能来自内容分那个 0，即“规则被满足”。"><span class="lz">这条规则的位置权重是 0</span><span class="len">The rule's position weight is 0</span></button>
+        <button class="opt" data-correct="1" data-expl="对！内容分 = 0（满足）时无论位置分多重，乘积都是 0——读作“这条规则把该顶点解释清楚了，不留悬账”。"><span class="lz">规则被满足——不留悬账</span><span class="len">The rule was satisfied — no unsettled entry</span></button>
+        <button class="opt" data-expl="不存在“跳过”——每个提问点都必有一格；0 是内容分说了话，不是没算。"><span class="lz">这一格被跳过了</span><span class="len">This slot was skipped</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="4" data-tol="0.01" data-hint="一列的位数对着“这棵树的提问点个数”——不用算乘积，数提问点。" data-sol="4 位。式 (7) 的输出位数 = 该树的提问点个数 |O_in|——每个提问点独占一格。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：某树有 4 个提问点。式 (7) 对单个顶点输出几位（几个数）？</span><span class="len">Numeric: a tree has 4 question nodes. How many entries does Eq. (7) output for one vertex?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：为什么内容分设计成"乘"（0/1 门），而不是"加"（比如满足加 1 分）？</span><span class="len">Transfer: why is content designed as a multiplier (a 0/1 gate) rather than an addend (say, +1 when satisfied)?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="乘法在这里比加法更省力吗？其实一样一次运算——理由是“语义”，不是开销。"><span class="lz">因为乘法计算更快</span><span class="len">Because multiplication is faster</span></button>
+        <button class="opt" data-correct="1" data-expl="对！乘法的语义是“闸门”：满足（0）就彻底关掉这格的悬账、不满足（1）就放位置分全额通过。加法做不到这种“一票否决”——满足反而加分会把“解释得越清楚、得分越高”搞反。"><span class="lz">乘法的语义是闸门：满足=彻底关掉这格；不满足=位置分全额通过——加法无法表达“被解释就该归零”</span><span class="len">Multiplication acts as a gate: satisfied shuts the slot to zero; missed passes the full weight — addition cannot express "being explained zeroes the entry"</span></button>
+        <button class="opt" data-expl="网络的可训练性不取决于这一步——μc/μp 是固定登记，不参与训练；设计动机是语义，不是梯度。"><span class="lz">为了让网络更容易训练</span><span class="len">To make the network easier to train</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout">
+      <b><span class="lz">本文如何用它：</span><span class="len">How the paper uses it:</span></b>
+      <span class="lz">下一卡：把每棵树各自的那列拼成一条长向量——一个顶点的完整规则账。</span>
+      <span class="len">Next card: concatenate the per-tree columns into one long vector — a vertex's complete rule ledger.</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

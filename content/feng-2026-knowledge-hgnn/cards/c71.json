@@ -1,0 +1,177 @@
+{
+  "id": "71",
+  "kind": "formula",
+  "chapter": "method",
+  "section": "5.12 Equation (7)",
+  "kicker": "5.12 · Equation (7)",
+  "title": "Equation (7): one tree's contribution, as a failure profile",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Equation (7) composes the two mappings into a per-tree encoding: $\\varphi_r^i(x, T_i) = \\big(\\mu_p(o_1)\\mu_c(x,o_1),\\; \\dots,\\; \\mu_p(o_{|O_{\\mathrm{in}}|})\\mu_c(x,o_{|O_{\\mathrm{in}}|})\\big)^{\\mathsf T}$ over the inner nodes $O_{\\mathrm{in}} \\subset T_i$. Its output dimension equals the number of inner nodes in that tree.",
+      "plain": "Multiply each question's importance weight by its 0/1 answer, and line the products up into a vector — one entry per question in that tree."
+    },
+    {
+      "t": "formula",
+      "tex": "\\varphi_r^i(x, T_i) = \\big(\\mu_p(o_1)\\,\\mu_c(x,o_1),\\; \\mu_p(o_2)\\,\\mu_c(x,o_2),\\; \\dots,\\; \\mu_p(o_{|O_{\\mathrm{in}}|})\\,\\mu_c(x,o_{|O_{\\mathrm{in}}|})\\big)^{\\mathsf T}",
+      "note": "A product of two scalars per node. Because $\\mu_c$ is 0 or 1, each entry is either exactly $0$ or exactly the node's weight $\\mu_p(o)$ — there are no intermediate values.",
+      "gloss": [
+        {
+          "sym": "T_i",
+          "md": "the $i$-th tree of the pre-trained ensemble"
+        },
+        {
+          "sym": "O_{\\mathrm{in}}",
+          "md": "its set of inner nodes — its questions"
+        },
+        {
+          "sym": "\\mu_p(o)",
+          "md": "the node's depth weight from Equation (6): larger near the root"
+        },
+        {
+          "sym": "\\mu_c(x,o)",
+          "md": "the 0/1 content bit from Equation (5): 0 when the rule covers $x$, 1 when it does not"
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The product is a mask, and this is the cleanest way to see what the vector is.** Since $\\mu_c$ is 0 or 1, the multiplication does one of two things to each weight: it keeps it, or it deletes it. So the per-tree vector's nonzero entries are **exactly the depth weights of the questions this vertex fails.** Another way to say the same thing: the vector is a *failure profile* — a list of which questions failed, each valued at the importance of the question."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**Three consequences follow immediately, and all three are checkable.** First, a vertex that satisfies every question in a tree gets an all-zero block — the all-zeros case from Equation (5), now visible at the level of one tree. Second, the norm of the block measures *how badly* the tree explains the vertex: $\\lVert \\varphi_r^i \\rVert^2 = \\sum_{\\text{failed } o} \\mu_p(o)^2$, so failing a root question costs far more than failing a deep one. Third, two vertices that fail *the same set* of questions receive *identical* vectors, however different their feature values are. The encoding keeps only the pattern of pass and fail, not the margin by which a threshold was passed."
+    },
+    {
+      "t": "p",
+      "md": "**That third point is a real limit and worth stating plainly.** A vertex with $x_2 = 2.01$ and one with $x_2 = 200$ both satisfy $x_2 \\ge 2$ and contribute the identical entry. All the information about how far past the threshold a value lies is discarded. This is inherent to a threshold-based rule encoding — the same property that makes the encoding interpretable and cheap also makes it coarse."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the profile for four vertices.** Take tree $T_1$ with questions $x_2 \\ge 2$ (depth 0) and $x_1 \\ge 1$ (depth 1), and weights $\\alpha = \\beta = 6$, inside the paper's searched range, so $\\mu_p = (1.000,\\; 0.857)$."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Vertex",
+        "$x_1$",
+        "$x_2$",
+        "$\\mu_c$",
+        "$\\varphi_r^1$",
+        "Fails"
+      ],
+      "rows": [
+        [
+          "P",
+          "3",
+          "5",
+          "$(0,0)$",
+          "$(0.000,\\; 0.000)$",
+          "nothing"
+        ],
+        [
+          "Q",
+          "0",
+          "5",
+          "$(0,1)$",
+          "$(0.000,\\; 0.500)$",
+          "the depth-1 question"
+        ],
+        [
+          "R",
+          "3",
+          "0",
+          "$(1,0)$",
+          "$(1.000,\\; 0.000)$",
+          "the root"
+        ],
+        [
+          "S",
+          "0",
+          "0",
+          "$(1,1)$",
+          "$(1.000,\\; 0.500)$",
+          "both"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Read the norm of each row. P: $0$. Q: $\\sqrt{0.857^2} = 0.857$. R: $\\sqrt{1 + 0} = 1.000$. S: $\\sqrt{1 + 0.857^2} = \\sqrt{1.734} = 1.317$.",
+          "why": "The norm orders the vertices by how poorly the tree explains them, and it does so with the depth weighting built in: R, which fails only the root, scores higher than Q, which fails only a deeper question."
+        },
+        {
+          "md": "Now find a vertex that would tie with R. Any vertex satisfying $x_2 \\ge 2$ but failing $x_1 \\ge 1$ gets the same vector $(1.000, 0.000)$.",
+          "why": "This is the coarseness in action. A vertex with $x_2 = 3, x_1 = 0$ and one with $x_2 = 1000, x_1 = 0$ are indistinguishable to this block — and would remain indistinguishable no matter how many vertices the dataset contains."
+        },
+        {
+          "md": "Finally, check the structure of the values: every entry is either $0$ or one of the two weights.",
+          "why": "With $\\alpha = \\beta = 6$ the weights for depths 0 through 4 run $1.000, 0.857, 0.750, 0.667, 0.600$, so a block has only five possible nonzero values. **The embedding is not continuous in the depth — it takes a handful of distinct magnitudes.** That is a strong limitation on how much a downstream linear layer can differentiate, and it follows from the formula rather than from any implementation choice."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Notice what the walk reveals about the whole design.** The rule embedding's information per vertex is: which of $C_r$ questions failed. That is at most $C_r$ bits, and after the depth weighting it is a vector whose entries come from a small set of magnitudes. Whether that is enough to improve node classification is an empirical question — and it is the question the paper's ablation is meant to answer, by comparing a model with this encoding against one without."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What are the possible values of an entry of $\\varphi_r^i$?",
+      "opts": [
+        {
+          "md": "Any real number, since the weights are real",
+          "expl": "The weights are real but each is multiplied by a 0/1 bit, so an entry can only be the weight or nothing. No entry takes a value between zero and its weight."
+        },
+        {
+          "md": "Either 0 or the weight of that node",
+          "correct": true,
+          "expl": "Correct. The product of a real weight with a 0/1 bit is either zero or the weight itself, so the vector is a masked copy of the weights. This is why the block's nonzero pattern is exactly the set of failed questions."
+        },
+        {
+          "md": "Either 0 or 1",
+          "expl": "That would be the content bit alone, without the depth weighting. The weighting multiplies in, so the magnitudes are the depth weights, not ones."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "With $\\alpha = \\beta = 6$, a vertex fails one question at depth 2 and one at depth 3, and satisfies all others. What is the squared norm of its block? Give three decimals.",
+      "answer": 1.007,
+      "tol": 0.005,
+      "hint": "Square each failed question's weight, then add. Ignore the questions the vertex satisfies.",
+      "sol": "$\\mu_p(2) = 1/(2+1) = 0.3333$ and $\\mu_p(3) = 1/(3+1) = 0.2500$. So the squared norm is $0.750^2 + 0.667^2 = 0.5625 + 0.4444 = 1.0069$, which rounds to 1.007. Note that satisfied questions contribute nothing — the mask has deleted them.",
+      "unit": "squared norm"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Two vertices have $x_2 = 2.01$ and $x_2 = 200$ respectively, and identical other features. What does the rule encoding say about them?",
+      "opts": [
+        {
+          "md": "It distinguishes them, since one value is much larger",
+          "expl": "The rule is a threshold test. Both values pass $x_2 \\ge 2$, so both produce a 0 in that slot — the margin is not recorded anywhere."
+        },
+        {
+          "md": "It cannot distinguish them on that feature, because a threshold test discards the margin",
+          "correct": true,
+          "expl": "Correct, and this is inherent to any rule-based encoding, not a defect of this implementation. What the encoding records is *which* predicates hold, not *how strongly*. It is the same trade that makes the representation interpretable: a threshold is cheap and readable precisely because it throws the distance away."
+        },
+        {
+          "md": "It distinguishes them only if the tree is deep enough",
+          "expl": "Depth adds more thresholds, which can separate values the coarse thresholds merge — but only if the tree happens to contain a threshold between 2.01 and 200. The encoding itself never records a margin; it records where a value falls among the thresholds that exist."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Equation (8), which assembles the per-tree blocks into one row per vertex — and this is where the embedding's width, and its main practical cost, become explicit."
+}

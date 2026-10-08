@@ -1,0 +1,136 @@
+{
+  "kind": "extension",
+  "title": "Reading a hyperparameter table as a description of the model",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **hyperparameter** is a value fixed before training and not updated by it, in contrast to a **parameter**, which the training algorithm fits. A **hyperparameter table** lists the values used for one experiment. Architecture hyperparameters — the number of layers, the **width** (the number of units in a hidden layer) of each, and the input and output dimensions — do not only tune the model: they determine its **parameter count**, the total number of fitted values, and therefore its size and its cost.",
+      "plain": "Hyperparameters are the knobs you set; parameters are what training sets. Some knobs — how many layers, how wide each layer is, how large the input is — decide how big the model is, and that size can be computed straight from the table."
+    },
+    {
+      "t": "p",
+      "md": "**Why a reader should do this arithmetic.** Two models reported under the same hyperparameter table are not necessarily two models of the same size. A larger model has more parameters, which usually costs more to train and can change how much of a difference is attributable to the method rather than to capacity. Reading the counts price both claims, and it also lets a reader tell whether a baseline was given the same budget."
+    },
+    {
+      "t": "p",
+      "md": "**When the arithmetic works, and when it does not.** The formula below describes a plain fully connected stack, in which every input is connected to every hidden unit. It fails as a description of a model with shared weights — a convolution reuses one filter across positions, so its count does not follow the layer-count-and-width rule — and it fails for any layer whose size depends on the input at run time. Reading a parameter count off a table is valid only when the table names a layer type whose count you can compute."
+    },
+    {
+      "t": "formula",
+      "tex": "P = d \\cdot h + h + h \\cdot c + c",
+      "note": "The parameter count $P$ of a single-hidden-layer network: input dimension $d$, hidden width $h$, output dimension $c$. The network builds $h$ hidden units from $d$ inputs — that is $d \\cdot h$ weights plus $h$ biases — then $c$ outputs from those $h$ hidden units: $h \\cdot c$ weights plus $c$ biases.",
+      "gloss": [
+        { "sym": "d", "md": "input dimension — how many numbers describe one example" },
+        { "sym": "h", "md": "hidden width — how many units the hidden layer has" },
+        { "sym": "c", "md": "output dimension — how many numbers the model produces" },
+        { "sym": "P", "md": "the parameter count — the total number of fitted values" }
+      ]
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a network small enough to count by eye.** Input dimension 3, one hidden layer of width 2, output dimension 1."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Input to hidden: 3 inputs × 2 hidden units = 6 weights, plus 2 biases, one per hidden unit = 8 values.",
+          "why": "Every input connects to every hidden unit, so the weights are the product of the two sizes; each hidden unit also carries its own bias."
+        },
+        {
+          "md": "Hidden to output: 2 hidden units × 1 output = 2 weights, plus 1 bias = 3 values.",
+          "why": "The same rule one layer further along, with the output size replacing the hidden size."
+        },
+        {
+          "md": "Total: 8 + 3 = 11 parameters.",
+          "why": "Nothing is shared between layers, so the two layer counts add."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — a table row turned into a model size.** Input dimension 20, one hidden layer of width 8, output dimension 3. This is the shape of a small classifier over twenty features and three classes."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Input to hidden: 20 × 8 = 160 weights, plus 8 biases = 168 values.",
+          "why": "The input dimension and the hidden width meet in the weight matrix, whose size is their product."
+        },
+        {
+          "md": "Hidden to output: 8 × 3 = 24 weights, plus 3 biases = 27 values.",
+          "why": "The hidden width and the class count meet in the same way at the second layer."
+        },
+        {
+          "md": "Total: 168 + 27 = 195 parameters.",
+          "why": "This is the whole model: a table row of three integers has fixed the size of every fitted value in it."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "Hold the input at 20 and the output at 3, and vary only the hidden width. At h = 4 the count is 20 × 4 + 4 = 84 for the first layer and 4 × 3 + 3 = 15 for the second, giving 99. At h = 8 it is 195. At h = 16 it is 20 × 16 + 16 = 336 plus 16 × 3 + 3 = 51, giving 387. Doubling the width does not double the total exactly — the bias terms grow more slowly — but it roughly doubles it, which is why the width in a table is a decision about model size rather than a formatting detail."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The honest note about a complete-looking table.** A table can be complete about *what* was set while saying nothing about *why*. It can report the exact width, depth and learning rate while never stating whether those values were chosen on a validation split, searched over a range, or copied from an earlier paper. That second omission is not a formatting gap: it is the difference between a result tuned on the reported data and one that was not, and no arithmetic on the table recovers it."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Beyond tuning performance, what does a table's layer-count-and-width block determine?",
+      "opts": [
+        {
+          "md": "The parameter count, and therefore the model's size",
+          "correct": true,
+          "expl": "Correct. Once the input dimension, the hidden width and the output dimension are known, the number of fitted values follows by arithmetic — which is what lets a reader compare two models' sizes at all."
+        },
+        {
+          "md": "The learning-rate schedule",
+          "expl": "The schedule is a separate training setting; layer sizes do not set it. This answer treats any table entry as a tuning detail rather than as a structural fact."
+        },
+        {
+          "md": "The train and test split",
+          "expl": "The split is decided by the data protocol, not by the model's shape. Its absence is a checklist item from the previous card, not something the width decides."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A table reports input dimension 30, one hidden layer of width 10, and output dimension 2. Using P = d·h + h + h·c + c, compute the parameter count.",
+      "answer": 332,
+      "tol": 0.5,
+      "hint": "Fill in the two layers separately — input to hidden, then hidden to output — and remember the bias of every unit, not only the weights.",
+      "sol": "Input to hidden: 30 × 10 = 300 weights plus 10 biases = 310. Hidden to output: 10 × 2 = 20 weights plus 2 biases = 22. Total: 310 + 22 = 332 parameters.",
+      "unit": "parameters"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Two papers report identical hyperparameter tables. Paper A says nothing about how the values were chosen; Paper B states they came from a 200-trial search scored on a validation split. What can a reader conclude about the two reported scores?",
+      "opts": [
+        {
+          "md": "They are directly comparable, because the tables match",
+          "expl": "Matching tables make the models the same shape, not the reported numbers the same kind of quantity. This answer reads the table as the whole method."
+        },
+        {
+          "md": "Paper B's values carry selection information that Paper A's do not, so a gap between the scores may reflect the searching rather than the methods",
+          "correct": true,
+          "expl": "Correct. A value found by a long search on validation data is partly a product of that search; without Paper A's provenance its score cannot be placed on the same scale, and the arithmetic on its table does not fix that."
+        },
+        {
+          "md": "Paper A's result is invalid because the origin of its values is unknown",
+          "expl": "An overcorrection in the other direction. Unknown provenance makes the claim conditional, not false — the card's whole point is that a missing *why* leaves the result under-determined rather than discredited."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the checklist and the arithmetic are the tools. The last card applies them to the paper in front of you, without assuming any particular number it reports."
+}

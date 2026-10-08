@@ -1,0 +1,131 @@
+{
+  "id": "65",
+  "kind": "formula",
+  "chapter": "method",
+  "section": "5.6 Equation (3)",
+  "kicker": "5.6 · Equation (3)",
+  "title": "Equation (3): the structural embedding, and what its range implies",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Equation (3) defines the structural embedding: $X_s[v] = \\rho\\big(\\sum_{e \\in \\mathcal{E}} H[v,e]\\big)$, where the sum is over all hyperedges and counts how many contain vertex $v$, and $\\rho(x) = \\sigma(wx + b)$ is a vertex-wise transformation with a scalar weight $w$, a scalar bias $b$ and $\\sigma$ the logistic sigmoid. The output dimension is $C_s = 1$.",
+      "plain": "Add up a vertex's row of the incidence matrix — which counts its relations — and pass that count through one sigmoid. The result is a single number per vertex, and because it comes out of a sigmoid it always lies strictly between 0 and 1."
+    },
+    {
+      "t": "formula",
+      "tex": "X_s[v] = \\rho\\Big(\\sum_{e \\in \\mathcal{E}} H[v,e]\\Big), \\qquad \\rho(x) = \\sigma(wx + b), \\qquad C_s = 1",
+      "note": "The sum is exactly the row sum you computed by hand in Chapter 2 — the vertex degree. Everything this encoder adds is the transformation $\\rho$ on top of it, and $\\rho$ is a one-dimensional sigmoid, so it has only two learnable numbers in total.",
+      "gloss": [
+        { "sym": "\\sum_{e \\in \\mathcal{E}} H[v,e]", "md": "the number of hyperedges containing $v$ — the vertex degree, one sum per vertex" },
+        { "sym": "\\rho", "md": "the vertex-wise transformation applied to that count; applied identically to every vertex" },
+        { "sym": "w, b", "md": "a scalar weight and a scalar bias — the only learned parameters in this encoder" },
+        { "sym": "\\sigma", "md": "the logistic sigmoid, $\\sigma(x) = 1/(1+e^{-x})$, whose range is the open interval $(0,1)$" },
+        { "sym": "C_s = 1", "md": "the output has one column, so $X_s$ is an $N \\times 1$ column rather than a matrix" }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The range fact matters more than it looks.** Because $\\sigma$ never reaches 0 or 1, **every entry of $X_s$ lies strictly between 0 and 1**, for every vertex and every setting of $w$ and $b$. Section IV-C says the Hadamard product makes \"features of structurally pivotal vertices … amplified, whereas those of less significance are attenuated\". Half of that is not literally possible: multiplying a number by something in $(0,1)$ can only make it *smaller*. What is true is that **high-degree vertices are attenuated less than low-degree ones**. The distinction is not pedantry — it is the difference between a gate that scales and a gate that both scales and boosts."
+    },
+    {
+      "t": "p",
+      "md": "**Does that break the method?** No, and it is worth seeing why, because the answer is a credit to the design. Equation (9) forms $Z = \\tilde{X}_r \\Vert X_r$ — it concatenates the attenuated copy **alongside the original, unattenuated one**. So no information is lost by the scaling; the network receives both versions and can learn to use the contrast between them. The design is a reweighting, not a deletion. What is wrong is the description, not the mechanism."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the encoder on real degrees.** Take $w = 0.5$, $b = 1$, so $\\rho(d) = \\sigma(0.5d + 1)$."
+    },
+    {
+      "t": "table",
+      "head": ["Vertex degree $d$", "Argument $0.5d+1$", "$X_s = \\sigma(\\cdot)$", "Typical in"],
+      "rows": [
+        ["1", "1.5", "0.8176", "a leaf author in DBLP-Conf"],
+        ["4", "3.0", "0.9526", "an author at the DBLP-Conf average"],
+        ["5", "3.5", "0.9707", "slightly above average"],
+        ["10", "6.0", "0.9975", "a prolific author"]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Check the ordering: the embedding rises with degree, from 0.8176 at degree 1 to 0.9975 at degree 10.",
+          "why": "This is the monotonicity the encoder is designed for — more relations means a larger structural number. Not monotone *strictly* at large degrees, since the sigmoid saturates, which is itself worth noting: beyond degree roughly 15 the number stops distinguishing anything."
+        },
+        {
+          "md": "Now multiply this into a rule embedding. Suppose a vertex with degree 4 has rule entries $X_r = (2,\\; 4)$, and a vertex with degree 1 has the same rule entries.",
+          "why": "Holding the rule embedding fixed isolates the structural factor, which is the only thing that differs between the two vertices here."
+        },
+        {
+          "md": "Degree 4: $\\tilde{X}_r = (0.9526 \\times 2,\\; 0.9526 \\times 4) = (1.905,\\; 3.810)$. Degree 1: $\\tilde{X}_r = (0.8176 \\times 2,\\; 0.8176 \\times 4) = (1.635,\\; 3.270)$.",
+          "why": "**Both results are smaller than the originals $(2, 4)$.** The well-connected vertex's entries are larger than the poorly-connected vertex's — so the ordering is as intended — but neither is larger than what the rule encoder produced. This is the range fact made concrete."
+        },
+        {
+          "md": "Finally $Z = \\tilde{X}_r \\Vert X_r$, so the degree-4 vertex receives $(1.905,\\; 3.810,\\; 2,\\; 4)$ and the degree-1 vertex receives $(1.635,\\; 3.270,\\; 2,\\; 4)$.",
+          "why": "The last two entries are identical, which is the concatenation preserving the unattenuated original. The two vertices differ only in the first two entries, and differ there by about 14% — the ratio $0.9526/0.8176$. **That ratio, not any amplification, is the whole effect of the structural encoder.**"
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Note what the arithmetic reveals about the encoder's strength: with $w = 0.5$ the sigmoid is already in its flat region for ordinary degrees, so the ratio between a degree-1 and a degree-4 vertex is only about 1.17. A larger $w$ sharpens this but saturates sooner; a smaller $w$ flattens it further. **One learnable scalar, sitting in a saturating region, is a narrow channel through which structural information reaches the network** — which is the honest counterweight to the paper's framing of it as rich high-order structural knowledge."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is the range of $X_s[v]$?",
+      "opts": [
+        {
+          "md": "Any real number, since $w$ and $b$ are unbounded",
+          "expl": "The parameters are unbounded but the sigmoid is not. However large $wx+b$ becomes, $\\sigma$ stays strictly inside $(0,1)$ — that is what a sigmoid does."
+        },
+        {
+          "md": "Strictly between 0 and 1",
+          "correct": true,
+          "expl": "Correct, for every vertex and every parameter setting. This is the fact that makes the Hadamard product a pure attenuation: it can shrink a rule entry by any factor in $(0,1)$ but can never enlarge it."
+        },
+        {
+          "md": "Between 0 and the vertex's degree",
+          "expl": "The degree is the input to the transformation, not a bound on the output. A vertex with degree 100 and one with degree 1 produce numbers in the same narrow range near 1."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "With $w = 1$ and $b = 0$, what is the structural embedding of a vertex of degree 4? Give four decimals.",
+      "answer": 0.982,
+      "tol": 0.001,
+      "hint": "Evaluate the sigmoid at the vertex's degree, since $b = 0$.",
+      "sol": "$\\rho(4) = \\sigma(4) = 1/(1+e^{-4}) = 0.9820$. Compare this with the $w = 0.5$ table, where degree 4 gave 0.9526: doubling the weight moved the value towards 1 but changed it by only 0.03, because the sigmoid is nearly saturated. This is why the choice of $w$ is not very consequential at large degrees — and why a single scalar may be a thinner channel than it appears.",
+      "unit": "value"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Given that $X_s \\in (0,1)$, why is the paper's statement that pivotal vertices are \"amplified\" misleading, and why does it not invalidate the method?",
+      "opts": [
+        {
+          "md": "It is misleading and the method is consequently flawed",
+          "expl": "The scaling is real and the concatenation preserves the unscaled values, so nothing is lost. A misdescription of a working mechanism is a writing problem, not a design failure."
+        },
+        {
+          "md": "Multiplying by a number below 1 always shrinks, so nothing is amplified in absolute terms; but concatenating the unscaled $X_r$ alongside the scaled copy means the network sees both and loses nothing",
+          "correct": true,
+          "expl": "Correct on both counts, and this is the distinction worth carrying into Chapter 7. The mechanism reweights: high-degree vertices are damped less than low-degree ones, which is exactly what the design needs. The sentence in Section IV-C describes a relative reweighting using a word that implies an absolute increase. Read as reweighting, the encoder does what it should."
+        },
+        {
+          "md": "It is not misleading, because amplification is always relative",
+          "expl": "Relative comparison is indeed what the design achieves, but a reader who takes \"amplified\" literally will expect some entries to grow — a natural expectation when the standard analogy, attention, genuinely produces weights above 1. The word is doing more work than the mechanism supports."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the step the paper calls a proof — that this encoder is invariant to column permutations. It is short, and reading it shows exactly how much (and how little) a proof of this kind establishes."
+}

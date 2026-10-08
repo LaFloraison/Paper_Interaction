@@ -1,0 +1,138 @@
+{
+  "kind": "extension",
+  "title": "Activation functions: the bend, and why ReLU won",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "An **activation function** $\\phi$ is a fixed, non-linear, scalar function applied independently to every entry of a layer's pre-activation $\\mathbf{z} = \\mathbf{W}\\mathbf{x}+\\mathbf{b}$, so that the layer's output is $\\phi(\\mathbf{z})$. It is chosen once by the designer and is never updated by learning. The four in common use are the step function, the sigmoid, the hyperbolic tangent, and the rectified linear unit (ReLU).",
+      "plain": "An activation function is the bend applied at each neuron. It is a fixed rule — same rule for every neuron in the layer, and the same rule every time you run the network — that turns a straight-line computation into a curved one. It has no parameters to learn."
+    },
+    {
+      "t": "p",
+      "md": "**Why a non-constant, non-linear function is required.** Card 2 showed that a stack of purely linear maps is one linear map. So the activation must be non-linear; if it were linear, it would fold into the weight matrix like any other matrix and add nothing. It must also be non-constant — a function that output a fixed number for every input would discard the input entirely. Within those two requirements there is a large menu, and the four standard entries trade off differently against one thing above all: **what the derivative looks like**, because the derivative is what gradient descent uses to train the network (card 6)."
+    },
+    {
+      "t": "p",
+      "md": "**The sigmoid and its saturation problem.** The sigmoid squashes any real number into the interval $(0, 1)$, which is why it suits probabilities: extremely negative inputs map near $0$, extremely positive inputs near $1$, and $0$ maps to $0.5$. Its difficulty is exactly this squashing. Once its input is large in magnitude — say below $-6$ or above $+6$ — the output is pinned near $0$ or $1$ and the *slope* is nearly zero. A nearly zero slope means the gradient flowing back through that neuron is nearly zero, so the weights feeding it barely change. The neuron is said to be **saturated**, and in a deep network saturation at many layers compounds: multiplying many near-zero derivatives together produces a gradient of essentially zero, and the early layers stop learning."
+    },
+    {
+      "t": "table",
+      "head": ["Activation", "Formula", "Range", "Derivative", "Main problem"],
+      "rows": [
+        ["Step", "$\\phi(z) = 1$ if $z > 0$, else $0$", "$\\{0, 1\\}$", "Zero almost everywhere, undefined at $0$", "Derivative is zero — gradient descent cannot train it"],
+        ["Sigmoid", "$\\phi(z) = \\dfrac{1}{1+e^{-z}}$", "$(0, 1)$", "$\\phi(z)\\big(1-\\phi(z)\\big)$", "Saturates: slope near zero for large $|z|$, so gradients vanish"],
+        ["Tanh", "$\\phi(z) = \\dfrac{e^{z}-e^{-z}}{e^{z}+e^{-z}}$", "$(-1, 1)$", "$1 - \\phi(z)^2$", "Also saturates, though its range is centred on zero"],
+        ["ReLU", "$\\phi(z) = \\max(0, z)$", "$[0, \\infty)$", "$1$ if $z > 0$, else $0$", "Dead units: a neuron stuck at $z < 0$ has zero gradient"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Why ReLU became the default.** Look at the derivative column. For any positive input, ReLU's slope is exactly $1$ — no narrowing, no compounding loss of signal however deep the stack. Its arithmetic is a comparison rather than an exponential, which is far cheaper. And because it outputs exactly $0$ for negative inputs, a typical layer leaves some fraction of its units switched off, which makes the activations sparse and the effective computation lighter. Tanh, by contrast, centres its output on zero instead of on $0.5$ (helpful for the layers that follow) but still saturates. The trade ReLU accepts is its own failure mode: a unit whose input is negative for *every* training example receives zero gradient forever and is permanently dead — a real and common problem that the tanh and sigmoid families do not have."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "Do not read the table's 'problem' column as ruling a function out. Sigmoid is still the standard final activation for a binary classifier, because its $(0,1)$ range is what a probability needs. The choice is per-layer: a hidden layer usually wants a cheap non-saturating bend (ReLU or tanh), and the output layer wants whatever shape the target demands."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the sigmoid at a spread of inputs.** The sigmoid is $\\phi(z) = 1/(1 + e^{-z})$. Compute it at a few points and watch the curve flatten at the ends."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "At $z = 0$: $e^{0} = 1$, so $\\phi(0) = 1/(1+1) = 0.5$.",
+          "why": "Zero is the centre — the sigmoid maps it to the midpoint of its range. Any input above zero gives a value above half."
+        },
+        {
+          "md": "At $z = 2$: $e^{-2} = 0.135335$, so $\\phi(2) = 1/(1 + 0.135335) = 1/1.135335 = 0.880797$.",
+          "why": "An input of 2 already pushes the output to 0.88. The function is steep near zero, so small inputs move the output a lot."
+        },
+        {
+          "md": "At $z = -2$: $e^{2} = 7.389056$, so $\\phi(-2) = 1/(1 + 7.389056) = 1/8.389056 = 0.119203$.",
+          "why": "By symmetry, $\\phi(-z) = 1 - \\phi(z)$: negative inputs give values below half, mirroring the positive side."
+        },
+        {
+          "md": "At $z = 4$: $e^{-4} = 0.018316$, so $\\phi(4) = 1/(1 + 0.018316) = 1/1.018316 = 0.982014$.",
+          "why": "An input of 4 buys only $0.982$ where 2 bought $0.881$. The gain per extra unit of input is shrinking fast — the curve is flattening towards its ceiling of 1."
+        }
+      ]
+    },
+    {
+      "t": "table",
+      "head": ["Input $z$", "Sigmoid $\\phi(z)$", "Slope $\\phi(z)(1-\\phi(z))$"],
+      "rows": [
+        ["$-4$", "0.017986", "0.017663"],
+        ["$-2$", "0.119203", "0.104994"],
+        ["$0$", "0.500000", "0.250000"],
+        ["$2$", "0.880797", "0.104994"],
+        ["$4$", "0.982014", "0.017663"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "The third column is the saturation problem made numeric. At $z = 0$ the slope is $0.25$, the maximum the sigmoid ever attains. By $z = 4$ the slope has fallen to $0.018$, roughly fourteen times smaller. Stack ten sigmoid layers and a gradient passing through them is multiplied by numbers of this size at each step: $0.018$ raised to the tenth power is smaller than $10^{-17}$, and the effective gradient reaching the first layer is, for practical purposes, zero. The early layers receive no information about how to improve."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "ReLU does not have this particular failure. Its slope is exactly $1$ for every positive input, so a gradient passing through a chain of active ReLU units is unchanged in magnitude by the activations themselves. That single property — a derivative that neither shrinks nor explodes over the active region — is the reason ReLU displaced the sigmoid in hidden layers and made genuinely deep networks trainable."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What property must an activation function have for a stack of layers to be more expressive than a single linear layer?",
+      "opts": [
+        {
+          "md": "It must be bounded between 0 and 1",
+          "expl": "Sigmoid is bounded and works, but ReLU is not bounded above and works too. Boundedness is not the requirement; it is a property some activations happen to have."
+        },
+        {
+          "md": "It must be non-linear (and non-constant)",
+          "correct": true,
+          "expl": "Correct. A linear activation folds into the weight matrix, so the stack collapses to one linear map — card 2's proof. Non-linearity is what stops the collapse; a non-constant function is also needed so the input is not discarded."
+        },
+        {
+          "md": "It must be differentiable at every point",
+          "expl": "ReLU is not differentiable at zero and trains fine — the derivative is taken as 0 or 1 there. Differentiability almost everywhere is convenient, not essential."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Compute the sigmoid $\\phi(z) = 1/(1+e^{-z})$ at $z = 3$. Give your answer to four decimal places.",
+      "answer": 0.9526,
+      "tol": 0.001,
+      "hint": "Substitute $z = 3$ into the sigmoid formula and evaluate the resulting fraction.",
+      "sol": "$e^{-3} = 0.049787$, so $\\phi(3) = 1/(1 + 0.049787) = 1/1.049787 = 0.952574$, which rounds to $0.9526$. Note how close to the ceiling of 1 this is: an input of 3 already produces a near-saturated output, and its slope $\\phi(3)(1-\\phi(3)) = 0.9526 \\times 0.0474 \\approx 0.045$ is far below the maximum of $0.25$.",
+      "unit": ""
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A deep network uses sigmoid activations in every hidden layer and its early layers barely change during training. What is the most likely cause?",
+      "opts": [
+        {
+          "md": "The learning rate is zero",
+          "expl": "That would stop all layers from changing, not just the early ones. A frozen learning rate does not produce a pattern that spares the last layers."
+        },
+        {
+          "md": "Sigmoid saturation makes each layer's gradient small, and the small factors multiply across depth into a vanishing gradient at the early layers",
+          "correct": true,
+          "expl": "Correct. Each saturated layer multiplies the backward gradient by a number as small as 0.018, and depth turns those factors into a product approaching zero. The late layers see one small factor; the early layers see the product of many, which is why they stall first. Switching to ReLU, whose active-region slope is 1, removes this specific decay."
+        },
+        {
+          "md": "The number of parameters is too large",
+          "expl": "Many parameters can cause overfitting (card 7), not a failure of the first layers to train. The symptom points at the backward gradient, not at capacity."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the activation is the one piece of a layer that is chosen rather than learned, and the paper's layers use ReLU-family bends. Card 4 turns to the other half of training: the loss the network is asked to reduce."
+}

@@ -1,0 +1,104 @@
+{
+  "kind": "extension",
+  "title": "Degree: how connected is this vertex?",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "The degree of a vertex is the number of edges incident to it; equivalently, the sum of its row in the adjacency matrix. In a hypergraph the degree of a vertex is the number of hyperedges that contain it — an edge of size five contributes one to each of its five vertices, not five to any one of them.",
+      "plain": "A vertex's degree is simply how many relations it takes part in. On a plain graph, how many edges touch it; on a hypergraph, how many groups it belongs to."
+    },
+    {
+      "t": "p",
+      "md": "**Why degree is the first quantity anyone computes.** It is the cheapest summary of a vertex's position. A vertex of degree 1 is an afterthought; a vertex of degree 3 is an organising hub. Almost every graph method begins by asking about degree, because degree controls how much information arrives at a vertex — and, as card 5 will show, how much a vertex needs to be damped down."
+    },
+    {
+      "t": "p",
+      "md": "Two cautions. First, on a hypergraph a *size-five* edge adds 1 to each of five vertices: involvement is counted per relation, never per partner. Second, degree is a property of a vertex, so \"this dataset has average degree 4.8\" means \"the average vertex belongs to 4.8 relations\". Chapter 6's Table I prints exactly this quantity, and getting the direction of the count right there is the difference between reading the table and misreading it."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — read degrees straight off the picture.** Take the four-person graph from card 1: edges $\\{1,2\\}$, $\\{2,3\\}$, $\\{2,4\\}$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Vertex 1 appears in exactly one edge, $\\{1,2\\}$. Its degree is **1**.",
+          "why": "Count *relations*, not partners. Vertex 1 has one partner here, and one relation — they coincide only because the edges are pairwise."
+        },
+        {
+          "md": "Vertex 2 appears in all three edges. Its degree is **3**.",
+          "why": "This is the hub. High degree means many messages will arrive here when information is passed along the graph."
+        },
+        {
+          "md": "Vertices 3 and 4 each appear once. Their degrees are **1** and **1**.",
+          "why": "Total degree is $1 + 3 + 1 + 1 = 6$, which equals $2 \\times 3$ edges. That is not a coincidence: every edge contributes exactly two endpoints, so the degrees always sum to twice the edge count. This handshake identity is the quickest sanity check on any degree list."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the same count on a hypergraph.** Dorm 302 houses Zhang, Li and Wang, and that is the only relation recorded. Each student belongs to exactly one hyperedge, so each has degree 1 — even though the hyperedge has three members."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Compare the two examples. In the four-person graph, the total degree is 6 over 3 edges (two endpoints each). In the dorm, the total degree is 3 over 1 hyperedge (three endpoints). **The handshake identity changes shape on hypergraphs**: degrees sum to the sum of all hyperedge sizes, not to twice the edge count. Chapter 6's Table I has a column for each side of that identity."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "A hypergraph has one hyperedge of size five. What is the degree of one of its five vertices?",
+      "opts": [
+        {
+          "md": "5, because the edge contains five vertices",
+          "expl": "You have read the edge's size as the vertex's involvement. Size tells you how many vertices the edge holds; degree tells you how many edges hold this vertex."
+        },
+        {
+          "md": "1, because that vertex belongs to exactly one hyperedge",
+          "correct": true,
+          "expl": "Correct. Degree counts the relations a vertex takes part in. This is precisely the distinction between the two degree columns of Table I: one counts vertices per relation, the other counts relations per vertex."
+        },
+        {
+          "md": "It cannot be determined without knowing the other vertices' degrees",
+          "expl": "It can: degree is a per-vertex count and needs nothing but the edges that touch that vertex."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A graph has 5 edges and vertex degrees 2, 2, 3, 1 and $x$. What is $x$?",
+      "answer": 2,
+      "tol": 0.01,
+      "hint": "Use the handshake identity: the degrees must sum to twice the number of edges.",
+      "sol": "Twice the edge count is $2 \\times 5 = 10$. The known degrees sum to $2+2+3+1 = 8$, so $x = 10 - 8 = 2$. Answering 5 is the common slip — that is the edge count, not the missing degree.",
+      "unit": "degree"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why does a graph method usually treat degree-1 vertices differently from high-degree vertices?",
+      "opts": [
+        {
+          "md": "Because degree-1 vertices are always noise",
+          "expl": "Plenty of degree-1 vertices are meaningful — a paper cited by nobody else in the dataset is still a paper. Degree is about position, not about importance."
+        },
+        {
+          "md": "Because a high-degree vertex would otherwise dominate the information its neighbours receive",
+          "correct": true,
+          "expl": "Correct, and this is the motivation behind the degree normalisation the paper uses in Equation (1). If every vertex simply added up its neighbours' features, a hub with 900 neighbours would contribute 900 times as much as a leaf — not because it is 900 times more informative, but because it is 900 times better connected."
+        },
+        {
+          "md": "Because degree-1 vertices cannot be represented in a matrix",
+          "expl": "They are represented perfectly well; their row simply has a single 1 in it."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** degree is so central that the graph is often written down *as* its degrees and connections — which is what the incidence matrix of card 3 does, and what the paper's Equation (3) sums over."
+}

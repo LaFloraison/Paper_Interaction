@@ -1,0 +1,135 @@
+{
+  "kind": "extension",
+  "title": "What an evaluation protocol is",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "An **evaluation protocol** is the complete rulebook for one experiment. It fixes three things. First, the **label regime**: which vertices carry labels the model may learn from during training. Second, the **scoring set**: which vertices contribute to the number that gets reported. Third, the **visibility rule**: whether the scored vertices were already present in the graph — with their features (the attribute vector attached to each vertex) and their edges (their connections to other vertices) — while the model was training, even if their labels were withheld. Two experiments that agree on dataset, model and metric but disagree on any one of the three are not measuring the same quantity, so their numbers cannot be compared.",
+      "plain": "A protocol is the rulebook for an experiment: what the model may look at while it learns, what gets graded at the end, and whether the graded items were already in front of the model while it learned."
+    },
+    {
+      "t": "p",
+      "md": "**Why the split is not the whole story.** You have already met the train/validation/test split. It assigns each example to one of three buckets, and it says the test bucket must guide nothing. That is one coordinate of a protocol, not the protocol. The split does not by itself say whether the vertices you will be scored on were physically in the graph during training. Two papers can run the identical split and still measure different things, because one removed the scoring vertices from the graph first and the other left them in place."
+    },
+    {
+      "t": "p",
+      "md": "**How the three coordinates operate.** Name them, because every results table silently commits to a value for each."
+    },
+    {
+      "t": "list",
+      "ordered": true,
+      "items": [
+        "**Label regime** — during training, whose labels the loss (the quantity training minimises) may use. In the example below, three vertices carry usable labels and one is held back for tuning.",
+        "**Scoring set** — which vertices the reported metric averages over. Usually the test bucket. A validation score is also a number, but it is a tuning number, not a result.",
+        "**Visibility** — whether the scored vertices existed in the graph, features and edges included, while the model trained. This is the coordinate readers forget, and the one that separates the transductive regime from the inductive regime."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The most common misreading.** \"Test set\" is often read as \"data the model has never seen\". Under a transductive protocol that reading is false: the scored vertices were in the graph the whole time, with features and edges fully visible. Only their labels were withheld. A reader who equates *test* with *unseen* will over-read every transductive number in the paper. Card 2 makes the distinction exact."
+    },
+    {
+      "t": "p",
+      "md": "**When a protocol breaks.** Two failure modes matter. (i) An unstated protocol cannot be compared: if a table reports two numbers obtained under different visibility rules without saying so, the gap between them may be entirely a change of rule rather than a change of method. (ii) A protocol can leak: if any label of a scored vertex reached the model during training, or reached the person choosing the settings, the reported number is inflated and no longer estimates performance on unseen data. Card 5 works through the arithmetic of one such leak."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a six-vertex graph, one protocol, filled in three steps.** A graph has vertices v1 through v6 and edges v1–v2, v1–v3, v2–v3, v3–v4, v4–v5, v5–v6. It therefore has 6 vertices and 6 edges. The split is: v1, v2, v3 for training; v4 for validation; v5 and v6 for scoring."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "**Label regime.** v1, v2, v3 carry labels the loss may use — 3 vertices. v4's label is used to choose settings (tuning) and is never reported as a result. v5 and v6 contribute no training label at all. So 3 of the 6 vertices are learnable.",
+          "why": "The label regime counts labels the model may *learn from*, not labels that exist. A held-out validation label exists and is read by the person tuning, but it must not enter the training loss."
+        },
+        {
+          "md": "**Scoring set.** v5 and v6 — 2 vertices. The reported number averages over exactly these two.",
+          "why": "Fixing the scoring set first is what keeps a number comparable with another paper's. If v4 were also scored, the reported figure would mix a tuning quantity with a result and mean neither."
+        },
+        {
+          "md": "**Visibility.** Under a transductive protocol, v5 and v6 are *present* during training: their features and their edges (v4–v5 and v5–v6) are available to the model, and their labels are not. Under an inductive protocol, v5 and v6 are *absent*: they do not exist in the graph until scoring time.",
+          "why": "This is the coordinate that moves between protocols. The label regime and the scoring set above are identical in both; only this one changes, and it changes what the number means."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the same graph under three protocols.** In the table, *labelled* means the loss may use this vertex's label; *present, unlabelled* means the vertex and its edges are in the graph but its label is withheld; *absent* means the vertex is not in the graph at all during training."
+    },
+    {
+      "t": "table",
+      "head": ["Protocol", "v1", "v2", "v3", "v4", "v5", "v6", "Scored"],
+      "rows": [
+        ["Transductive", "labelled", "labelled", "labelled", "labelled (tuning)", "present, unlabelled", "present, unlabelled", "v5, v6"],
+        ["Inductive", "labelled", "labelled", "labelled", "labelled (tuning)", "absent", "absent", "v5, v6, introduced at scoring time"],
+        ["Mixed", "labelled", "labelled", "labelled", "labelled (tuning)", "present, unlabelled", "absent", "v5, v6"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "Compare the rows. The label regime and the scoring set are the same in all three; only the visibility column moves. That is the entire content of the difference between protocols — one column, which decides what the reported number is a number *of*."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Count the transductive row: 6 of 6 vertices are in the graph during training, and 4 of the 6 labels are usable, 3 for training plus 1 for tuning. Count the inductive row: 4 of 6 vertices are present at training time and 2 are absent; all 6 labels still exist eventually, but 2 of them appear only at scoring time. Same graph, same model, two different quantities."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which of these is a coordinate that a protocol fixes but a train/validation/test split, on its own, does not?",
+      "opts": [
+        {
+          "md": "The learning rate and the number of training epochs",
+          "expl": "Those are training settings, chosen inside any protocol. They change the score, but they are not one of the three rules, and the split already decides which example lands in which bucket."
+        },
+        {
+          "md": "Whether the scored vertices were present in the graph during training",
+          "correct": true,
+          "expl": "Correct. The split assigns vertices to buckets; it says nothing about whether the scoring vertices were physically in the graph while the model trained. That visibility rule is the coordinate separating the transductive regime from the inductive one."
+        },
+        {
+          "md": "Which vertices are in the training bucket",
+          "expl": "That is exactly what the split does decide. It is the part of the protocol you have already met, not the missing coordinate."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A graph has 40 vertices: 24 are labelled for training, 6 are held for validation, and 10 are the scoring set. Under an **inductive** protocol, how many vertices are present in the graph while the model trains?",
+      "answer": 30,
+      "tol": 0.5,
+      "hint": "Ask which of the three groups the inductive rule removes from the graph, and count the rest.",
+      "sol": "24 labelled training vertices + 6 validation vertices = 30 present. The 10 scoring vertices are absent under an inductive protocol, so counting the other way gives 40 − 10 = 30. The two routes agree because the groups partition the 40 vertices.",
+      "unit": "vertices"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Two papers report 85% on the same graph with the same model. Paper A withheld the scoring labels but left the scoring vertices in the graph; Paper B deleted them before training. What is the correct reading?",
+      "opts": [
+        {
+          "md": "Paper B's 85% is the better result, because it was harder to obtain",
+          "expl": "Harder does not make two numbers comparable. B's 85% is a reading of a different quantity; calling it better requires that both were measured under the same rule and B won."
+        },
+        {
+          "md": "Paper A's 85% proves the model generalises to unseen graphs",
+          "expl": "A's protocol had the scoring vertices visible during training, so the result speaks about those vertices only. Nothing in it addresses a graph the model has never seen."
+        },
+        {
+          "md": "The two numbers measure different quantities, so neither can be called better until both protocols are stated",
+          "correct": true,
+          "expl": "Correct. The visibility rule differs, so the quantities differ. A comparison becomes possible only when the protocols are on the page and the same rule is applied on both sides."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the third coordinate — visibility — deserves its own card on each of its two values. Card 2 takes the transductive value; card 3 takes the inductive one."
+}

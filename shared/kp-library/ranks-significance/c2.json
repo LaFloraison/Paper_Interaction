@@ -1,0 +1,238 @@
+{
+  "kind": "extension",
+  "title": "The arithmetic of an average rank, and the ties",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Fix one dataset containing $k$ methods, each with a score, higher meaning better. The **rank** of a method is its position after sorting the methods from the best score to the worst: rank $1$ for the best score, rank $k$ for the worst. When two or more methods have equal scores they are **tied**, and under the standard convention each tied method receives the **mean of the ranks that it and its tied partners jointly occupy**: a tie for second and third place gives each of the two methods $2.5$. With $N$ datasets, a method's **average rank** is $R = \\frac{1}{N}\\sum_{i=1}^{N} r_i$, where $r_i$ is its rank on dataset $i$. Lower $R$ is better.",
+      "plain": "A rank is a finishing position, 1 for the best. If two methods tie at second and third, each gets 2.5 — the average of the two positions they share — rather than an arbitrary 2 or 3. Average those positions over the datasets."
+    },
+    {
+      "t": "p",
+      "md": "**One invariant that lets you check a table by hand.** Within a single dataset holding $k$ methods, the positions $1, 2, \\dots, k$ are all consumed — the methods are being ordered, so every position from first to last is used exactly once between them. Their sum is therefore $1 + 2 + \\cdots + k = \\frac{k(k+1)}{2}$, whatever the scores were. A tie does not change the total: a tie between second and third place still consumes positions 2 and 3 between the two tied methods. Across $N$ datasets, the ranks of *all* the methods together must sum to $N \\cdot \\frac{k(k+1)}{2}$. This is a checkable invariant: total every rank you assigned and compare. A mismatch means a tie was handled away from the convention, or a rank was misread."
+    },
+    {
+      "t": "formula",
+      "tex": "R = \\frac{1}{N}\\sum_{i=1}^{N} r_i",
+      "note": "The average rank of one method. Each $r_i$ is that method's finishing position on dataset $i$; dividing by the number of datasets $N$ makes the result comparable across methods however many experiments were run.",
+      "gloss": [
+        { "sym": "R", "md": "the average rank — the single number reported per method; smaller is better" },
+        { "sym": "N", "md": "the number of datasets, that is, the number of experiments being pooled" },
+        { "sym": "r_i", "md": "the method's rank on the $i$-th dataset: an integer from $1$ to $k$, or a half-integer such as $2.5$ when tied" },
+        { "sym": "\\sum_{i=1}^{N}", "md": "add the method's ranks over all the datasets" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Why the tied ranks are averaged.** The convention is chosen precisely so the invariant survives. Three methods with scores $0.91$, $0.88$, $0.88$ occupy positions 1, 2 and 3. Giving the two tied methods the mean of the positions they share, $2.5$ each, produces ranks $1, 2.5, 2.5$, which still sum to $6$. Awarding both the lower position gives $1, 2, 2$, summing to $5$. Awarding both the higher position gives $1, 3, 3$, summing to $7$. Neither arbitrary choice keeps the total fixed, and each silently biases every average rank computed from the table: one flatters the tied methods, the other penalises them. Averaging the shared positions is what makes the bookkeeping exact rather than conventional."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The two mistakes that actually happen.** First, direction: rank 1 is the *best* position, so a *smaller* average rank wins — readers who carry over a habit of higher-is-better invert every conclusion in the table. Second, silent ties: if scores are rounded before ranking, methods that differ in the third decimal become tied, which drags both towards the middle and can reorder the average ranks. Rank the raw scores, not a rounded printout of them."
+    },
+    {
+      "t": "p",
+      "md": "**When the arithmetic stops discriminating.** The ranks on one dataset can only take the values $1, \\dots, k$, so an average rank lives between $1$ and $k$, and the same value means different things in different studies: an average rank of $1.5$ sits between first and second place in a comparison of three methods, but is near the very top in a comparison of thirty. Average ranks from comparisons with different numbers of methods are not on a common scale. And when most datasets are ties, the ranks pour into the middle and every method's average rank drifts towards $\\frac{k+1}{2}$ — the method that wins and the method that loses can end up with almost the same number. Ties do not distort the total, but they thin out the differences the total is meant to express."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — three methods, four datasets, one tie.** Methods M1, M2 and M3 are compared on four datasets; higher is better."
+    },
+    {
+      "t": "table",
+      "head": ["Dataset", "M1", "M2", "M3"],
+      "rows": [
+        ["D1", "0.91", "0.88", "0.88"],
+        ["D2", "0.75", "0.80", "0.70"],
+        ["D3", "0.60", "0.65", "0.62"],
+        ["D4", "0.50", "0.52", "0.55"]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "D1: M1 is best at 0.91 and takes rank 1. M2 and M3 tie at 0.88 and jointly occupy positions 2 and 3, so each takes the mean $(2 + 3)/2 = 2.5$.",
+          "why": "This is the tied-rank convention. It is also why this row still sums to 6: the tied pair consumes two positions between them, so nothing is skipped."
+        },
+        {
+          "md": "D2: the scores 0.80, 0.75, 0.70 are distinct, so M2 = 1, M1 = 2, M3 = 3.",
+          "why": "With no ties the ranks are the positions after sorting, and they sum to 6 — the value the invariant predicts for three methods."
+        },
+        {
+          "md": "D3: 0.65, 0.62, 0.60 give M2 = 1, M3 = 2, M1 = 3.",
+          "why": "M1 is last here. A method that leads on one dataset can trail on another, and the average rank pools both facts rather than choosing between them."
+        },
+        {
+          "md": "D4: 0.55, 0.52, 0.50 give M3 = 1, M2 = 2, M1 = 3.",
+          "why": "M3 climbs from last to first across the four datasets. The per-dataset table shows that movement; the average rank will compress it into one number."
+        }
+      ]
+    },
+    {
+      "t": "table",
+      "head": ["Dataset", "M1", "M2", "M3", "row total"],
+      "rows": [
+        ["D1", "1", "2.5", "2.5", "6"],
+        ["D2", "2", "1", "3", "6"],
+        ["D3", "3", "1", "2", "6"],
+        ["D4", "3", "2", "1", "6"]
+      ]
+    },
+    {
+      "t": "calc",
+      "md": "M1:  1 + 2 + 3 + 3 = 9      →   9 ÷ 4 = 2.25"
+    },
+    {
+      "t": "calc",
+      "md": "M2:  2.5 + 1 + 1 + 2 = 6.5   →   6.5 ÷ 4 = 1.625"
+    },
+    {
+      "t": "calc",
+      "md": "M3:  2.5 + 3 + 2 + 1 = 8.5   →   8.5 ÷ 4 = 2.125"
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**Read the result, then check it.** M2 has the smallest average rank (1.625), ahead of M3 (2.125) and M1 (2.25) — smaller is better, because smaller means finishing nearer the top more often. Every row of the rank table totals 6, as it must for three methods since $1 + 2 + 3 = 6$. The three averages come from sums $9 + 6.5 + 8.5 = 24$, and the invariant predicts $N \\cdot \\frac{k(k+1)}{2} = 4 \\cdot \\frac{3 \\cdot 4}{2} = 4 \\cdot 6 = 24$. The table is consistent."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the tie convention, with the alternatives written out.** Take D1 from the table above: scores 0.91, 0.88, 0.88, one method clear at the top and two tied below it."
+    },
+    {
+      "t": "table",
+      "head": ["Tie rule", "ranks given", "row total"],
+      "rows": [
+        ["Mean of the shared positions (standard)", "1, 2.5, 2.5", "6"],
+        ["Both take the lower position", "1, 2, 2", "5"],
+        ["Both take the higher position", "1, 3, 3", "7"],
+        ["All three tied (a different dataset)", "2, 2, 2", "6"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "Only the standard convention keeps the row total at 6. The other two choices break the invariant, and each biases the averages in a direction: awarding the lower position flatters the tied methods, awarding the higher position penalises them. In the last row all three methods tie, so each takes the mean of positions 1, 2 and 3, which is $(1 + 2 + 3)/3 = 2$; the total is still 6."
+    },
+    {
+      "t": "callout",
+      "md": "**The invariant is a diagnostic, not a formality.** Because one dataset's ranks always use up the whole set of positions $1, \\dots, k$, a wrong total points straight at a mistake. In a comparison of $k$ methods over $N$ datasets, the sum of *every* rank in your table must equal $N \\cdot \\frac{k(k+1)}{2}$. If it does not, look at the ties first — an inconsistent tie rule is the usual cause."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Three methods score 0.91, 0.88 and 0.88 on one dataset. Why do the tied pair receive 2.5 each rather than 2 each?",
+      "opts": [
+        {
+          "md": "Because 2.5 lies between the best and the worst score",
+          "expl": "Rank records position, not magnitude, so it is not read off the score range. 2.5 is the midpoint of the two positions the tied methods share, not a point on the score scale."
+        },
+        {
+          "md": "Because the two methods jointly occupy positions 2 and 3, and the mean of those positions keeps the row total at 6",
+          "correct": true,
+          "expl": "Correct on both grounds — it follows from the definition, and it is why the definition is written that way. Giving both the rank 2 would make the row total 5, and every average rank computed from the table would be biased low for those two methods."
+        },
+        {
+          "md": "Because ties are rare enough that the choice has no effect on the result",
+          "expl": "The choice does affect the result: it shifts those methods' ranks, and with ties on several datasets the shifts accumulate. It also breaks the invariant immediately on the affected row."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A method's ranks across four datasets are 3, 1.5, 2 and 4. What is its average rank?",
+      "answer": 2.625,
+      "tol": 0.01,
+      "hint": "Add the four positions, then divide by the number of datasets. The 1.5 is already a finished rank — do not convert it back into a whole-number position.",
+      "sol": "3 + 1.5 + 2 + 4 = 10.5. Over four datasets the average is 10.5 ÷ 4 = 2.625. The value 1.5 came from a two-way tie in which the two methods shared positions 1 and 2, and it is used as it stands.",
+      "unit": "average rank"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You total every rank in a table of 5 methods across 3 datasets and get 44. What do you conclude?",
+      "opts": [
+        {
+          "md": "Nothing — a total of ranks has no expected value",
+          "expl": "It does. Each dataset's ranks are a permutation of 1 to k, so the total is fixed by the design before any scores are seen."
+        },
+        {
+          "md": "A rank was misassigned, because the total must be 3 × (5 × 6 ÷ 2) = 45",
+          "correct": true,
+          "expl": "Correct. The invariant for k methods over N datasets is N · k(k+1)/2, which is 3 × 15 = 45 here. A total of 44 cannot come from a consistent table, and an inconsistent tie rule is the usual cause."
+        },
+        {
+          "md": "The methods are unusually close, since 44 is a high total",
+          "expl": "How close the methods are does not enter the total. Five methods consume the ranks 1 through 5 on every dataset no matter how large or small the gaps between their scores."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Four methods are compared and every dataset is a four-way tie. What average rank does every method get?",
+      "opts": [
+        {
+          "md": "1, because a tie at the top still counts as first",
+          "expl": "A four-way tie is not a tie for first only; the four methods jointly occupy positions 1, 2, 3 and 4, and each takes the mean of those positions."
+        },
+        {
+          "md": "2.5, the mean of the positions 1, 2, 3 and 4 that all four methods share",
+          "correct": true,
+          "expl": "Correct. (1 + 2 + 3 + 4) ÷ 4 = 2.5, which is also (k + 1)/2. This is the degenerate case of the tie convention, and it exposes the limit of the method: when everything ties, every average rank collapses to the same middle value and the table says nothing."
+        },
+        {
+          "md": "0, because no method is better than another",
+          "expl": "Rank 0 is not in the scheme. The ranks consumed on a dataset are always 1 through k, so the smallest possible rank is 1."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "A reader looks at a table of average ranks and concludes that the method with the largest average rank is the strongest, since it accumulated the most. What is the error?",
+      "opts": [
+        {
+          "md": "There is none — a larger average rank means a better average position",
+          "expl": "This is the higher-is-better habit carried over from scores. Rank 1 is the best position, so the method closest to 1, not the largest number, is the strongest."
+        },
+        {
+          "md": "Rank 1 is the best position, so the strongest method is the one with the smallest average rank",
+          "correct": true,
+          "expl": "Correct. The average rank is an average *position*, and position 1 is the top. Reading it as a score inverts the whole table, which is the most common way this summary is misread."
+        },
+        {
+          "md": "The error is that two average ranks cannot be compared with each other at all",
+          "expl": "They can — comparing them directly is what the number is for. The only trap here is the direction."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "apply",
+      "q": "Three methods score 0.91, 0.877 and 0.876 on one dataset, and the table rounds every score to two decimals before ranking. How does that change this dataset's ranks?",
+      "opts": [
+        {
+          "md": "Nothing changes, because rounding does not affect the ordering",
+          "expl": "The ordering does survive, but two of the scores become equal after rounding, and equal scores are tied. So the ranks change even though the order did not."
+        },
+        {
+          "md": "The two lower methods become tied at 2.5 each instead of taking 2 and 3",
+          "correct": true,
+          "expl": "Correct. 0.877 and 0.876 both round to 0.88, so they tie and each takes the mean of positions 2 and 3. The row still sums to 6, but both methods are pushed towards the middle, and their average ranks across datasets shift accordingly."
+        },
+        {
+          "md": "All three methods tie at 2, because rounding makes the scores equal",
+          "expl": "0.91 does not round down to 0.88; it stays clearly ahead and keeps rank 1. Only the two lower methods collapse together."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** card 3 states what the number hides, and what a claim of significance would still require."
+}

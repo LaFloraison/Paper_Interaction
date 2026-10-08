@@ -1,0 +1,150 @@
+{
+  "kind": "check",
+  "title": "The reporting contract — and a skip check for this section",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "An **experimental result** is a claim of the form: on dataset $D$, model $M$ configured with hyperparameters $\\theta$, achieved metric $m$ on the test or cross-validated split, averaged over $n$ random seeds, with spread $s$. A number missing any of these parts cannot be compared with another number, because the comparison would be between differently-measured quantities.",
+      "plain": "A result is a full sentence: which metric, on which data, on which split, with which settings, averaged over how many runs, and how much it wobbled. A bare number is not a result."
+    },
+    {
+      "t": "p",
+      "md": "**What a results table owes the reader.** Five items, each of which changes the meaning of the number if omitted. The **metric** — accuracy, F1, mean reciprocal rank, area under a curve — because two papers quoting \"90%\" may be measuring different things. The **split** — a test score, a cross-validated average, a validation score — because these are not interchangeable and only the first two are reportable. The **hyperparameters**, at least those that materially change the score, because without them the experiment is not reproducible. **Whose numbers are whose**, because a comparison table mixes the authors' results with values copied from other papers. The **number of seeds**, because a single run cannot distinguish a real improvement from run-to-run noise."
+    },
+    {
+      "t": "p",
+      "md": "**The seed count is the quiet one.** Training is stochastic: weight initialisation, data order, and dropout all draw random numbers. Run the same code twice with different seeds and the score moves. A method reported as 73.4 on a single run, next to a baseline at 73.2 on a single run, has demonstrated nothing — the gap is well inside the wobble. Reporting the mean and spread over several seeds is what turns a single observation into a claim. Five seeds and a standard deviation is the common minimum, and reviewers increasingly ask for it."
+    },
+    {
+      "t": "p",
+      "md": "**Whose numbers are whose.** Many tables compare a new method against published baselines. It is standard and legitimate to quote another paper's reported number, but the row then carries a different provenance: it may have used a different split, a different metric convention, or a different number of seeds. Marking which rows were reproduced by the authors and which were copied is the difference between a fair comparison and an accidental one. Where the split or metric differs, the two numbers are not on the same scale at all."
+    },
+    {
+      "t": "list",
+      "ordered": false,
+      "items": [
+        "State the supervised setup: features, targets, and the hypothesis class under test.",
+        "Keep training, validation and test apart, and let the test set guide nothing.",
+        "Recognise that a score is a noisy estimate, and that choosing the best of many settings inflates it.",
+        "Use cross-validation when data is scarce, and keep all preprocessing inside the training folds.",
+        "Separate parameters from hyperparameters, and report the hyperparameters.",
+        "Reading a results table: identify the metric, the split, the hyperparameters, the provenance of each row, and the seed count before believing the gap."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The questions below are the check. The bar is not a passing score — it is that you answered each one without hesitating. If the seed-count item gave you pause, stay: the worked example computes exactly how a mean and spread are obtained from a list of runs."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — from five runs to one reported number.** A method is trained five times with different seeds. The test accuracies are $72.1$, $73.4$, $71.8$, $74.0$ and $72.7$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Mean: $72.1 + 73.4 + 71.8 + 74.0 + 72.7 = 364.0$, and $364.0 / 5 = 72.8$.",
+          "why": "The mean is the reported point estimate. Averaging over seeds is what removes the luck of any single run from the centre of the claim."
+        },
+        {
+          "md": "Deviations from the mean: $-0.7$, $0.6$, $-1.0$, $1.2$, $-0.1$. Their squares: $0.49$, $0.36$, $1.00$, $1.44$, $0.01$, summing to $3.30$.",
+          "why": "Squaring makes every deviation count positively, so a run below the mean and a run above it both contribute — that is what measures spread rather than direction."
+        },
+        {
+          "md": "The **sample** standard deviation divides the sum of squares by $n - 1 = 4$: variance $= 3.30 / 4 = 0.825$, standard deviation $= \\sqrt{0.825} = 0.91$. Reporting the **population** version, dividing by $n = 5$, gives $3.30 / 5 = 0.66$ and $\\sqrt{0.66} = 0.81$.",
+          "why": "The two differ because the sample version corrects for the fact that the spread was measured around an estimated mean rather than the true one. The convention must be stated, since quoting $\\pm 0.8$ and $\\pm 0.9$ for the same five runs confuses readers who assume the other divisor."
+        },
+        {
+          "md": "The reported result is therefore $72.8 \\pm 0.9$ over 5 seeds. Any comparison must be read against that spread: a baseline reported at 72.5 is inside it, and a baseline at 70.0 is outside.",
+          "why": "This is the whole point of the seed count. The spread converts \"our method scored higher\" into \"our method scored higher by more than run-to-run noise,\" which is a claim a reader can test."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Note what is *not* recovered here: the hyperparameters, the split, and the metric. Five seeds give you a spread, not a comparison. A table row is only interpretable when all five contract items are present together — the example supplies one of them."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "\"Our method reaches 91.2%.\" What single missing item most directly decides whether this is a result at all?",
+      "opts": [
+        {
+          "md": "The programming language and hardware",
+          "expl": "Engineering details affect reproducibility of timing and cost, but 91.2% is not made or broken by them. The missing item is about what was measured."
+        },
+        {
+          "md": "Which split the 91.2% was measured on",
+          "correct": true,
+          "expl": "Correct. Measured on the training set it is worth nothing; on validation it is a tuning score; on test it is a result. The number is identical in all three cases, and only the split tells you which one you are reading."
+        },
+        {
+          "md": "The size of the dataset",
+          "expl": "Dataset size affects how precise the estimate is, but the first question is not “how precise” — it is “measured where.” A training-set number is uninformative at any size."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A method is run with three seeds, giving test accuracies 70, 76 and 82. What is the sample standard deviation, dividing by $n - 1$?",
+      "answer": 6,
+      "tol": 0.05,
+      "hint": "Find the mean first, then square each deviation from it, sum those squares, divide by one fewer than the number of runs, and take the square root.",
+      "sol": "Mean $= (70 + 76 + 82)/3 = 228/3 = 76$. Deviations: $-6$, $0$, $6$. Squares: $36$, $0$, $36$, summing to $72$. Sample variance $= 72/(3-1) = 36$, so the sample standard deviation is $\\sqrt{36} = 6$. Answering $36$ is the usual slip — that is the variance, before the square root.",
+      "unit": "accuracy points"
+    },
+    {
+      "t": "multi",
+      "level": "apply",
+      "q": "Which of the following must accompany a reported test accuracy for the number to be comparable with another paper's? Select all that apply.",
+      "opts": [
+        {
+          "md": "Which split the number was measured on",
+          "correct": true,
+          "expl": "Correct. Without the split, the number cannot be placed against another: a validation score and a test score are not the same quantity."
+        },
+        {
+          "md": "The number of seeds the average was taken over",
+          "correct": true,
+          "expl": "Correct. The seed count and spread decide whether a gap between two papers is real or is run-to-run noise."
+        },
+        {
+          "md": "The metric being reported",
+          "correct": true,
+          "expl": "Correct. Accuracy, F1 and mean reciprocal rank are different scales; two numbers quoted as percentages may not be measuring the same thing."
+        },
+        {
+          "md": "The graphics card model",
+          "expl": "Hardware affects runtime and reproducibility of exact bits, but it does not change what the reported number means or whether it can be compared with another paper's score."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A comparison table shows the authors' method at 73.4 and a baseline at 73.2, with a note that the baseline was copied from its original paper. Both are single runs. What is the fairest reading?",
+      "opts": [
+        {
+          "md": "The method wins by 0.2, a small but real improvement",
+          "expl": "0.2 is far inside the run-to-run spread a single seed carries, and the two numbers come from different code and splits. There is no basis here for calling the gap real."
+        },
+        {
+          "md": "The gap is uninterpretable: both numbers are single runs, and the baseline's split and metric may differ from the authors'",
+          "correct": true,
+          "expl": "Correct on both counts. Neither number has a seed count, so neither has a measurable spread, and a copied row may have been measured on a different split with a different convention. A fair comparison requires reproducing the baseline under the same split and averaging both over several seeds."
+        },
+        {
+          "md": "The baseline should be ignored because copied numbers are always wrong",
+          "expl": "Copied numbers are not wrong; they are differently-measured. The remedy is to state the provenance and, where possible, reproduce the baseline, not to discard it."
+        }
+      ]
+    }
+  ],
+  "close": "**You are ready for the paper's experimental section.** Every results table you meet now resolves into the same five questions — metric, split, hyperparameters, provenance, seeds — and every claim about \"our method does better\" becomes a claim you can check rather than accept."
+}

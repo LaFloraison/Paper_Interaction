@@ -1,0 +1,53 @@
+<!-- ============ c25 公式(3) ============ -->
+<section class="card" data-c="25" data-title-zh="公式 (3) · HOI 编码" data-title-en="Eq. (3) · The HOI encoding">
+  <div class="card-inner">
+    <div class="card-kicker k-math"><span class="len">Equation 3 · the accountant's formula</span><span class="lz">公式 3 · 会计的公式</span></div>
+    <h2><span class="lz">式 (3)：把"数人脉"写成一行字</span><span class="len">Eq. (3): "counting memberships" as one line</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">上一卡会计干的活——数参加几个组、压成 0–1 的一个数——论文用一行公式记了下来，这就是式 (3)。它短得可以背下来，但含两个我们还没讲透的零件。</p>
+    <p class="len">The accountant's job from the last card — count groups, squash into a 0-to-1 number — is recorded in one line, the paper's Eq. (3). Short enough to memorize, yet it holds two parts we have not unpacked.</p>
+    <p class="lz"><b><span class="hl">式 (3) 说的是：对每个顶点，先把它在编组表里那一行的 1 全加起来（=数它参加几个组），再把这个和塞进小函数 ρ 压成 0–1 的一个数。</span></b>ρ 就是第 24 卡那个"压一压"的小函数，本卡末尾给它正式名分。</p>
+    <p class="len"><b><span class="hl">Eq. (3) says: for each vertex, first add up all the 1s in its row of the roster table (that is, count its groups), then feed that sum through the small function ρ to squash it into a 0-to-1 number.</span></b> ρ is card 24's "squash" function, officially named at the end of this card.</p>
+    <p class="lz">第一个零件是那串求和记号——<b>∑（念"西格玛"）=“把后面每一条都加起来”</b>，这里是把某个顶点在各条超边下的取值全加一遍。第二个零件是 ρ 的具体长相：论文取最简的一层——<b>ρ(x) = σ(w·x + b)</b>，w、b 是两个可调旋钮（论文用 w=2、b=0），σ 仍是"压到 0–1"的那个函数。<b>照旧：公式只是翻译，算全部由例 1 完成。</b></p>
+    <p class="len">The first part is the summation sign — <b>∑ ("sigma") = "add up every term that follows"</b>, here summing one vertex's entries across hyperedges. The second part is ρ's concrete shape: the paper's simplest layer, <b>ρ(x) = σ(w·x + b)</b>, with two tunable knobs w, b (the paper uses w = 2, b = 0) and σ still the "squash into 0–1" function. <b>As always: the formula is translation only; Example 1 does the computing.</b></p>
+    <span class="tex-display" data-tex="X_s[v] = \rho\!\left(\sum_{e \in E} H[v, e]\right), \qquad \rho(x) = \sigma(wx + b)"></span>
+    <p class="formula-note"><span class="lz">逐符号对照（读完抬头就走）：E = 全部超边的集合；H[v,e] = 编组表第 v 行第 e 列的数（0 或 1）；∑<sub>e∈E</sub> = 把 v 在所有超边下的这些 0/1 加起来 = v 参加的超边条数；ρ = "压一压"的小函数；w、b = 两个可调旋钮；σ = 把任意数压到 0–1。<b>整式一句话：存档第 v 个数 = 压一压（v 的参加条数）。</b></span><span class="len">Symbol by symbol (read and walk away): E = the set of all hyperedges; H[v,e] = entry (0 or 1) at row v, column e of the roster; ∑<sub>e∈E</sub> = adding all those 0/1s = how many hyperedges v joins; ρ = the squash function; w, b = two tunable knobs; σ = squashing anything into 0–1. <b>The whole line in one breath: archive[v] = squash(count of v's memberships).</b></span></p>
+    <p class="lz">最后一个新名词：ρ 被论文限制为"<b>逐顶点</b>"作用——它每次只吃一个数（那个参加条数），对其他顶点、对超边顺序一无所知。这个限制不是随手加的，它是下一卡"列交换不变"证明的另一半地基。</p>
+    <p class="len">One last term: ρ is restricted to act <b>vertex-wise</b> — it eats one number at a time (that membership count) and knows nothing about other vertices or about edge order. Not a casual restriction: it is the other foundation stone of the next card's column-exchange proof.</p>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>例 1（5 顶点新沙盘，跟着算）：</b>新编组表：v1 参加 3 个组、v2 参加 1 个、v3 参加 2 个、v4 参加 2 个、v5 谁也不参加（0 个，孤立顶点）。用 ρ(x) = σ(2x)，σ 的算法仍是 1 ÷ (1 + e<sup>−x</sup>)：<br>v1 → σ(6) = 1 ÷ (1 + 0.0025) ≈ <b>0.9975</b>；v2 → σ(2) ≈ <b>0.8808</b>；v3、v4 → σ(4) ≈ <b>0.9820</b>；v5 → σ(0) = 1 ÷ (1 + 1) = <b>0.5</b>。存档 = [0.9975, 0.8808, 0.9820, 0.9820, 0.5]。</p>
+    <p class="len"><b>Example 1 (a fresh 5-vertex sandbox, compute along):</b> new roster: v1 joins 3 groups, v2 joins 1, v3 joins 2, v4 joins 2, v5 joins none (0 — an isolated vertex). With ρ(x) = σ(2x) and σ(x) = 1 ÷ (1 + e<sup>−x</sup>):<br>v1 → σ(6) = 1 ÷ (1 + 0.0025) ≈ <b>0.9975</b>; v2 → σ(2) ≈ <b>0.8808</b>; v3, v4 → σ(4) ≈ <b>0.9820</b>; v5 → σ(0) = 1 ÷ (1 + 1) = <b>0.5</b>. Archive = [0.9975, 0.8808, 0.9820, 0.9820, 0.5].</p>
+    <p class="lz"><b>例 2（孤立顶点的 0.5 值得读两遍）：</b>v5 谁都不挨着，参加 0 个组。按式 (3)，它照样有一份存档，值是 <b>0.5</b>——不偏不倚的正中。这个数字的含义：<b>“关于它的结构，什么都不知道”</b>。老方法的麻烦恰在这里：孤立顶点在平均里没有任何声音；而式 (3) 给它的 0.5 是一份明明白白的"无信息"声明，后续融合时可以被公平处理。</p>
+    <p class="len"><b>Example 2 (the isolated vertex's 0.5 deserves two reads):</b> v5 touches nobody and joins 0 groups. By Eq. (3) it still gets an archive — value <b>0.5</b>, dead center, meaning "<b>nothing is known about its structure</b>". This is exactly where the old method struggles: an isolated vertex has no voice in averaging; Eq. (3)'s 0.5 is an explicit declaration of "no information", which later fusion can handle fairly.</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">式 (3) 里的求和记号 ∑ 数的是什么？</span><span class="len">What does the summation ∑ in Eq. (3) count?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="不是数顶点——每条超边圈住几个点，那是“列和”（第 8 卡）。式 (3) 只做“行和”。"><span class="lz">每条超边圈住了几个顶点</span><span class="len">How many vertices each hyperedge embraces</span></button>
+        <button class="opt" data-correct="1" data-expl="对！沿第 v 行把 0/1 加起来 = 这个顶点参加了几条超边——行和，正是“数人脉”。"><span class="lz">某个顶点参加了几条超边（它那一行的和）</span><span class="len">How many hyperedges a given vertex joins (the sum of its row)</span></button>
+        <button class="opt" data-expl="特征不参与式 (3)——HOI 只读编组表，这是它“抗平滑”的根基（第 24 卡）。"><span class="lz">某个顶点的特征值总和</span><span class="len">The sum of a vertex's feature values</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="0.99995" data-tol="0.0001" data-hint="先把参加条数乘 2、再塞进 σ = 1÷(1+e⁻ˣ) 算到小数第四、五位。" data-sol="参加 5 条 → σ(2×5) = σ(10) = 1 ÷ (1 + e⁻¹⁰) = 1 ÷ 1.0000454 ≈ 0.99995。条数越大越贴近 1，但永远不越界——这就是“压到 0–1”的形状。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：某顶点参加 5 条超边，ρ(x) = σ(2x)。它的存档值是多少（算到小数第四位即可）？</span><span class="len">Numeric: a vertex joins 5 hyperedges, ρ(x) = σ(2x). Its archive value (four decimals is enough)?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：为什么把参加条数"压到 0–1"，而不是直接存原始条数（比如 3、27、982）？</span><span class="len">Transfer: why squash the count into 0–1 instead of storing the raw number (3, 27, 982)?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="论文保留的正是“显著性大小”的区分（0.88 vs 0.99）——压一压不抹大小，只把尺度统一。"><span class="lz">为了让所有顶点看起来一样</span><span class="len">To make all vertices look identical</span></button>
+        <button class="opt" data-correct="1" data-expl="对！不同数据集的参加条数天差地别（3 到 982）；压到 0–1 后尺度统一、又保留“谁更要紧”的大小关系——而且大条数会平稳地趋近 1，不会甩出一个 982 把后续计算带跑。"><span class="lz">统一尺度：不同数据集条数从 3 到 982，压到 0–1 后仍保大小次序，又不会让大数带偏后续计算</span><span class="len">Unify scale: counts range from 3 to 982 across datasets; squashing keeps the ordering while a giant number cannot derail later computation</span></button>
+        <button class="opt" data-expl="压一压不是加密——存档本来就公开可读。理由是尺度与数值稳定，不是保密。"><span class="lz">为了保密数据集的规模</span><span class="len">To keep the dataset's size secret</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout">
+      <b><span class="lz">本文如何用它：</span><span class="len">How the paper uses it:</span></b>
+      <span class="lz">下一卡：严格证明式 (3) 的账本"挑不出登记顺序"——用步进器一步步走。</span>
+      <span class="len">Next card: the strict proof that Eq. (3)'s ledger cannot be picky about registration order — walked through step by step.</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

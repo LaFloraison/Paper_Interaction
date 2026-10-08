@@ -1,0 +1,44 @@
+<!-- ============ c48 批判 1/2 ============ -->
+<section class="card" data-c="48" data-title-zh="批判 1/2 · 我们复核出的实据账" data-title-en="Critique 1/2 · our audit ledger">
+  <div class="card-inner">
+    <div class="card-kicker" style="color:#b91c1c;background:#fef2f2">Critique · the audit</div>
+    <h2><span class="lz">这篇论文站得住吗：我们逐格复核的账</span><span class="len">Does the paper hold up? Our cell-by-cell audit</span></h2>
+    <p class="lz">读到这里，你已经会自己验算了。本卡把我们全程复核出的实据汇总成一张账——<b>大部分结论经得起复算，但有十来处数字对不上</b>。全部证据可自行回表核对。</p>
+    <p class="len">By now you can verify for yourself. This card gathers every finding from our audit — <b>most conclusions survive recomputation, but a dozen figures do not balance</b>. Each item is checkable against the tables.</p>
+    <table class="symtab">
+      <tr><th><span class="lz">#</span><span class="len">#</span></th><th><span class="lz">问题</span><span class="len">Issue</span></th><th><span class="lz">实据（我们复算的）</span><span class="len">Evidence (our recomputation)</span></th></tr>
+      <tr><td>1</td><td><span class="lz">摘要与表 V 的平均排名不符</span><span class="len">Abstract vs Table V: average ranks differ</span></td><td><span class="lz">正文写"1.9 和 1.7"；表 V 最后一行是 <b>RD 1.7 / DD 1.5</b>（我们按十行名次复算：17/10 = 1.7、15/10 = 1.5，表对、正文错）</span><span class="len">Text says "1.9 and 1.7"; Table V's last row reads <b>RD 1.7 / DD 1.5</b> (we recomputed ranks: 17/10 = 1.7, 15/10 = 1.5 — the table is right, the text is not)</span></td></tr>
+      <tr><td>2</td><td><span class="lz">摘要的"平均增益 5.86 和 2.28"</span><span class="len">Abstract's "gains of 5.86 and 2.28"</span></td><td><span class="lz">5.86 可复算（DD 列均值 87.648 − GBDT 均值 81.792 = 5.856 ✓）；<b>2.28 无出处</b>——最近的候选是 DD−HGNN = 2.12、RD−HGNN = 2.07</span><span class="len">5.86 recomputes (DD mean 87.648 − GBDT 81.792 = 5.856 ✓); <b>2.28 has no source</b> — nearest candidates are DD−HGNN = 2.12 and RD−HGNN = 2.07</span></td></tr>
+      <tr><td>3</td><td><span class="lz">归纳测试占比：正文 20% vs 表格 40%</span><span class="len">Inductive share: text 20% vs tables 40%</span></td><td><span class="lz">正文写"测试集 20% 作归纳、80% 作直推"；表 III <b>十行全是约四六开</b>（Cora 162/406 = 39.9%、Github 2,262/5,655 = 40.0%……无一例外）</span><span class="len">Text: "20% inductive, 80% transductive"; Table III's <b>ten rows all run ≈ 40/60</b> (Cora 162/406 = 39.9%, Github 2,262/5,655 = 40.0% … not one exception)</span></td></tr>
+      <tr><td>4</td><td><span class="lz">正文称 DD 峰值在 150 棵树</span><span class="len">Text: DD peaks at 150 trees</span></td><td><span class="lz">正文原句"DD-HGNN 持续上升、在 150 棵达到峰值"；表 VII 里 <b>DD 峰值在 50 棵（75.77）</b>，150 棵只有 75.28，低于峰值</span><span class="len">The text says DD "keeps improving, peaking at 150 trees"; Table VII's <b>DD peaks at 50 (75.77)</b>, with 150 at 75.28 — below the peak</span></td></tr>
+      <tr><td>5</td><td><span class="lz">正文称 RD 在 200 棵"跌 5 个点"</span><span class="len">Text: RD drops "5 points" at 200 trees</span></td><td><span class="lz">实际跌幅 75.70 − 71.49 = <b>4.21</b>（≈4.2 个点，不是 5）</span><span class="len">Actual fall 75.70 − 71.49 = <b>4.21</b> (≈4.2, not 5)</span></td></tr>
+      <tr><td>6</td><td><span class="lz">表 VI 底部的平均差栏</span><span class="len">Table VI's footer average-gap row</span></td><td><span class="lz">印着 ΔGBDT 均值 +6.31、ΔHGNN +2.53；我们把 Production 十行复算 = <b>5.94 与 2.72</b>（差 0.2–0.4，对不上）</span><span class="len">Prints ΔGBDT mean +6.31, ΔHGNN +2.53; over the ten Production rows we compute <b>5.94 and 2.72</b> (off by 0.2–0.4)</span></td></tr>
+      <tr><td>7</td><td><span class="lz">表 VI 的 Github 行 ΔHGNN 印 +0.00</span><span class="len">Table VI Github line prints ΔHGNN +0.00</span></td><td><span class="lz">85.96 − 86.05 = <b>−0.09</b>——该行本文型号其实略输 HGNN，"0.00"掩盖了负值</span><span class="len">85.96 − 86.05 = <b>−0.09</b> — the paper's model actually trails HGNN here; "0.00" hides a negative</span></td></tr>
+      <tr><td>8</td><td><span class="lz">表 I 的"平均顶点度"口径混用</span><span class="len">Table I's average-vertex-degree conventions mix</span></td><td><span class="lz">Github 行符合 2|E|/|V|（2×144,501/37,700 = 7.67 ≈ 7.7 ✓）；Amazon 两行符合 |E|/|V|（31.13 ≈ 31.1 ✓）；<b>Cora 行两者都不符</b>（2.75 / 5.49 vs 表值 3.9）</span><span class="len">Github matches 2|E|/|V| (7.67 ≈ 7.7 ✓); the Amazon rows match |E|/|V| (31.13 ≈ 31.1 ✓); <b>Cora matches neither</b> (2.75 / 5.49 vs printed 3.9)</span></td></tr>
+      <tr><td>9</td><td><span class="lz">划分加和差 1 个样本（4 处）</span><span class="len">Split sums off by one (4 cells)</span></td><td><span class="lz">Amazon-P 4,590+1,913+1,148 = 7,651 vs #V 7,650；Tencent 2,147 vs 2,146；ModelNet40 12,312 vs 12,311；DBLP-Conf production 4,056 vs 4,057——按比例取整的常见产物</span><span class="len">Amazon-P sums to 7,651 vs #V 7,650; Tencent 2,147 vs 2,146; ModelNet40 12,312 vs 12,311; DBLP-Conf production 4,056 vs 4,057 — ordinary rounding artifacts of percentage splits</span></td></tr>
+      <tr><td>10</td><td><span class="lz">"Cora 上 7.3% 增益"的出处不明</span><span class="len">"7.3% gain on Cora" provenance unclear</span></td><td><span class="lz">该数 = 表 VI 的 Cora 直推行 RD − HGNN（88.89 − 81.59 = 7.30 ✓）；但摘要没交代口径，而表 V 同一对比是 6.83——两个数都"对"，看你翻哪张表</span><span class="len">The number equals Table VI's Cora transductive RD − HGNN (88.89 − 81.59 = 7.30 ✓); the abstract omits the convention, while Table V's same comparison gives 6.83 — both "right", depending on which table you open</span></td></tr>
+    </table>
+    <div class="callout warn">
+      <b><span class="lz">怎么读这张账：</span><span class="len">How to read this ledger:</span></b>
+      <span class="lz">这十笔没有一笔推翻论文的<b>主要结论</b>（"知识嵌入有效"在十数据集、多设定、多底座上都有无例外的证据），但每一笔都提醒：<b>论文里的数字和你自己算出来的，可能差一点点</b>——不验算是读不出这些的。这正是本站从第 20 卡起一路让你亲手复算的原因。</span>
+      <span class="len">Not one of these ten overturns the paper's <b>main conclusion</b> (knowledge embedding pays across ten datasets, several settings, several backbones — no exceptions there). Each still reminds you: <b>a paper's figures and your own arithmetic can disagree by a hair</b> — invisible unless you verify. Which is why this site has had you recompute by hand since card 20.</span>
+    </div>
+    <h3><span class="lz">顺带结清：与最像的前人工作 BGNN 的界线</span><span class="len">Settling the account: the line against BGNN, the nearest predecessor</span></h3>
+    <p class="lz">论文主动区分了与 <b>BGNN</b>（Boost-then-Convolve，2020，本文表 V 里 TLF 的同族）的差别：BGNN 把 GBDT 当<b>预处理器</b>——把异质的表格特征翻译成同质的表示后交给图网络，<b>GBDT 学到的规则本身并没有与结构信息融合</b>；本文的 TDR-Encoder 显式编码规则的<b>内容与位置</b>，再经 MDK-Fusion 与结构账深度融合。</p>
+    <p class="len">The paper draws its line against <b>BGNN</b> (Boost-then-Convolve, 2020 — kin of Table V's TLF): BGNN uses GBDT as a <b>preprocessor</b>, translating heterogeneous tabular features into a homogeneous representation for the graph network, <b>without ever fusing the learned rules with structure</b>; this paper's TDR-Encoder encodes each rule's <b>content and position</b> and deeply fuses them with the structural ledger via MDK-Fusion.</p>
+    <p class="lz"><b>一句话分辨：BGNN 用树的"输出"，本文用树的"问题"。</b>前者是流水线拼接，后者是深度耦合——这是论文在相关工作里给自己划的核心边界。</p>
+    <p class="len"><b>One line to tell them apart: BGNN uses the tree's "outputs", this paper the tree's "questions".</b> Pipeline plumbing versus deep coupling — the boundary the paper draws for itself.</p>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">CHECK</span><span class="lz">这张账里哪一笔最能看出"验算不可替代"？挑一个你最服的，说说为什么。</span><span class="len">Which ledger entry best shows that verification is irreplaceable? Pick your favorite and say why.</span></p>
+      <div class="opts">
+        <button class="opt" data-correct="1" data-expl="参考答案（开放题，言之成理即可）：很多人会挑第 4/7 笔——因为它们把"结论方向"都改了（DD 的峰位、本文型号在 Github 上其实略输）。而第 1/3 笔（排名与占比）则是"两处自相矛盾、都不影响主结论"的典型：错得无害，但只有算过的人才知道它无害。"><span class="lz">我选并说明理由（点开看参考）</span><span class="len">I pick one and explain (see reference)</span></button>
+        <button class="opt" data-expl="这十笔都不是"笔误级"的错别字——它们是真实数字之间的对不上（复算才有、肉眼看不出）。把它们一律归为"笔误"会低估问题。" ><span class="lz">这些多半是笔误，不必当真</span><span class="len">Mostly typos; not worth taking seriously</span></button>
+        <button class="opt" data-expl="审稿人当然重要——但本账里没有一笔是靠"更仔细地读"发现的，全都是靠"动手算"。两者互补，验证这一步审稿也未必做全。"><span class="lz">说明审稿人没认真看</span><span class="len">It means the reviewers were careless</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>
+
+<!-- NEXT-CARD -->

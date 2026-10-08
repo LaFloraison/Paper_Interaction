@@ -1,0 +1,134 @@
+{
+  "id": "67",
+  "kind": "figure",
+  "chapter": "method",
+  "section": "5.8 Figure 2",
+  "kicker": "5.8 · Figure 2",
+  "title": "Figure 2: how a tree's questions become a vector",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Figure 2 is the pipeline diagram of the Task-Driven Rule Encoder. It has three panels: pre-training, which trains a boosted tree ensemble on a task; a content mapping and a position mapping, which turn each tree's inner nodes into numbers; and a final panel showing the resulting per-vertex vectors assembled across trees.",
+      "plain": "Left: train some trees. Middle: turn each tree into a list of questions, and give each question a value and a weight. Right: line up the answers into a vector per vertex."
+    },
+    {
+      "t": "p",
+      "md": "**The one thing to see before reading the details.** In the middle panel, the shapes matter: **the rounded rectangles with letters — A, B, C, in orange, green and blue — are leaf nodes, and the dashed purple ellipses are inner nodes.** The legend in the bottom-right corner says exactly this. The paper's entire rule encoding is built on the inner nodes; the leaves are shown only to explain what the tree was trained to predict. If you take one thing from this figure, take that distinction, because every symbol in Equations (4)-(8) refers to inner nodes."
+    },
+    {
+      "t": "figure",
+      "src": "fig2.png",
+      "alt": "Figure 2 of the paper: the pipeline of the task-driven rule encoder, showing pre-training, the content and position mappings, and the assembled embeddings",
+      "cap": "Original Figure 2 (Feng et al., TPAMI 2026). Left: the boosted ensemble is pre-trained on a task. Middle: content mapping μc marks each inner node, position mapping μp weights it by depth. Right: the per-tree rows are assembled into the knowledge-embedded features."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the left panel.** A feature matrix enters a box labelled *Gradient Boosting Decision Tree*, and out comes *Task* — drawn as four coloured circles."
+    },
+    {
+      "t": "list",
+      "items": [
+        "This is the pre-training stage: the ensemble is fitted to a task in the ordinary way, and its predictions are the coloured circles.",
+        "The task's classes are drawn in orange, green and blue; the same three colours label the leaves of the trees in the middle panel. So the middle panel's trees are the *trained* ensemble from the left, redrawn to expose their internal questions.",
+        "Note what the arrows out of the pretraining box do **not** carry: the predictions go to the *Task* output and are then dropped. Everything routed to the right comes from the trees' internal structure. The paper does not use the ensemble's forecasts at all — the point made in Equation (2)'s card, now visible in the diagram."
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — the middle panel, top: content mapping.** Two trees are drawn, $T_1$ and $T_2$, each annotated with the same three colours."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Count the inner nodes of $T_1$: a root asking $x_2 \\ge 2$ and one child asking $x_1 \\ge 1$ — **two** questions.",
+          "why": "The number of questions is the length of that tree's contribution to the embedding, per Equation (7). It is not the number of leaves and not the depth — it is the count of inner nodes."
+        },
+        {
+          "md": "Count the inner nodes of $T_2$: a root asking $x_3 \\ge 5$, with children asking $x_1 \\ge 2$ and $x_2 \\ge 1$ — **three** questions.",
+          "why": "So the two trees contribute 2 and 3 entries respectively, and the concatenation in Equation (8) produces a row of $2 + 3 = 5$ entries for this two-tree ensemble."
+        },
+        {
+          "md": "Each dashed ellipse is one slot in the vector. For a given vertex, each slot holds a number derived from whether that vertex's features satisfy the question there.",
+          "why": "This is the content mapping $\\mu_c$: it records whether the vertex satisfies the rule. The direction is inverted — 0 for satisfied, 1 for not — and Equation (5) pins that down."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 3 — the middle panel, bottom: position mapping.** A decaying curve labelled $\\mu_p(o) = \\frac{\\alpha}{d(o)+\\beta}$ is plotted against *Depth of Node in the Decision Tree*, with three reference circles marked $d(o)=1$, $d(o)=2$, $d(o)=3$."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**The curve is the whole idea of position weighting, drawn.** Because depth appears in the denominator, the weight falls as depth grows — steeply at first, then flattening. The paper's argument is that boosted trees select the most task-relevant features first, so a question near the root is more informative than one deep in the tree. The curve therefore encodes an assumption about *how boosting works*, not a mathematical necessity: if the ensemble had been grown breadth-first or randomly, the same curve would be unjustified."
+    },
+    {
+      "t": "p",
+      "md": "**Walk 4 — the right panel.** The assembled vectors are drawn as two stacked layers of purple matrices, labelled *1st Layer* and *2nd Layer*, with dashed lines connecting them."
+    },
+    {
+      "t": "list",
+      "items": [
+        "This is Equation (8)'s concatenation, drawn as a vertical assembly: each tree's contribution becomes one block, and the blocks stack into one row per vertex.",
+        "The dashed connecting lines suggest the concatenation is a rearrangement rather than a computation — the blocks are not mixed, they are laid end to end.",
+        "The label *Knowledge-Embedded Features* is the same label that appears on the purple block in Figure 1, which is how the two figures join up: Figure 1's lower path is exactly this figure's output."
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In Figure 2, which parts of a decision tree become entries in the embedding?",
+      "opts": [
+        {
+          "md": "The leaves, since they carry the predictions",
+          "expl": "The leaves are drawn with class colours precisely to show what the tree predicts — and then set aside. Predictions are the thing this paper does not use."
+        },
+        {
+          "md": "The inner nodes, each contributing one entry",
+          "correct": true,
+          "expl": "Correct. Each dashed ellipse is one slot, and its length contribution is counted by inner nodes: tree $T_1$ contributes 2, tree $T_2$ contributes 3. This is why Equation (7)'s output dimension is stated as the number of inner nodes rather than the number of leaves."
+        },
+        {
+          "md": "The edges connecting nodes",
+          "expl": "No edge is encoded. Structure enters only through each node's depth, which Equation (6) uses as a single number."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Using the two trees as drawn in Figure 2 — tree $T_1$ with 2 inner nodes and $T_2$ with 3 — how many entries does a vertex's rule embedding have?",
+      "answer": 5,
+      "tol": 0.01,
+      "hint": "The ensemble's rows are concatenated, so the lengths add.",
+      "sol": "$2 + 3 = 5$. This is $C_r$ for this ensemble, the number of questions across all trees. Scaling to a real ensemble makes the arithmetic concrete: Table IV gives a tree count and a depth per dataset, and with tens of trees at depth several, $C_r$ runs into the hundreds — hence the fusion's concern about dimension disparity.",
+      "unit": "entries"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The position weight uses depth in a denominator. What assumption about gradient boosting does this encode?",
+      "opts": [
+        {
+          "md": "That deeper nodes are more accurate",
+          "expl": "The curve does the opposite: it weights deeper nodes less. If deeper nodes were more accurate, the weight would rise with depth."
+        },
+        {
+          "md": "That boosting selects the most task-relevant features early, so questions near the root matter more",
+          "correct": true,
+          "expl": "Correct, and the paper states exactly this in Section IV-B-2: features chosen earlier are more correlated with the task. It is a reasonable assumption for a normally grown boosting ensemble — but it is an assumption about the training procedure, not a theorem, and it would not hold for an ensemble grown in some other order."
+        },
+        {
+          "md": "That the root node should be excluded",
+          "expl": "The root is included and receives the largest weight, since its depth is 0 and the denominator is therefore smallest. It is the deepest nodes whose contribution nearly vanishes."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Section IV-B-2, the encoder this figure describes — what it takes as input, what it produces, and why the paper chose boosted trees as its rule source rather than any other model."
+}

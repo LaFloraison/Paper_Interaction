@@ -1,0 +1,62 @@
+<!-- ============ c22 公式(1) ============ -->
+<section class="card" data-c="22" data-title-zh="公式 (1) · HGNN 平滑层" data-title-en="Eq. (1) · The HGNN smoothing layer">
+  <div class="card-inner">
+    <div class="card-kicker k-math"><span class="len">Equation 1 · the machine being upgraded</span><span class="lz">公式 1 · 被升级的那台机器</span></div>
+    <h2><span class="lz">式 (1)：论文要在前面加料的那台机器</span><span class="len">Eq. (1): the machine the paper feeds better ingredients</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">你在第 9 卡沙盒里按过的"平滑一步"，它的正式写法就是论文式 (1)。<b><span class="hl">式 (1) 就干一件事：把每个顶点的特征，沿着它所在的超边做一次"组内平均"——人人向组员靠拢一步。</span></b>它属于经典 HGNN（2019 年的老成果），不是论文的发明，但论文的一切改进都以它为底座。</p>
+    <p class="len">The "smooth one step" button from card 9's sandbox has an official form: the paper's Eq. (1). <b><span class="hl">Eq. (1) does one thing: it averages every vertex's feature with those of its hyperedge-mates — everyone takes one step toward the group.</span></b> It belongs to the classic HGNN (a 2019 result), not to this paper — yet every improvement here stands on it.</p>
+    <p class="lz"><b>先把"平均"的过程拆成三块积木</b>（积木都懂了，公式就只剩符号翻译）：<b>① 收集</b>——每个顶点把自己的特征值交给自己所在的每条超边（收进一个"组篮"）；<b>② 组内平均</b>——每条超边的组篮里，把收来的值加起来、除以参与者人数（大超边里的单票不该因为人多而更响）；<b>③ 归一化</b>——每个顶点收下自己各条超边送回的"组平均值"后，整体除以 √(自己参加的超边条数)（人脉广的顶点不该因为票多而吵翻天）。</p>
+    <p class="len"><b>Split the "averaging" into three building blocks</b> (once you have the blocks, the equation is just symbol translation): <b>(1) Collect</b> — every vertex hands its value to each hyperedge it belongs to (into a per-edge basket); <b>(2) Averaging within edge</b> — each basket sums its values and divides by how many members contributed (a lone vote in a big edge must not shout louder for the crowd); <b>(3) Normalize</b> — each vertex collects the group averages sent back and divides the total by √(how many hyperedges it joined) (well-connected vertices must not drown everyone with extra votes).</p>
+    <p class="lz">三块积木拼起来，就是式 (1)。读它时把符号按下面的表翻译即可——<b>不需要自己会算矩阵乘法</b>，例 1 会把每一步替你算完。</p>
+    <p class="len">Stack the three blocks and you have Eq. (1). Read it by translating symbols through the table below — <b>you never need to run matrix multiplication yourself</b>; Example 1 does every step for you.</p>
+    <span class="tex-display" data-tex="X^{l+1} = \sigma\!\left(D_v^{-1/2}\, H\, W\, D_e^{-1}\, H^{\top}\, D_v^{-1/2}\, X^{l}\, \Theta\right)"></span>
+    <p class="formula-note"><span class="lz">读法（从右往左）：X<sup>l</sup> 是第 l 层的特征表 → 乘 Θ（机器自己学的旋钮）→ 经过归一化与收集的连乘（= 上面三块积木）→ 最后套 σ（把数值折一下，增加表达力的"弯折"）。别被连乘吓到：它按顺序执行，就是"收集→平均→归一化"。</span><span class="len">Reading (right to left): X<sup>l</sup> is the layer-l feature table → times Θ (the machine's learned knobs) → through the chain of collect-and-average matrices (= the three blocks above) → wrapped in σ (a bend that adds expressiveness). Do not fear the chain: executed in order, it is simply "collect → average → normalize".</span></p>
+    <table class="symtab">
+      <tr><th><span class="lz">符号</span><span class="len">Symbol</span></th><th><span class="lz">一句话白话</span><span class="len">One-line plain meaning</span></th><th><span class="lz">它管三块积木里的哪块</span><span class="len">Which block it serves</span></th></tr>
+      <tr><td>X<sup>l</sup></td><td><span class="lz">第 l 层的特征表（一张"谁是什么值"的表）</span><span class="len">The layer-l feature table ("who holds which values")</span></td><td><span class="lz">原料</span><span class="len">The material</span></td></tr>
+      <tr><td>Θ（大写 theta）</td><td><span class="lz">机器自己学出来的旋钮，一个数字或一排数字</span><span class="len">The machine's own learned knobs — one number or a row of them</span></td><td><span class="lz">弯曲前的缩放</span><span class="len">Scaling before the bend</span></td></tr>
+      <tr><td>H</td><td><span class="lz">第 8 卡的编组表：行=顶点、列=超边，某点在某个组里就填 1</span><span class="len">Card 8's roster table: rows = vertices, columns = hyperedges, a 1 marks membership</span></td><td><span class="lz">① 收集与送回</span><span class="len">(1) collect and return</span></td></tr>
+      <tr><td>H<sup>⊤</sup></td><td><span class="lz">同一张表"转过来"摆：把行读成列——顶点→超边 翻成 超边→顶点</span><span class="len">The same table turned on its side: read rows as columns — vertex→edge becomes edge→vertex</span></td><td><span class="lz">① 的"去"与"回"两步</span><span class="len">(1)'s outward and return legs</span></td></tr>
+      <tr><td>D<sub>e</sub><sup>−1</sup></td><td><span class="lz">除以"这条超边有几个成员"（1/人数）</span><span class="len">Divide by "how many members this edge has" (1 / count)</span></td><td><span class="lz">② 组内平均</span><span class="len">(2) within-edge average</span></td></tr>
+      <tr><td>D<sub>v</sub><sup>−1/2</sup></td><td><span class="lz">除以 √(这个顶点参加几条超边)——开平方</span><span class="len">Divide by √(how many hyperedges this vertex joined) — a square root</span></td><td><span class="lz">③ 归一化（两头各除一次）</span><span class="len">(3) normalize (once at each end)</span></td></tr>
+      <tr><td>W</td><td><span class="lz">"这条超边多重要"的权重表——本文全填 1（不重要不等，天平等重）</span><span class="len">A table of "how important is this edge" — the paper fills all 1s (all edges weigh equally)</span></td><td><span class="lz">② 的公平秤</span><span class="len">(2)'s balance scale</span></td></tr>
+      <tr><td>σ（小写 sigma）</td><td><span class="lz">把结果"折一下"的函数（第 4 卡的辣度打分器用过同款直觉）</span><span class="len">A function that bends the result (card 4's spice scorer used the same intuition)</span></td><td><span class="lz">最后一步</span><span class="len">The final touch</span></td></tr>
+    </table>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>例 1（最小算例，全部手算，跟着走就行）：</b>2 个顶点、1 条超边 {1,2}：编组表 H 告诉计算机"1 在组里、2 也在组里"；特征 x₁ = 2、x₂ = 4；权重全 1；旋钮 Θ = 1（先看纯平均，σ 也先当"原样返回"）。走三块积木：<b>①收集</b>：组篮收到 2 和 4；<b>②平均</b>：两个数相加得 6，除以成员数 2 → 3；<b>③归一化</b>：每个顶点只参加这 1 条超边，√1 = 1，除不除都一样。结果：<b>两个顶点都变成 3.0</b>——恰好是 (2+4)÷2。这就是"平滑一步"的全部。</p>
+    <p class="len"><b>Example 1 (minimal, fully hand-computed — just follow along):</b> 2 vertices, 1 hyperedge {1,2}: the roster H says "1 is in, 2 is in"; features x₁ = 2, x₂ = 4; weights all 1; knob Θ = 1 (watch pure averaging; σ also behaves as "return as-is"). The three blocks: <b>(1) collect</b>: the basket receives 2 and 4; <b>(2) average</b>: add → 6, divide by 2 members → 3; <b>(3) normalize</b>: each vertex joined this one edge, √1 = 1, dividing changes nothing. Result: <b>both vertices become 3.0</b> — exactly (2+4)÷2. That is the whole of "one smoothing step".</p>
+    <p class="lz"><b>例 2（对上沙盒，看清 √ 的作用）：</b>第 9 卡沙盒的 4 顶点链上，[10,0,0,0] 按一次得到 [5.00, 3.54, 0, 0]。用积木解释：v1 的组篮收到 10 和 0 → 平均 5.00（v1 只在这 1 条超边里，归一化无效果）；v2 在两个组里，它从 e1 的分红是 5，但 v2 参加 2 条超边 → 5 ÷ √2 ≈ <b>3.54</b>。那个当年"莫名"的 3.54，就是积木 ③ 的除法：干得多的顶点，每一票都按 √票数 打折。</p>
+    <p class="len"><b>Example 2 (reconciling with the sandbox — see √ at work):</b> on card 9's 4-vertex chain, [10,0,0,0] once yields [5.00, 3.54, 0, 0]. In block terms: v1's basket receives 10 and 0 → average 5.00 (v1 sits in this one edge only, so normalizing changes nothing); v2 belongs to two edges — its dividend from e1 is 5, but v2 joined 2 hyperedges → 5 ÷ √2 ≈ <b>3.54</b>. The once-"mysterious" 3.54 is just block (3)'s division: a busier vertex gets every vote discounted by √(its vote count).</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">式 (1) 里"除以 √度"（D<sub>v</sub><sup>−1/2</sup>）出现在连乘的两头，是为了什么？</span><span class="len">Why does "divide by √degree" (D<sub>v</sub><sup>−1/2</sup>) appear at both ends of the chain?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="不是“加倍惩罚”。它是“收集”和“送回”各经过顶点一次，各除一次 √度——合起来等效除以度数；这是对称归一化的标准写法。"><span class="lz">为了让度数高的顶点受双倍惩罚</span><span class="len">To double-punish high-degree vertices</span></button>
+        <button class="opt" data-correct="1" data-expl="对！去收集、送回各路过顶点一次，每次路过都按 √(参加条数) 折一下：人脉广的顶点既不能超额收票、也不能超量投票。"><span class="lz">收集与送回各路过顶点一次，两头都折 √(参加条数)，防“人脉广者”主导</span><span class="len">Collecting and returning each pass a vertex once; both ends divide by √(count), keeping well-connected vertices from dominating</span></button>
+        <button class="opt" data-expl="那是 H<sup>⊤</sup> 的活儿——它管“表转过来”；D<sub>v</sub> 管的是顶点自己的参加条数，与转置无关。"><span class="lz">为了标记同一个表的转置方向</span><span class="len">To mark the table's transpose direction</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="6" data-tol="0.01" data-hint="只做三块积木——收集、平均、归一化；想想这个场景里“归一化”那块需不需要动手。" data-sol="①收集：组篮得 4 和 8；②平均：(4+8) ÷ 2 = <b>6</b>；③归一化：两顶点都只参加这 1 条超边，√1 = 1，结果不变。常见错误：只相加忘了除以成员数（得 12）；或把 √ 用错地方（12÷√2 ≈ 8.49）——除的数要问“这条超边几个人”。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：2 顶点 1 超边 {1,2}，特征 4 和 8（Θ=1，σ 当“原样返回”）。平滑一步后每个顶点的新值是多少？</span><span class="len">Numeric: 2 vertices, 1 hyperedge {1,2}, features 4 and 8 (Θ = 1, σ behaves as identity). After one smoothing step, what is each vertex's new value?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：手工把 Θ 设成"全零"，按三块积木推演——平滑后的特征是"还没被读出来"还是"被抹掉"，哪个说法对？</span><span class="len">Transfer: mentally set Θ to all zeros and reason with the three blocks — is the smoothed feature "not yet read" or "erased"? Which description is right?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="三块积木（收集/平均/归一化）里没有 Θ——它只作用在积木之后。所以平滑照样完成，只是随后那步“读出”被掐断。"><span class="lz">被抹掉——Θ 参与平滑本身，归零则平均值也没了</span><span class="len">"Erased" — Θ takes part in the smoothing itself, so zeros kill the averages too</span></button>
+        <button class="opt" data-correct="1" data-expl="对！积木 ①②③ 照常完成，Θ 之后才出场：它是“读出平滑结果”的旋钮，旋钮归零 = 读不出内容（信息还在平滑后的特征里，只是被读出这一步掐掉）。"><span class="lz">"还没被读出来"——平滑照常完成，Θ 是之后“读出”那一步的旋钮</span><span class="len">"Not yet read" — smoothing completes as usual; Θ is the knob of the later "read-out" step</span></button>
+        <button class="opt" data-expl="程序不会报错——形状仍然对，只是读出结果变成零/常数。这是数学后果，不是代码错误。"><span class="lz">程序会在这里报错崩溃</span><span class="len">The program would crash here</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout warn">
+      <b><span class="lz">记住这台机器的两个软肋（第 17 卡已点名，此处再次强调）：</span><span class="len">Two soft spots to remember (named in card 17, re-emphasized here):</span></b>
+      <span class="lz">① 每过一层 = 一次平均——层数一多就趋向"所有顶点一个样"（过平滑；实验篇 Table VIII 会给出实测崩塌曲线）；② 积木 ③ 的"除以 √参加条数"已经改写了"参加几条超边"这个原始计数——结构细节从这里开始失真。论文的两台备料机器，正是冲着这两点来的。</span>
+      <span class="len">(1) Each layer = one averaging round — many layers drift toward "everyone identical" (over-smoothing; Table VIII in the experiments gives the measured collapse); (2) block (3)'s "divide by √count" already rewrites the raw "how many hyperedges" number — structural detail begins to distort right here. The paper's two prep machines aim exactly at these two.</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

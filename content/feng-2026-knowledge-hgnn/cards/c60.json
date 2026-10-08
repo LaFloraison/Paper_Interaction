@@ -1,0 +1,124 @@
+{
+  "id": "60",
+  "kind": "method",
+  "chapter": "method",
+  "section": "5.1 The framework",
+  "kicker": "5.1 · The framework",
+  "title": "The two-step framework: embed knowledge, then smooth",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "The proposed framework splits any hypergraph learning problem into two sequential steps. Step 1, the **Knowledge Embedding Phase** (KE-Phase), applies one or more encoder functions $\\varphi_i$ to each data source $D_i$, producing knowledge embeddings $K_i = \\varphi_i(D_i)$. Step 2, the **integrated hypergraph neural network** (iHGNN), fuses those embeddings with a fusion function $\\psi$ and runs the ordinary hypergraph network on the result: $Y = \\mathrm{HGNN}\\,\\big(\\psi(K_1, K_2, \\dots),\\; H\\big)$.",
+      "plain": "First compute some knowledge and staple it onto the features. Then run the usual hypergraph network on the result. That is the whole framework; everything else in this chapter is the detail of what \"knowledge\" means."
+    },
+    {
+      "t": "p",
+      "md": "**Why the split is the contribution.** Chapter 4 established that the existing paradigm is \"structure guides the smoothing of vertex features\", with the network layer doing all the work. This framework leaves that layer untouched and puts a stage in front of it. The claim is not that the old layer is wrong — it is that the old layer has nowhere to receive information that is neither a raw feature nor the connectivity pattern."
+    },
+    {
+      "t": "formula",
+      "tex": "\\begin{aligned} K_1, K_2, \\dots &= \\varphi_1(D_1),\\; \\varphi_2(D_2), \\dots && \\text{// Step 1: KE-Phase} \\\\ Y &= \\mathrm{HGNN}\\big(\\psi(K_1, K_2, \\dots),\\; H\\big) && \\text{// Step 2: iHGNN} \\end{aligned}",
+      "note": "Read this as a specification rather than an algorithm. $\\varphi_i$ is deliberately unspecified — the framework allows one encoder per data type (graph, hypergraph, tabular, image), and this paper instantiates it with exactly two: one that reads the structure, one that reads the features.",
+      "gloss": [
+        { "sym": "D_i", "md": "the $i$-th data source — here, the hypergraph structure and the vertex features" },
+        { "sym": "\\varphi_i", "md": "a knowledge encoder for that source; the paper's two are named HOI-Encoder and TDR-Encoder" },
+        { "sym": "K_i", "md": "the embedded knowledge produced by $\\varphi_i$" },
+        { "sym": "\\psi", "md": "the fusion function that combines the knowledge embeddings before the network sees them; the paper's is MDK-Fusion" },
+        { "sym": "H", "md": "the incidence matrix — the hypergraph itself, unchanged and unaffected by Step 1" }
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "Notice what Step 2 receives: the fused knowledge, **and** the original $H$. The structure is used twice — once by the structural encoder to produce a per-vertex number, and again by the network as the connectivity along which smoothing happens. That double use is deliberate, and it is what makes the two model variants possible: RD-HGNN simply omits the first use."
+    },
+    {
+      "t": "p",
+      "md": "**An honest reading of the framework's generality.** The paper presents the framework as admitting encoders \"such as graph data, hypergraph data, tabular data, and image data\". Only the hypergraph instantiation is implemented and evaluated; the others are possibilities. That is normal, but it means the framework's generality is a claim about the design, not a result — and the experiments you will read in Chapter 6 test one instantiation with two encoders."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the two steps on one vertex.** Take a single vertex $v$ from DBLP-Conf: an author who sits in 5 hyperedges, with a feature vector $x_v$ of publication statistics."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Step 1, structural encoder: count $v$'s hyperedge memberships and pass the count through one transformation. The result is a single number, $X_s[v]$.",
+          "why": "This is Equation (3), and the graph-theory extension section already had you compute the count by hand. The encoder adds one learnable transformation on top of it."
+        },
+        {
+          "md": "Step 1, rule encoder: run $x_v$ down a pre-trained boosted tree ensemble, and for each inner node of each tree record whether $v$'s features satisfy the question there. The result is a row of numbers, $X_r[v]$.",
+          "why": "This is Equations (4)-(8). Its length equals the total number of questions across all trees — a number that grows with the ensemble, which is where the width of the fused vector comes from."
+        },
+        {
+          "md": "Step 2, fusion: multiply the one structural number into the rule row, then concatenate that product with the original rule row. The result is $Z_v$, twice as long as $X_r[v]$.",
+          "why": "This is Equation (9). The multiplication is the part that makes one number affect an entire row, which is what \"infusing structural knowledge into each feature\" means concretely."
+        },
+        {
+          "md": "Step 2, network: $Z_v$ replaces the original feature vector, and the hypergraph network smooths it along hyperedges as usual.",
+          "why": "The layer is Equation (1), unchanged from the previous literature. The entire contribution is what arrived at its input."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "That four-step walk is the paper. Everything in the remaining cards of this chapter is the justification of one of those steps — most of it devoted to step 1's second half, because turning a tree into a vector requires deciding *what* about each question to record, and the paper records two things: its content and its position."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does Step 2's fusion function $\\psi$ receive as input?",
+      "opts": [
+        {
+          "md": "The raw dataset and the incidence matrix",
+          "expl": "Raw data is Step 1's input. Fusion operates on what Step 1 produced — the knowledge embeddings — not on the original features."
+        },
+        {
+          "md": "The knowledge embeddings produced by the encoders, which it combines into the feature matrix the network will consume",
+          "correct": true,
+          "expl": "Correct. Fusion is the bridge: it takes embeddings that may differ in meaning and in length, and produces one matrix the ordinary network can be run on. Whether it does more than concatenate is the question Equation (9) has to answer."
+        },
+        {
+          "md": "The trained network parameters",
+          "expl": "Parameters are what training adjusts; fusion is part of the forward computation that those parameters act through."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "In the walkthrough, the structural encoder produced one number and the rule encoder a row. If the rule row has 12 entries, how long is the fused vector $Z$?",
+      "answer": 24,
+      "tol": 0.01,
+      "hint": "Fusion concatenates the modified rule row with the original one.",
+      "sol": "$Z \\in \\mathbb{R}^{2C_r}$ with $C_r = 12$, so 24. Answering 13 gives the length if the single structural number were appended directly — which is precisely what the paper argues *against*, because one structural number appended to twelve rule numbers would let the structural contribution be swamped by the rule entries.",
+      "unit": "entries"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The framework leaves the encoder functions $\\varphi_i$ unspecified. What is the consequence for how you evaluate this paper?",
+      "opts": [
+        {
+          "md": "The framework is untestable",
+          "expl": "The framework's *instantiation* is fully specified and thoroughly tested. Only the claim of generality is untested, and that is a claim about the design."
+        },
+        {
+          "md": "The framework's generality is a design claim; only the hypergraph instantiation is evaluated, so the results support the instance, not the framework in full",
+          "correct": true,
+          "expl": "Correct. This is a very common situation and worth naming: a paper presents a general framework but evaluates one instance. The instance may be excellent. The right response is to scale your credit accordingly — the experiments show that *this* pair of encoders helps, not that any pair would."
+        },
+        {
+          "md": "The encoders must be interchangeable without retraining",
+          "expl": "Nothing implies interchangeability, and in practice each encoder's output feeds a fusion whose behaviour depends on their relative dimensions."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the layer the framework leaves untouched — Equation (1), the hypergraph convolution. Reading it now is easier than it would have been before Chapter 2, because every operation in it has been carried out by hand already."
+}

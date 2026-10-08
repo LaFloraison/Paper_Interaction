@@ -1,0 +1,129 @@
+{
+  "kind": "extension",
+  "title": "Inductive learning: the scored vertices do not exist yet",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "An **inductive** protocol is one in which the vertices that will be scored are absent from the graph for the whole of training: they are not merely unlabelled, they are not there, and neither are their edges. At scoring time the model is presented with objects it has never encountered — often an entire graph it has never seen — and must produce labels for them. The quantity being learned is therefore a function from (features, neighbourhood) to label that does not depend on a fixed, known vertex set.",
+      "plain": "In an inductive setup the scored objects do not exist during training. The model has to label things it has never met, using what it learned about the general relation between a vertex's features, its neighbours, and its label."
+    },
+    {
+      "t": "p",
+      "md": "**Why deployment forces it.** A model shipped to serve new records is asked about records that did not exist when it was trained. A recommendation model meets new users; a paper classifier meets new papers. There is no version of this in which the scored items were present during training, because they did not exist yet. Inductive evaluation is the closest honest approximation available on a fixed dataset: hold vertices out, remove them from the graph entirely, train, then introduce them for the first time at scoring."
+    },
+    {
+      "t": "p",
+      "md": "**The honest trade-off.** Inductive evaluation is harder, and the scores are typically lower, because the model cannot lean on representations of the specific vertices it is graded on. That is not a defect to be corrected; it is the price of a stronger claim. An inductive number supports the sentence \"this model handles objects it has not seen\", which a transductive number does not. Lower is not worse, and higher is not better, when the two numbers come from different protocols — they are readings from different instruments."
+    },
+    {
+      "t": "p",
+      "md": "**How a model is built to pass it.** Message passing labels a vertex by aggregating the features of its neighbours and combining them with its own features. Nothing in that computation refers to a vertex's identity, so it can be applied to a vertex introduced later, provided the model's parameters (the weights it learns) are shared across vertices rather than stored per vertex. A model that keeps a separate embedding (a learned vector) for each vertex cannot be used this way at all: a new vertex has no embedding to look up. This is why inductive capability is a property of the architecture, not a switch applied at the end."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The misconception to kill.** Inductive does not mean \"the scoring graph is unrelated to training\". It means the scored *vertices* were absent. The model still assumes the new vertices come from the same distribution as the training ones — the same kinds of features, the same kinds of neighbourhoods. If they do not, the inductive number is measured on a different problem, and the protocol's guarantee lapses."
+    },
+    {
+      "t": "p",
+      "md": "**When it fails.** (i) If the new objects are drawn from a different distribution — papers from an unrelated field, users from another country — the number describes a task the model did not train for, and performance will be worse than the number suggests. (ii) If the graph is fixed and you only ever care about it, inductive evaluation spends accuracy to answer a question nobody asked. (iii) If the split removes the scored vertices' features but leaves their connections dangling in the training graph, aggregation still traverses those connections, and the headline overstates what the model knows about genuinely new objects."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — two graphs, no overlap.** A corpus supplies two citation graphs, G_A and G_B, 200 vertices each. The inductive experiment trains on G_A and scores on G_B."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Training reads G_A's 200 vertices and their edges. G_B is not read at all — not its features, not its edges, not its labels. So the number of G_B vertices present during training is 0 of 200.",
+          "why": "This is the inductive rule taken literally. A transductive experiment on the same corpus would have shown G_B's structure during training; here it is withheld entirely."
+        },
+        {
+          "md": "Scoring presents G_B for the first time. The model must label its 200 vertices using parameters learned on G_A.",
+          "why": "Nothing is retrained between training and scoring. The model is fixed and the scoring graph is new, which is the situation a deployed model is in."
+        },
+        {
+          "md": "The two graphs together contain 400 distinct vertices, and the number of vertices shared between the training graph and the scoring graph is 0.",
+          "why": "Zero overlap is what makes the claim general. Had the graphs shared vertices, part of the scoring would have been on objects the model trained on, and part of the score would be a transductive measurement in disguise."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — labelling a vertex that has no stored embedding.** Take one new vertex w, with features of its own and two neighbours, u1 and u2, that the model has already placed. A one-layer aggregator forms w's representation from its own features together with those of u1 and u2."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Read w's own features and the neighbour representations of u1 and u2. There is no embedding table to consult for w.",
+          "why": "The model holds parameters, not per-vertex answers. That is what allows a vertex introduced after training to be processed at all."
+        },
+        {
+          "md": "Combine them with the same weights used during training — the weights are shared across all vertices, so they apply to w unchanged.",
+          "why": "Sharing is what makes the function transferable. Had the model learned a distinct weight for each training vertex, none of those weights would apply to w."
+        },
+        {
+          "md": "Output w's label from the combined representation. No retraining happened and no training vertex was revisited.",
+          "why": "This is the operation an inductive score measures over many new vertices. It is also why the same architecture can be scored transductively: leave the scoring vertices in the graph and the identical forward pass runs over a denser neighbourhood."
+        }
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is the defining rule of an inductive protocol?",
+      "opts": [
+        {
+          "md": "The scored vertices are unlabelled but present in the graph during training",
+          "expl": "That is the transductive rule. In an inductive run the scored vertices are not in the graph at all — presence, rather than labelling, is what the word turns on."
+        },
+        {
+          "md": "The scored vertices are absent from the graph during training, their edges included",
+          "correct": true,
+          "expl": "Correct. Absence is the whole rule, and it is why an inductive score can support a claim about unseen objects while a transductive score cannot."
+        },
+        {
+          "md": "The training and scoring graphs come from different datasets",
+          "expl": "They may come from the same corpus. The requirement is only that the scored vertices were out of the graph during training, not that they came from a different source."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "An inductive experiment trains on a graph with 320 vertices and scores on a second graph with 180 vertices. How many of the scored vertices were present in the graph during training?",
+      "answer": 0,
+      "tol": 0.01,
+      "hint": "Before computing anything, ask which of the two graphs the training run is allowed to read.",
+      "sol": "The training run reads only the 320-vertex graph, so 0 of the 180 scored vertices were present during training. The two graphs together use 320 + 180 = 500 distinct vertices, and the overlap between them is 0.",
+      "unit": "vertices"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A model scores 88% transductive and 74% inductive on the same data. A colleague says the model \"lost 14 points\" when it was made to generalise. What is wrong with that phrasing?",
+      "opts": [
+        {
+          "md": "Nothing — the drop measures the cost of generalisation",
+          "expl": "The arithmetic is right and the interpretation is not. The two numbers come from different protocols, so the 14-point gap is a change of measurement at least as much as a change of difficulty; it is not one model's loss on one task."
+        },
+        {
+          "md": "The two numbers are readings from different protocols, so their difference is not a single quantity that was lost",
+          "correct": true,
+          "expl": "Correct. Under the transductive rule the model trained alongside the scored vertices; under the inductive rule it did not. The comparison shows that the protocol matters, not how much a fixed model degraded."
+        },
+        {
+          "md": "74% is the better number because inductive is harder",
+          "expl": "Difficulty does not rank numbers across protocols. 74% inductive and 88% transductive each answer a different question, and neither is the better reading of the other's question."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** a paper that wants a single headline can average the two regimes. Card 4 examines what that average does and does not mean — and why the same average can describe two very different models."
+}

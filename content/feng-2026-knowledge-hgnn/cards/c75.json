@@ -1,0 +1,123 @@
+{
+  "id": "75",
+  "kind": "method",
+  "chapter": "method",
+  "section": "5.16 Which model to choose",
+  "kicker": "5.16 · Section IV-D-2",
+  "title": "RD or DD: the paper's prediction, and how to test it",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "The paper makes a conditional recommendation: RD-HGNN is \"suitable for scenarios where vertex features dominate and structural information is relatively sparse\", while DD-HGNN \"is more appropriate for hypergraphs with rich high-order connectivity\". It then cites an experimental observation in support: on datasets with higher average hyperedge degree, DD-HGNN's improvement over RD-HGNN is \"more stable\".",
+      "plain": "One model is for data where the features carry the signal; the other is for data where the connections do. The paper says the difference shows up mainly on datasets with big group relations."
+    },
+    {
+      "t": "p",
+      "md": "**This is a testable claim, and it is worth stating exactly what would confirm it.** The claim has three parts, each checkable separately: (i) the per-dataset gap between DD and RD should be larger where the average hyperedge degree is larger; (ii) the gap should be *positive* on those datasets — DD should not lose; (iii) the phrase \"more stable\" should mean something specific, such as a smaller spread across the five random seeds the paper reports, or a consistently positive sign across the datasets in that group."
+    },
+    {
+      "t": "table",
+      "head": ["Part of the claim", "What would confirm it", "What would weaken it"],
+      "rows": [
+        ["Larger gap where relations are bigger", "A positive association between average edge degree and the DD − RD difference across the ten datasets", "A flat or negative association — the grouping would then be arbitrary"],
+        ["DD wins on structure-rich data", "All six hypergraph datasets show DD ≥ RD", "Any dataset where the ordering reverses"],
+        ["\"More stable\"", "A smaller seed-to-seed spread for DD on those datasets than for RD", "No reported spread, which is what the paper's tables do in fact provide — so this part is untestable from the paper alone"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The word \"stable\" is doing a lot of work in the original sentence and carries no measurable content.** Stability is not printed anywhere. If the authors meant \"the improvement is consistently positive\", they could have said so; if they meant \"the variance across seeds is smaller\", that number exists in their runs but is not reported. Read charitably, the sentence is an informal way of saying \"the pattern holds across those datasets\" — and that reading is checkable, because it reduces to the sign of a difference on each row."
+    },
+    {
+      "t": "p",
+      "md": "**The practical recommendations that follow.** The paper suggests RD for \"credit scoring or recommendation with sparse relations\" and DD for \"scientific collaboration networks, brain connectivity analysis, or 3D object recognition\". These map onto specific datasets in its own table: Heloc is the credit data, and DBLP-Conf, CA-Cora, CC-Cora and ModelNet40 are the collaboration, co-citation and 3D ones. So the recommendations are not general claims about domains; they are claims about those rows, dressed as guidance."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**A useful habit when a paper offers deployment guidance.** Turn each recommendation into the row it was derived from. \"Use DD for scientific collaboration networks\" is really \"use DD on DBLP-Conf\", which is one dataset with one hyperedge construction and one set of hyperparameters. The generalisation to the domain is the authors' extrapolation, not their evidence — and it is worth knowing which of the two you are reading."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — how to test the prediction with the numbers the paper actually gives.** Suppose — for illustration only, since the real tables are Chapter 6's business — that the DD − RD gap is $+4.2$, $+3.1$ and $+0.4$ points on three datasets whose average edge degrees are 982.2, 4.5 and 2.0 respectively."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Rank the ten datasets by average edge degree and rank them by DD − RD gap. If the prediction holds, the two orderings should agree in direction.",
+          "why": "This is a rank correlation, and it is a weak test by design — it needs only the *ordering* to line up, not the magnitudes. A weak test is the right one here, because with ten points and one random seed the magnitudes are unlikely to be informative."
+        },
+        {
+          "md": "Check the sign separately. The prediction is not merely that the gap grows — it is that DD wins on structure-rich data.",
+          "why": "Growing but negative would satisfy a correlation and contradict the claim. Whenever a paper predicts a *pattern*, check that you are testing the pattern and not just a proxy for it."
+        },
+        {
+          "md": "Finally, ask what would falsify it. If DD and RD were within noise on every dataset, or if the largest gaps fell on the four plain-graph datasets, the grouping would be unsupported.",
+          "why": "Having a falsification condition in mind before looking at the table is what stops the eye from finding a story in whatever pattern happens to be there. Ten datasets offer plenty of accidental patterns."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "This is the exercise Chapter 6 performs on the real numbers. The preparatory work is done here: you know which quantity to extract (the DD − RD gap per dataset), which axis to sort by (average edge degree from Table I), and what would count as a refutation."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which dataset property does the paper expect to determine whether DD beats RD?",
+      "opts": [
+        {
+          "md": "The number of vertices",
+          "expl": "Dataset size is not what the argument is about. A large dataset with tiny relations offers no more structure to embed than a small one."
+        },
+        {
+          "md": "The average hyperedge degree — how large a typical relation is",
+          "correct": true,
+          "expl": "Correct. The reasoning is that rich higher-order connectivity is what the structural encoder has to work with, so where relations are large, structure carries more information and the structural encoder should contribute more. Table I's average-edge-degree column is therefore the axis to sort by."
+        },
+        {
+          "md": "The number of classes",
+          "expl": "Class count sets task difficulty, not the value of structural knowledge. The paper does not use it in this argument."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "In the illustrative numbers above, what is the gap on the dataset with average edge degree 4.5?",
+      "answer": 3.1,
+      "tol": 0.05,
+      "hint": "It is given directly in the example.",
+      "sol": "$+3.1$ points. The illustrative ordering is $982.2 \\to +4.2$, $4.5 \\to +3.1$, $2.0 \\to +0.4$: the gap shrinks as relations get smaller, which is the shape the prediction requires. Note that these three numbers are constructed for the illustration — the real values are in the paper's tables and are recomputed in Chapter 6.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The paper recommends DD for \"scientific collaboration networks\". What is the status of that recommendation?",
+      "opts": [
+        {
+          "md": "A general finding about that domain, supported by the experiments",
+          "expl": "The experiments cover one collaboration dataset — DBLP-Conf — with one hyperedge construction and one hyperparameter setting. Nothing in the results reaches collaboration networks as a domain."
+        },
+        {
+          "md": "An extrapolation from a single dataset in the table, presented as domain guidance",
+          "correct": true,
+          "expl": "Correct, and this is a pervasive pattern rather than a fault peculiar to this paper. Deployment advice is almost always an extrapolation from a handful of benchmarks. It becomes a problem only when the advice is read as a finding; read as an extrapolation, it is a reasonable starting hypothesis to test on your own data."
+        },
+        {
+          "md": "A hypothesis the paper explicitly labels as untested",
+          "expl": "It is not labelled as such. The sentence sits in the discussion alongside the empirical claim, and the distinction between the observed pattern and the extrapolated advice is left to the reader to make."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the paper's positioning against its nearest predecessor, BGNN — the one comparison in the method chapter that is about the literature rather than about equations."
+}

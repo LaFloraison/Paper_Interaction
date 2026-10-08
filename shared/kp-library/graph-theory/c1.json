@@ -1,0 +1,108 @@
+{
+  "kind": "extension",
+  "title": "Why a graph, and why a matrix",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A graph $G = (V, E)$ is a pair consisting of a set $V$ of vertices and a set $E$ of edges, where each edge is a two-element subset of $V$. Two vertices joined by an edge are called adjacent. The graph is completely determined by which pairs are adjacent — the drawing is only a picture of that fact.",
+      "plain": "A graph is a list of things plus a list of which pairs of them are connected. The picture is a convenience; the information is the list."
+    },
+    {
+      "t": "p",
+      "md": "**Why the matrix matters more than the picture.** A drawing is fine for four vertices and hopeless for thirty-seven thousand — and a computer cannot consume a drawing at all. Every graph algorithm, including every graph neural network, therefore works on a *matrix* whose entries record which connections exist. The rest of this section builds the three matrices that matter: adjacency, incidence, and the Laplacian."
+    },
+    {
+      "t": "p",
+      "md": "There is one subtlety to fix immediately, because it bites later: a matrix stores the graph **with respect to a chosen ordering of the vertices**. Write the vertices in a different order and the same graph produces a different-looking matrix. Nothing about the graph changed; only the labels did. This is why every sensible graph operator must give the same answer no matter how you shuffle the rows — a property Section 2's permutation-invariance card makes precise."
+    },
+    {
+      "t": "callout",
+      "md": "Keep this ordering question in view. It is the reason the paper contains a lemma about *column exchange*, and the reason a graph neural network cannot simply treat its input as a table of independent rows."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a graph you can check by eye.** Four people, numbered 1 to 4. Friendships: 1–2, 2–3, and 2–4. Person 2 is the hub; the other three hang off them."
+    },
+    {
+      "t": "list",
+      "items": [
+        "$V = \\{1, 2, 3, 4\\}$, so the graph has 4 vertices.",
+        "$E = \\{\\{1,2\\}, \\{2,3\\}, \\{2,4\\}\\}$, so it has 3 edges.",
+        "Vertices 1, 3 and 4 are each adjacent to exactly one other vertex. Vertex 2 is adjacent to three."
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the same graph as a matrix.** Write the vertices in the order 1, 2, 3, 4 along both axes, and put a 1 where two vertices are adjacent:"
+    },
+    {
+      "t": "formula",
+      "tex": "A = \\begin{pmatrix} 0 & 1 & 0 & 0 \\\\ 1 & 0 & 1 & 1 \\\\ 0 & 1 & 0 & 0 \\\\ 0 & 1 & 0 & 0 \\end{pmatrix}",
+      "note": "This is the **adjacency matrix**: entry $(i,j)$ is 1 if vertices $i$ and $j$ are adjacent, 0 otherwise. It is symmetric, because adjacency has no direction.",
+      "gloss": [
+        { "sym": "A", "md": "the adjacency matrix — the graph written as a table of 0s and 1s" },
+        { "sym": "A_{ij}", "md": "1 when $i$ and $j$ are joined by an edge, else 0" }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Check the row sums: row 1 gives $0+1+0+0 = 1$, row 2 gives $1+0+1+1 = 3$, rows 3 and 4 give 1 each. **The row sum of the adjacency matrix is the number of neighbours** — a fact card 2 names \"degree\". That identity is the first thread of the whole subject: a matrix operation recovering a graph concept."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does a matrix representation of a graph actually store?",
+      "opts": [
+        {
+          "md": "The positions of the vertices on the page",
+          "expl": "Coordinates are a drawing convention. Two drawings that look nothing alike can be the same graph, and the paper's datasets never come with coordinates at all."
+        },
+        {
+          "md": "Which pairs of vertices are connected, arranged according to a chosen ordering of the vertices",
+          "correct": true,
+          "expl": "Correct on both counts — the connection information, and the dependence on labelling. The second half is the part people forget, and it is exactly why graph operators must be permutation-invariant."
+        },
+        {
+          "md": "How many edges each vertex has",
+          "expl": "That is a summary *derived* from the graph (the row sums), not the graph itself. Many different graphs share the same degree counts."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "In the worked example, how many neighbours does vertex 2 have?",
+      "answer": 3,
+      "tol": 0.01,
+      "hint": "Count the 1s in row 2 of the adjacency matrix, not the number of edges in the graph.",
+      "sol": "Row 2 reads 1, 0, 1, 1 — three 1s, so vertex 2 has 3 neighbours. Note that the graph has 3 edges in total *and* vertex 2 has 3 neighbours; that coincidence is specific to this example (a hub with three pendant leaves) and will not hold in general.",
+      "unit": "neighbours"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Relabel the four vertices in reverse order (1→4, 2→3, 3→2, 4→1) and rebuild the matrix. What changes?",
+      "opts": [
+        {
+          "md": "The graph changes, because the connections changed",
+          "expl": "Relabelling does not touch a single connection. Person 2 is still the hub; you have only renamed them."
+        },
+        {
+          "md": "Only the arrangement of rows and columns changes; the multiset of row sums stays the same",
+          "correct": true,
+          "expl": "Correct. Under a relabelling the matrix is conjugated by a permutation, so its rows and columns are shuffled together but every row sum (each vertex's degree) survives. This is the concrete reason the paper insists on permutation invariance: the data arrives with an arbitrary labelling, so any answer that depends on the labelling is an artefact."
+        },
+        {
+          "md": "The row sums change, because the rows are in a different order",
+          "expl": "The row *order* changes; the row *values* are carried along with their vertices. Vertex 2's degree of 3 moves to row 3, it does not become something else."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the adjacency matrix handles pairwise relations only. The paper's data has group relations, which need a different matrix — the incidence matrix of card 4."
+}

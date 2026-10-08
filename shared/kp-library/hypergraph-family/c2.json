@@ -1,0 +1,106 @@
+{
+  "kind": "extension",
+  "title": "The family of relational structures, and which choice each one makes",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A relational structure is fixed by independent modelling choices: the maximum arity of a relation (2, or unbounded); whether relations are directed; whether two objects may be related more than once, and with what weight; and whether the objects fall into distinct kinds that may only relate across kinds. A structure is named by which of these it relaxes.",
+      "plain": "There is more than one way to record who is related to whom, and each way makes a different compromise. Picking the right one is a modelling decision, not a notation preference."
+    },
+    {
+      "t": "table",
+      "head": ["Structure", "What it relaxes", "Canonical example"],
+      "rows": [
+        ["Ordinary graph", "— (arity 2, undirected, single edges)", "friendship between people"],
+        ["Directed graph", "direction", "who follows whom; who cites whom"],
+        ["Weighted graph", "single edges → weights", "number of e-mails exchanged"],
+        ["Multigraph", "single edges → parallel edges", "several distinct flights between two cities"],
+        ["Bipartite graph", "objects split into two kinds", "users and the films they rated"],
+        ["**Hypergraph**", "**arity**", "authors and the papers they co-wrote"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "These choices are independent, which is why the family is a grid rather than a ladder: you can have a weighted directed hypergraph, and the literature contains such things. **A hypergraph is not a more advanced graph; it is a graph that has given up the arity restriction.** It makes no claim about direction, weights or kinds."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "This paper treats several genuinely directed relations — citations in Cora, follows in Github — as undirected. That is a deliberate simplification inherited from the datasets' standard usage, and it is not the same decision as using a hypergraph. When Chapter 7 asks what the paper does not address, direction is one of the items worth remembering."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — one dataset, five structures.** Take a music streaming service with users and songs, where each user has several listening sessions, and each session is a list of songs played in order."
+    },
+    {
+      "t": "list",
+      "items": [
+        "**Bipartite graph** — users on one side, songs on the other, a link for each play. Good for \"who listens to what\"; it treats users and songs as different kinds of thing.",
+        "**Ordinary graph on songs** — link two songs if one user played them back to back. Every link is a pair, so a 30-song session becomes 29 links and the session is gone.",
+        "**Directed graph on songs** — the same links with an arrow. Preserves order, still loses the session.",
+        "**Weighted graph on songs** — weight each link by how often that transition happens. Preserves frequency, still loses the session.",
+        "**Hypergraph on songs** — one hyperedge per session, containing every song played in it. Preserves the session as a unit; loses the order *within* the session."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Notice that no structure wins outright: the hypergraph preserves the group but discards the ordering, and a directed graph does the reverse. **The right question is never \"which structure is better\" but \"which property of my data do I refuse to lose\"** — and then checking that the method you pick does not quietly require the property you sacrificed."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which restriction does a hypergraph relax, relative to an ordinary graph?",
+      "opts": [
+        {
+          "md": "That relations must be undirected",
+          "expl": "Hypergraphs are also undirected — a hyperedge is a set, and sets have no order. Direction is relaxed by directed graphs, a different member of the family."
+        },
+        {
+          "md": "That a relation must involve exactly two objects",
+          "correct": true,
+          "expl": "Correct — arity, and only arity. A hypergraph says nothing about weights, direction or kinds, which is why those remain separate choices you may still have to make."
+        },
+        {
+          "md": "That two objects may be related only once",
+          "expl": "That restriction is relaxed by multigraphs. In fact a hypergraph can express multiplicity differently — two distinct hyperedges with the same membership — which is why the family's choices are best treated as independent rather than stacked."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A dataset has 40 listening sessions, with 15 songs in each on average. How many hyperedges does the session-based hypergraph have?",
+      "answer": 40,
+      "tol": 0.01,
+      "hint": "One hyperedge per session — do not multiply by the songs.",
+      "sol": "40 hyperedges, each of size about 15. Multiplying to get 600 would be counting *memberships*, which is the sum of the column sums, not the number of hyperedges. The two quantities are the two degrees again: 600 memberships over however many distinct songs there are gives the average vertex degree.",
+      "unit": "hyperedges"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A dataset records that Alice follows Bob, but Bob does not follow Alice. Which structure records this without loss?",
+      "opts": [
+        {
+          "md": "An ordinary graph",
+          "expl": "An ordinary graph's edges are symmetric: recording Alice–Bob automatically asserts Bob–Alice, which is false here."
+        },
+        {
+          "md": "A directed graph",
+          "correct": true,
+          "expl": "Correct. Direction is exactly the property being lost, and it is relaxed by adding arrows — not by allowing larger groups. The paper's Github dataset is a follow network used as if undirected; that is a modelling simplification worth remembering when you read its results."
+        },
+        {
+          "md": "A hypergraph",
+          "expl": "A hyperedge would let you name the group {Alice, Bob}, but it could not say which way the follow points. Larger arity does not buy direction."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** having chosen the hypergraph, there are still two equivalent ways to write one down. Card 3 gives both, and shows why the matrix version is the one that ends up in the paper's equations."
+}

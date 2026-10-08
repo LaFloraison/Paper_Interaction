@@ -1,0 +1,49 @@
+<!-- ============ c30 公式(6) μp ============ -->
+<section class="card" data-c="30" data-title-zh="公式 (6) · 规则位置 μ<sub>p</sub>" data-title-en="Eq. (6) · Rule position μp">
+  <div class="card-inner">
+    <div class="card-kicker k-math"><span class="len">Equation 6 · the position registry</span><span class="lz">公式 6 · 位置登记表</span></div>
+    <h2><span class="lz">式 (6)：越靠根的规则，分量越重</span><span class="len">Eq. (6): rules near the root carry more weight</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">内容登记完成了；位置登记处的活是给每条规则配一个<b>分量</b>。规律很朴素：纠错接力里先问的问题摘走最大的误差（第 13 卡），所以<b>越靠根（层号越小）的规则，分量越大</b>。</p>
+    <p class="len">Content is settled; the position desk's job is giving each rule a <b>weight</b>. The pattern is plain: in the relay, earlier questions grabbed the biggest residual (card 13), so <b>rules nearer the root (smaller layer number) weigh more</b>.</p>
+    <p class="lz"><b><span class="hl">位置登记表的写法：μ<sub>p</sub>(o) = α ÷ (d(o) + β)，其中 d(o) 是这条规则的层号（根 = 0），α、β 是两个可调旋钮。</span></b>层号在分母上——层号越大（越深），除出来的数越小，分量自然越轻。</p>
+    <p class="len"><b><span class="hl">The position desk's formula: μ<sub>p</sub>(o) = α ÷ (d(o) + β), where d(o) is the rule's layer number (root = 0) and α, β are two tunable knobs.</span></b> The layer sits in the denominator — a larger (deeper) layer divides into a smaller number, so weight falls naturally.</p>
+    <span class="tex-display" data-tex="\mu_p(o) = \frac{\alpha}{d(o) + \beta}"></span>
+    <p class="formula-note"><span class="lz">逐符号：d(o) = 层号（根 0、往下加 1；第 25 卡登场的老熟人）；α = 总幅度旋钮（整体抬高或压低这条曲线）；β = 缓冲旋钮（给分母垫底，防止层号 0 时除爆，也决定衰减的快慢）。论文把 α、β 用"网格搜索"在 {6, 7, 8, 9, 10} 里逐个数据集试出（Table IV 会看到每行各不同）。<b>计算只需除法，例 1 全包。</b></span><span class="len">Symbol by symbol: d(o) = layer number (root 0, +1 downward; our friend from card 25); α = amplitude knob (raises or lowers the whole curve); β = buffer knob (keeps the denominator from blowing up at layer 0 and sets how fast the decay falls). The paper grid-searches α, β over {6, 7, 8, 9, 10} per dataset (Table IV shows each row differing). <b>The math is one division; Example 1 covers it.</b></span></p>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>例 1（CC-Cora 的真实参数，逐层算）：</b>论文给 CC-Cora 选了 α = 9、β = 8。层号 0 到 3 逐个代：μ<sub>p</sub>(0) = 9 ÷ (0+8) = <b>1.125</b>；μ<sub>p</sub>(1) = 9 ÷ 9 = <b>1.000</b>；μ<sub>p</sub>(2) = 9 ÷ 10 = <b>0.900</b>；μ<sub>p</sub>(3) = 9 ÷ 11 ≈ <b>0.818</b>。读这张小表：从根到第 3 层，分量从 1.125 缓降到 0.818——根上的规则分量最重，且衰减是温和平滑的（不是一刀切）。</p>
+    <p class="len"><b>Example 1 (CC-Cora's real parameters, layer by layer):</b> the paper picked α = 9, β = 8 for CC-Cora. Substitute layers 0–3: μ<sub>p</sub>(0) = 9 ÷ (0+8) = <b>1.125</b>; μ<sub>p</sub>(1) = 9 ÷ 9 = <b>1.000</b>; μ<sub>p</sub>(2) = 9 ÷ 10 = <b>0.900</b>; μ<sub>p</sub>(3) = 9 ÷ 11 ≈ <b>0.818</b>. Read the little table: from root to layer 3 the weight eases 1.125 → 0.818 — root rules weigh most, and the decay is gentle, not a cliff.</p>
+    <p class="lz"><b>例 2（换一组旋钮，曲线就换一张脸）：</b>Amazon-P 的数据用 α = 6、β = 6：μ<sub>p</sub>(0) = 6 ÷ 6 = <b>1.0</b>；μ<sub>p</sub>(1) = 6 ÷ 7 ≈ <b>0.857</b>；μ<sub>p</sub>(2) = 6 ÷ 8 = <b>0.75</b>。对比例 1：曲线形状都是"缓降"，但同一层号下的分量不同（0.9 vs 0.75）——这就是"每数据集网格搜索 α、β"的意义：<b>让衰减速度适配各数据集的树形</b>。</p>
+    <p class="len"><b>Example 2 (swap the knobs, the curve changes face):</b> Amazon-P uses α = 6, β = 6: μ<sub>p</sub>(0) = 6 ÷ 6 = <b>1.0</b>; μ<sub>p</sub>(1) = 6 ÷ 7 ≈ <b>0.857</b>; μ<sub>p</sub>(2) = 6 ÷ 8 = <b>0.75</b>. Compare with Example 1: both curves ease gently, but the same layer carries different weight (0.9 vs 0.75) — that is what per-dataset grid search buys: <b>decay tuned to each dataset's tree shapes</b>.</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">为什么层号 d(o) 放在分母上，就能实现"越靠根越重"？</span><span class="len">Why does putting the layer d(o) in the denominator produce "shallower = heavier"?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="刚好相反——层号越大（越深）在分母上越大，除出来越小。变化方向正是靠“分母”实现的。"><span class="lz">因为层号越大分母越小</span><span class="len">Because a larger layer makes the denominator smaller</span></button>
+        <button class="opt" data-correct="1" data-expl="对！根（0 层）时分母最小 = β，分数最大；越往深层号越大、分母越大、分数越小——一个除法就实现了“近根重、远根轻”。"><span class="lz">根时层号=0、分母最小（=β）、分数最大；层号越大分数越小</span><span class="len">At the root d = 0, the denominator is smallest (= β) and the fraction largest; larger layers shrink the fraction</span></button>
+        <button class="opt" data-expl="分子 α 是常数，不随层号变——变化的全部来源就是分母上的 d(o)。"><span class="lz">因为分子也在随层号变小</span><span class="len">Because the numerator shrinks with the layer too</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="0.6667" data-tol="0.005" data-hint="把层号代进 μp 的除法：α 在分子、d+β 在分母。题目给的旋钮是 α=6、β=6。" data-sol="μ<sub>p</sub>(3) = 6 ÷ (3 + 6) = 6 ÷ 9 ≈ 0.6667。同一组旋钮下，层号越大分量越小——0 层 1.0、3 层约 0.67，缓降形状一目了然。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：某数据集的 α = 6、β = 6。第 3 层的规则分量是多少（保留四位小数）？</span><span class="len">Numeric: a dataset uses α = 6, β = 6. What is the weight of a layer-3 rule (four decimals)?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：论文的消融实验说"换个 α，成绩几乎不动；换个 β，成绩变化明显"（图 3）。用公式说，为什么？</span><span class="len">Transfer: the ablation says changing α barely moves accuracy, changing β moves it a lot (Fig. 3). By the formula, why?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="α 可不在分母——它在分子上，是整体缩放。β 才在分母上，改它直接改变“衰减形状”。"><span class="lz">因为 α 在分母上、β 在分子上</span><span class="len">Because α sits in the denominator and β in the numerator</span></button>
+        <button class="opt" data-correct="1" data-expl="对！α 只是把所有分量整体放大或缩小——后续网络可以轻松吸收这个统一缩放，所以成绩不动；β 改变的是“深层衰减多快”，曲线形状变了，深层规则的分量相对根层大幅变动——形状骗不了网络。"><span class="lz">α 是整体缩放（曲线形状不变，被后续层吸收）；β 改变曲线形状（深层规则的相对分量大变）</span><span class="len">α scales everything (shape unchanged, absorbed downstream); β reshapes the curve (deep rules' relative weight shifts a lot)</span></button>
+        <button class="opt" data-expl="两个旋钮都参与计算，谈不上“动不动”——区别在“缩放”与“改形”，不在用不用。"><span class="lz">因为 β 被更多地训练到了</span><span class="len">Because β receives more training</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout">
+      <b><span class="lz">本文如何用它：</span><span class="len">How the paper uses it:</span></b>
+      <span class="lz">下一卡：把"内容分"和"位置分"乘起来——一条规则的最终得分，以及一棵树一整列得分的样子。</span>
+      <span class="len">Next card: multiply content by position — one rule's final score, and a whole tree's column of scores.</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

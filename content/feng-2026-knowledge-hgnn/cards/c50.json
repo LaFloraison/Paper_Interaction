@@ -1,0 +1,123 @@
+{
+  "id": "50",
+  "kind": "intro",
+  "chapter": "intro",
+  "section": "4.1 The narrative",
+  "kicker": "4.1 · The introduction",
+  "title": "The story the introduction tells",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "An introduction performs four rhetorical jobs in sequence: it establishes that the problem is worth solving, characterises the state of the art sympathetically, identifies a specific deficiency in that state of the art, and states what the paper contributes towards fixing it. The third job is the load-bearing one — an introduction with no specific deficiency has no argument, only a description.",
+      "plain": "An introduction has one hard job: convince you that the previous methods have a *specific* flaw. Everything else — the applications, the enthusiasm, the contributions list — is scaffolding around that."
+    },
+    {
+      "t": "p",
+      "md": "**This introduction runs in four movements**, and it is unusually explicit about the flaw. That is a point in its favour: the accusation is stated as a mechanism you can check, rather than as a vague \"limitations remain\"."
+    },
+    {
+      "t": "table",
+      "head": ["Movement", "What the introduction does", "Approximate length"],
+      "rows": [
+        ["1. Establish importance", "Lists applications: brain network analysis, recommendation systems, social networks, computer vision. Cites a cluster of work for each", "one long paragraph"],
+        ["2. Characterise the state of the art", "Names the paradigm every existing method shares: \"high-order structural information guides the smoothing of vertex features\"", "one sentence"],
+        ["3. Identify the deficiency", "Three failures of that paradigm: over-smoothing, feature compression, and no mechanism for domain knowledge", "the paper's longest argumentative passage"],
+        ["4. State the contribution", "Two encoders, a fusion module, two model variants, and four numbered contributions", "the closing paragraphs"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Movement 2 is the sentence that makes the paper falsifiable.** If it is true that existing hypergraph methods all \"adopt a similar paradigm where high-order structural information guides the smoothing of vertex features\", then two things follow: chapter 2's extension on hypergraph neural networks should describe methods that all do essentially this, and the paper's own Equation (1) — its network layer — should be one of them, used unchanged. Both are checkable, and both turn out to be true."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Notice the modesty hidden in that framing. The paper is not claiming the previous paradigm is wrong — it is claiming the paradigm is *incomplete*. Its own method keeps Equation (1) exactly as the literature defined it and adds a stage in front. **A contribution that leaves the prior machinery intact and adds one thing is much easier to evaluate than one that replaces everything**, because the ablation is automatically clean: you can remove the addition and recover the baseline."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — follow the argument as a chain of implications.** Each link can be checked separately, which is what makes the introduction worth reading rather than skimming."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Hypergraphs model higher-order relations that pairs cannot, and hypergraph networks work well in several applied fields.",
+          "why": "Checkable: chapter 2's hypergraph-family section established precisely what pairs cannot express, and the arity argument is what this claim rests on."
+        },
+        {
+          "md": "Existing methods share one paradigm: structure guides the smoothing of vertex features.",
+          "why": "Checkable against the literature. The related-work section names four families (spectral convolution, mediator-based, dynamic, GNN-to-HGNN transformations) and every one of them smooths features along hyperedges."
+        },
+        {
+          "md": "That paradigm has three failure modes: over-smoothing, feature compression, and blindness to domain knowledge.",
+          "why": "Checkable, but only partly. The first two are properties of the operation — chapter 5's extension on over-smoothing shows the mechanism. The third is the paper's own framing and is the weakest of the three, because \"domain knowledge\" is not a measurable quantity."
+        },
+        {
+          "md": "Therefore: compute two specific kinds of knowledge explicitly and embed them before the network runs.",
+          "why": "This is where the argument must earn its conclusion. The step from \"the paradigm ignores knowledge\" to \"these two particular encodings capture it\" is a design choice, not a deduction — and the introduction does not pretend otherwise. It states the encoders as contributions, which is the honest form."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "Step 4 is the one to think hardest about, and it is a pattern worth recognising in every paper. The argument establishes that *something* is missing; the method supplies *one particular* something. Whether that particular thing is the missing thing is an empirical question, and the answer is the ablation tables — not the introduction's rhetoric."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which movement of an introduction carries the actual argument?",
+      "opts": [
+        {
+          "md": "The list of applications — it establishes that the problem matters",
+          "expl": "It establishes relevance, which is necessary but not argumentative. A list of successful applications is compatible with the field being entirely solved."
+        },
+        {
+          "md": "The identification of a specific deficiency in the current methods",
+          "correct": true,
+          "expl": "Correct. Without a specific deficiency there is nothing to fix and no reason for the paper to exist. It is also the movement most often padded — \"limitations remain\" and \"performance is still not satisfactory\" are deficiencies in name only."
+        },
+        {
+          "md": "The list of contributions",
+          "expl": "Contributions are the answer to a question the deficiency movement has to raise first. A contribution list without a stated deficiency reads as a feature announcement."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "The introduction claims existing methods share one paradigm and names how many distinct failure modes of it?",
+      "answer": 3,
+      "tol": 0.01,
+      "hint": "They are listed in the passage on why the smoothing paradigm falls short.",
+      "sol": "Three: over-smoothing, feature compression (which the paper equates with over-squashing), and the absence of a mechanism for domain-specific knowledge. The paper's method addresses the first two directly through its structural encoder and addresses the third by construction. Counting the claimed failures matters because a method is only obliged to fix the failures it named.",
+      "unit": "failure modes"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "This paper keeps the standard hypergraph network layer unchanged and adds a stage in front. Why does that make the paper easier to evaluate than one that replaces the whole architecture?",
+      "opts": [
+        {
+          "md": "Because the layer is already known to work, so the results are more reliable",
+          "expl": "Reliability of the results is a separate matter from ease of evaluation. The advantage here is structural, not statistical."
+        },
+        {
+          "md": "Because the baseline is recovered exactly by removing the addition, making the ablation unambiguous",
+          "correct": true,
+          "expl": "Correct. When the contribution is additive, \"method minus contribution\" is literally the published baseline — no reimplementation, no retuning, no question of whether the comparison is fair in kind. Papers that rewrite everything must argue that their baseline is a faithful version of the previous work, which is a much harder thing to establish."
+        },
+        {
+          "md": "Because unchanged layers cannot overfit",
+          "expl": "Overfitting is a property of training and data size, not of whether a layer is borrowed. A borrowed layer with new inputs can overfit to those inputs perfectly well."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the three failure modes in detail — what each one is, what causes it, and what evidence would show it is real."
+}

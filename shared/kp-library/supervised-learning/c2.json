@@ -1,0 +1,150 @@
+{
+  "kind": "extension",
+  "title": "The three-way split: training, validation, test — and how tuning on the test set manufactures a result",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **three-way split** partitions the labelled data into three disjoint sets. The **training set** is used to fit the model's parameters. The **validation set** is used to choose everything that is fixed before or during fitting — hyperparameters, when to stop, which model to keep — and its scores may be looked at repeatedly. The **test set** is used exactly once, at the end, to report performance; no decision may depend on it. A number is a *result* only if it comes from the test set and the test set influenced no choice.",
+      "plain": "Three buckets. One to learn from, one to make decisions with, and one you open a single time at the end. If a decision was informed by a bucket, that bucket has stopped being a test set."
+    },
+    {
+      "t": "p",
+      "md": "**Why one held-out set is not enough.** Card 1 established that a model must be judged on data it did not learn from. But a real experiment makes many decisions beyond fitting: how many layers, what learning rate, how long to train. If those decisions are made while looking at the same held-out set used to report, then that set has been used for learning too — and the reported number inherits the optimism of everything that was tuned on it. The fix is to give the two jobs two different sets."
+    },
+    {
+      "t": "p",
+      "md": "**The three jobs.** Training decides the parameters. Validation decides the choices the experimenter controls: it is the set you are *allowed* to score your model on dozens of times, comparing settings, and it is expected to be used and abused. Test is the untouched set you consult once, after every choice is frozen, to ask the single question \"how well does the finished procedure do?\" Because it was never consulted while choices were being made, its score carries no optimism from the search."
+    },
+    {
+      "t": "p",
+      "md": "**Leakage, and the specific leak of tuning on the test set.** *Leakage* is any flow of information from the data used for evaluation into the model or the choices behind it. It is subtle because it need not be intentional: if you compute a feature's mean over the whole dataset and then split, or if you try twenty settings and keep whichever has the best test score, information from the test set has entered the model. In the second case the test score is no longer an estimate of how the procedure would behave on fresh data — it is the maximum of many scores you searched over, which is systematically higher than any of them is on average."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The rule in one line:** a set can either *guide* decisions or *report* on them, never both. Looking at the test set once and then adjusting anything — a hyperparameter, a feature, a threshold — converts it into a validation set permanently. There is no way to undo this later; the honest response is to obtain fresh test data."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the three buckets on a real-sized dataset.** Take 10,000 labelled examples. A conventional split is 60 / 20 / 20: 6,000 for training, 2,000 for validation, 2,000 for test."
+    },
+    {
+      "t": "table",
+      "head": ["set", "size here", "decides", "how often you may look"],
+      "rows": [
+        ["training", "6,000", "the model's parameters (weights)", "continuously, during fitting"],
+        ["validation", "2,000", "hyperparameters, stopping point, model selection", "as often as you like"],
+        ["test", "2,000", "nothing — it reports", "once, at the very end"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "The split does not have to be equal. When data is scarce, the conventional ratios shift towards training, and validation and test shrink — which is exactly the situation card 3's cross-validation is designed for. What never changes is the rule attached to the test row: nothing is allowed to depend on it."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — how much of an apparent gain is noise?** This is the quantitative heart of the leak, and it is worth doing honestly rather than by assertion. Suppose you try 20 hyperparameter settings. In truth all 20 are identical: the same expected test accuracy $p = 0.70$, with no real difference between them. You score each on a test set of 200 examples and keep the winner. How much better than $0.70$ will the winner appear?"
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Each setting's test score is an estimate, not the truth. For a held-out set of $n = 200$ examples and true accuracy $p = 0.70$, the standard deviation of that estimate is $\\sqrt{p(1-p)/n} = \\sqrt{0.70 \\times 0.30 / 200} = \\sqrt{0.00105} = 0.0324$, about 3.2 percentage points.",
+          "why": "A test score is an average of correct-or-wrong outcomes over a finite sample, so it wobbles around the truth exactly as any sample mean does. This is the size of one setting's wobble."
+        },
+        {
+          "md": "The score you keep is the *maximum* of 20 such noisy numbers. For 20 independent standard-normal draws, the expected maximum sits about $1.87$ standard deviations above the mean. This number comes from numerical integration of the maximum's distribution, not from a textbook constant.",
+          "why": "Taking the best of several noisy estimates systematically overshoots the truth, and the overshoot grows with how many settings you try. This is why a search can look productive while changing nothing real."
+        },
+        {
+          "md": "Convert back to percentage points: $1.87 \\times 3.24 \\approx 6.1$. **So the winning setting would appear to be about 6 points better than the truth, on average, even though all 20 settings are identical.**",
+          "why": "Nothing improved. The apparent improvement was manufactured entirely out of sampling noise, by the act of choosing the largest number in a noisy list."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Two honest caveats, because overstating this would itself be a form of the error it describes. First, the 20 scores are not independent — they share one test set, so their errors move together, which shrinks the effect below 6 points; the figure is an upper guide, and the *direction* is what matters. Second, this is not an argument against trying many settings. It is an argument against doing so on the test set. Search on validation, where choosing is legitimate, and the test set stays clean."
+    },
+    {
+      "t": "p",
+      "md": "The size of the illusion depends on the test set. On a 1,000-example test set the same calculation gives a wobble of $\\sqrt{0.70 \\times 0.30 / 1000} = 0.0145$, about 1.4 points, and a 20-way search would look about $1.87 \\times 1.45 \\approx 2.7$ points better than it is. On 5,000 examples the wobble is $\\sqrt{0.21/5000} = 0.0065$, about 0.65 points, and the inflation falls to roughly $1.87 \\times 0.65 \\approx 1.2$ points. A larger test set shrinks the illusion; it never removes it, because the maximum of any finite set of noisy estimates still exceeds their average."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which split is intended to be looked at repeatedly, while choosing hyperparameters?",
+      "opts": [
+        {
+          "md": "The training set",
+          "expl": "The training set is looked at continuously, but through the optimiser — it fits parameters. It is not where you compare hyperparameter settings, because any model can be made to fit training data."
+        },
+        {
+          "md": "The validation set",
+          "correct": true,
+          "expl": "Correct. Validation is the set whose whole purpose is to be consulted while decisions are still open. It is expected to be used and even over-used, which is why it cannot also serve as the test set."
+        },
+        {
+          "md": "The test set",
+          "expl": "The test set is looked at once, after choices are frozen. Looking at it repeatedly while tuning turns it into a validation set and inflates the final number."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "You try 20 identical hyperparameter settings and keep the best by test score. Each score has a standard deviation of 5 percentage points. Using the factor 1.87 from the card, by roughly how many percentage points will the winner appear to beat the truth?",
+      "answer": 9.35,
+      "tol": 0.5,
+      "hint": "The winner is the maximum of the 20 noisy scores, so multiply the single-score wobble by the factor for the expected maximum.",
+      "sol": "The expected maximum of 20 noisy scores sits about $1.87$ standard deviations above the mean, so the apparent gain is $1.87 \\times 5 = 9.35$ percentage points. Answering 5 is the common slip — that is one score's wobble, not the wobble of the best of twenty.",
+      "unit": "percentage points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A paper states: \"We tuned the learning rate, depth and dropout, and report the best test accuracy over all configurations.\" What is wrong with the reported number?",
+      "opts": [
+        {
+          "md": "Nothing — reporting the best configuration is the point of tuning",
+          "expl": "Reporting the *best* configuration is fine in principle; doing the choosing on the test set is not. The number is inflated by exactly the mechanism of Example 2, because it is a maximum over noisy test scores."
+        },
+        {
+          "md": "The test set guided the choice, so the reported score is the maximum of many test scores and is optimistically biased",
+          "correct": true,
+          "expl": "Correct. Every configuration that was compared used the test set for feedback, so the set stopped being untouched. The honest version tunes on validation and reports a single test number afterwards, and that number will typically be lower."
+        },
+        {
+          "md": "They should have reported the worst configuration instead, to be safe",
+          "expl": "This over-corrects. The issue is not best versus worst; it is which set gave the feedback. A single configuration chosen on validation and reported on test is perfectly sound."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does using the test set to tune cause a problem, even if the tuning is honest and unintentional?",
+      "opts": [
+        {
+          "md": "Because it makes the model take longer to train",
+          "expl": "Runtime is not the issue at all; a leak can speed things up or slow them down without changing the honesty of the number."
+        },
+        {
+          "md": "Because information from the test set flows into the choices, so the test score stops estimating behaviour on unseen data",
+          "correct": true,
+          "expl": "Correct. Leakage is defined by the flow of information, not by intent. Once test data has shaped a choice, the score no longer answers \"how does this do on fresh data?\" — it answers \"how good was the best of the options I tried?\""
+        },
+        {
+          "md": "Because the test set becomes smaller",
+          "expl": "Its size is unchanged. What changed is its role: it went from reporting to guiding, which is what breaks it."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** a single split wastes data — the validation and test portions inform no fitting at all. When data is scarce, that waste is unaffordable, and the standard remedy is cross-validation, the subject of the next card."
+}

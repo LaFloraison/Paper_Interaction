@@ -1,0 +1,154 @@
+{
+  "kind": "extension",
+  "title": "Permutation invariance on graphs and hypergraphs",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Let an object be indexed by labels. An incidence matrix $H$ with $n$ rows and $m$ columns carries two independent label sets: the $n$ **vertices** (rows) and the $m$ **hyperedges** (columns). A **relabelling** is a bijection of one label set. An operator $F$ reading the object is **permutation invariant** under relabelling a given label set if $F$ returns exactly the same value after that relabelling; it is **permutation equivariant** under it if its output is relabelled the same way. Because rows and columns are labelled independently, invariance must be asserted separately for each: a claim about rows is not a claim about columns.",
+      "plain": "A graph or hypergraph is stored with a number on every vertex and every edge. A relabelling just renumbers them. An operator is permutation invariant if renumbering does not change its answer, and equivariant if its answer is renumbered along with the input. Vertices and hyperedges are renumbered separately, so there are two separate statements to make."
+    },
+    {
+      "t": "p",
+      "md": "**Which relabellings are free to change.** For a plain graph there is one label set — the vertices — and permuting it is the only relabelling. For an incidence matrix there are three: **permuting rows** (vertices), **permuting columns** (hyperedges), and **both at once**, which is the same as choosing a new numbering in each direction. Each corresponds to writing the identical object down differently, so none of them changes the object, and a correct operator must account for all of them."
+    },
+    {
+      "t": "table",
+      "head": ["Construction", "Under a vertex relabelling", "Under a hyperedge relabelling"],
+      "rows": [
+        ["Per-vertex embedding (one vector per vertex)", "**equivariant** — each vector moves to its vertex's new position", "**invariant** — the vertices are untouched"],
+        ["Graph-level prediction (one fixed-size answer)", "**invariant**", "**invariant**"],
+        ["A vertex's degree (its row sum in $H$)", "**invariant** — the degree is a property of the vertex and moves with it", "**invariant**"],
+        ["Vertex index fed in as an input feature", "**neither** — it breaks by construction", "**invariant** — vertex features are untouched"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Why this is not an academic point.** The numbering on a graph is chosen by whoever prepared the file, not by the object. Two files can hold the same graph with its vertices numbered in two different orders; they describe one object. Any dependence on that numbering is therefore a dependence on the file rather than on the object, and it will show up as a model whose prediction changes when an unrelated preprocessing step reorders the rows. The paper's lemma is the statement that its structural encoder has no such dependence: exchanging columns of the incidence matrix leaves the encoder's output unchanged."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**A tempting mistake.** Because the indices are sitting right there in the matrix, it feels harmless to feed the row number in as an extra feature. It is not. That feature carries the file's arbitrary ordering and nothing about the graph; the model can then distinguish two structurally identical vertices by their file position, and two files holding the same graph in different orders produce different predictions. The index is bookkeeping, not structure."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — start from a graph and a symmetric aggregation.** Four vertices with edges $1\\!-\\!2$, $2\\!-\\!3$, $2\\!-\\!4$ (vertex 2 is the hub), and a measured feature $x$ on each vertex. The aggregation for a vertex is the **sum of its neighbours' features** — a symmetric function of the neighbour set."
+    },
+    {
+      "t": "formula",
+      "tex": "A = \\begin{pmatrix} 0 & 1 & 0 & 0 \\\\ 1 & 0 & 1 & 1 \\\\ 0 & 1 & 0 & 0 \\\\ 0 & 1 & 0 & 0 \\end{pmatrix}, \\qquad x = \\begin{pmatrix} 10 \\\\ 20 \\\\ 30 \\\\ 40 \\end{pmatrix}, \\qquad Ax = \\begin{pmatrix} 20 \\\\ 80 \\\\ 20 \\\\ 20 \\end{pmatrix}",
+      "note": "Read row by row: vertex 1 has one neighbour with value 20; vertex 2 (the hub) has neighbours $10, 30, 40$, summing to 80; vertices 3 and 4 each have the single neighbour 20. The adjacency matrix encodes which neighbour values each vertex is allowed to see.",
+      "gloss": [
+        { "sym": "A", "md": "the adjacency matrix in the ordering $1,2,3,4$" },
+        { "sym": "x", "md": "the feature attached to each vertex, in that same ordering" },
+        { "sym": "(Ax)_i", "md": "the sum of the features of vertex $i$'s neighbours" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — relabel the vertices and watch what happens.** Swap the roles of vertices 1 and 2, so the new ordering is $2,1,3,4$. The feature vector must be reordered along with the vertices, becoming $(20, 10, 30, 40)$, and the adjacency matrix is rebuilt in the new order."
+    },
+    {
+      "t": "formula",
+      "tex": "A' = \\begin{pmatrix} 0 & 1 & 1 & 1 \\\\ 1 & 0 & 0 & 0 \\\\ 1 & 0 & 0 & 0 \\\\ 1 & 0 & 0 & 0 \\end{pmatrix}, \\qquad x' = \\begin{pmatrix} 20 \\\\ 10 \\\\ 30 \\\\ 40 \\end{pmatrix}, \\qquad A'x' = \\begin{pmatrix} 80 \\\\ 20 \\\\ 20 \\\\ 20 \\end{pmatrix}",
+      "note": "$A'$ looks nothing like $A$ — the rows and columns have been shuffled. Yet $A'x' = (80, 20, 20, 20)$ is exactly the old result $(20, 80, 20, 20)$ with the same swap applied. The output did not change value; it changed *position*, one entry per vertex. That is equivariance.",
+      "gloss": [
+        { "sym": "A'", "md": "the same adjacency matrix after the swap, visibly different in layout" },
+        { "sym": "x'", "md": "the same features carried along with their vertices" },
+        { "sym": "A'x'", "md": "the aggregate result, relabelled the same way as the input" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 3 — where invariance and positional weighting part ways.** Collapse the per-vertex result into one graph-level number by adding the entries."
+    },
+    {
+      "t": "calc",
+      "md": "sum of the aggregate: 20 + 80 + 20 + 20 = 140   (same after the swap: 80 + 20 + 20 + 20 = 140)\nsum of the features:   10 + 20 + 30 + 40 = 100   (and 20 + 10 + 30 + 40 = 100)\npositional sum  i·x:   1(10) + 2(20) + 3(30) + 4(40) = 300   (versus 1(20) + 2(10) + 3(30) + 4(40) = 290)"
+    },
+    {
+      "t": "p",
+      "md": "The graph-level sum is **invariant**: 140 before and after, because the same four numbers are being added. The positional sum is **not**: 300 becomes 290. It reads the position of each feature instead of the feature itself, so it is answering a question about the file's ordering — exactly the failure the lemma rules out."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**The pattern to remember.** Summing over a vertex's neighbours is equivariant per vertex and invariant once pooled. Weighting by position is neither. Every invariance claim in this project is one of those two first cases, stated for a specific relabelling."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "The paper's lemma proves the structural encoder returns the same value when the *columns* of the incidence matrix are exchanged. Which relabelling is that?",
+      "opts": [
+        {
+          "md": "Renumbering the vertices (the rows)",
+          "expl": "Rows are vertices, so exchanging rows is vertex relabelling. The lemma is stated about columns; a claim about rows would be a different statement, and would not follow from it."
+        },
+        {
+          "md": "Renumbering the hyperedges (the columns)",
+          "correct": true,
+          "expl": "Correct. Columns are hyperedges, so exchanging columns renumbers the relations. An encoder that pools over columns must be unchanged by that, otherwise its answer depends on the order in which the relations were written into the file."
+        },
+        {
+          "md": "Sorting the entries inside each column",
+          "expl": "That is not a relabelling at all — sorting within a column would reassign entries to the wrong rows and destroy which vertex each entry refers to. A relabelling only reorders whole rows or whole columns."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A star graph has one centre joined to four leaves whose features are $(2, 4, 8, 16)$. A sum-aggregator sets the centre's value to the sum of its neighbours' features. What is that value?",
+      "answer": 30,
+      "tol": 0.01,
+      "hint": "Add the four leaf values. The order the leaves are listed in must not enter the computation.",
+      "sol": "$2 + 4 + 8 + 16 = 30$. Any relabelling of the leaves gives the same 30, which is the invariance the aggregation buys. For contrast, a positionally weighted version $1(2) + 2(4) + 3(8) + 4(16) = 2 + 8 + 24 + 64 = 98$ would change the moment the leaves were renumbered.",
+      "unit": "aggregated value"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A modeller adds the vertex index $(1, 2, 3, \\dots)$ as an extra input feature, reasoning that more information cannot hurt. What is the effect?",
+      "opts": [
+        {
+          "md": "The model becomes strictly more powerful and remains permutation invariant",
+          "expl": "Both halves are false. The index says nothing about the graph, and using it makes the output depend on the file's ordering, so invariance is lost rather than kept."
+        },
+        {
+          "md": "The model can tell structurally identical vertices apart by file position, so its answers depend on the arbitrary numbering",
+          "correct": true,
+          "expl": "Correct. Two files holding the same graph with its vertices in different orders now differ in this feature, so the model's prediction changes although the object did not. That is precisely the dependence the paper's lemma exists to rule out."
+        },
+        {
+          "md": "Nothing changes, because the index is small compared with the feature values",
+          "expl": "Scale is irrelevant. Even a tiny index term breaks exact invariance: a permutation that swaps two vertices swaps their index features, and the model will in general respond differently."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A function returns a *single* number summarising a whole hypergraph, such as a predicted label. Which invariance should it have?",
+      "opts": [
+        {
+          "md": "Invariant under both vertex relabelling and hyperedge relabelling",
+          "correct": true,
+          "expl": "Correct. A single number has no index to follow, so any relabelling of either label set must leave it unchanged. This is the kind of output the paper's encoder produces, which is why its lemma pinpoints the hyperedge relabelling that its computation could otherwise violate."
+        },
+        {
+          "md": "Equivariant under vertex relabelling",
+          "expl": "Equivariance requires the output to be indexed like the input, and a single number is not indexed at all — there is no position for it to move to. This answer applies the per-vertex rule to a graph-level output."
+        },
+        {
+          "md": "Invariant under vertex relabelling but equivariant under hyperedge relabelling",
+          "expl": "This assigns equivariance to an unindexed output, which is not possible. It is the mirror image of the previous confusion and rests on the same mistaken assumption that a graph-level answer carries an index."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** knowing that invariance is required says nothing about how to obtain it. The next card gives the two standard routes and states honestly what each one costs."
+}

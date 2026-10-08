@@ -1,0 +1,46 @@
+<!-- ============ c37 Table I 数据集 ==== -->
+<section class="card" data-c="37" data-title-zh="表 I · 十个数据集长什么样" data-title-en="Table I · what the ten datasets look like">
+  <div class="card-inner">
+    <div class="card-kicker k-fig"><span class="len">Table I · the sample pool</span><span class="lz">表 I · 样本池清单</span></div>
+    <h2><span class="lz">表 I：实验用的十份"考题"</span><span class="len">Table I: the ten "exam papers"</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz"><b><span class="hl">表 I 是实验的"样本池清单"：十个数据集的规模统计——顶点数、边/超边数、特征数、两类平均度、类别数；后面所有结果表都在这十份"考题"上评分。</span></b>四份是普通图（Cora、Github、Amazon-P、Amazon-C），六份是真超图（CA-Cora、DBLP-Conf、CC-Cora、Tencent、ModelNet40、Heloc）。</p>
+    <p class="len"><b><span class="hl">Table I is the sample pool: size statistics of ten datasets — vertices, edges/hyperedges, features, two average degrees, classes; every later results table scores on these ten "exam papers".</span></b> Four are ordinary graphs (Cora, Github, Amazon-P, Amazon-C); six are true hypergraphs (CA-Cora, DBLP-Conf, CC-Cora, Tencent, ModelNet40, Heloc).</p>
+    <p class="lz">读表前先分清两个度数——它们方向不同：<b>平均边度</b>（Averaged Degree of Edges）= 平均每条关系牵涉几个点（两两图的这一列恒为 2；超图可大可小）；<b>平均顶点度</b>（Averaged Degrees of Vertices）= 平均每个点牵涉几条关系。</p>
+    <p class="len">Before reading, split the two degrees — they point different ways: <b>average edge degree</b> = how many vertices one relation involves on average (always 2 for pairwise graphs; anything for hypergraphs); <b>average vertex degree</b> = how many relations one vertex touches on average.</p>
+    <div class="figbox">
+      <img data-fig="tab1" alt="Table I of the paper: statistics of datasets">
+      <div class="figcap"><span class="lz">论文表 I 原图（Feng et al., TPAMI 2026）。前十行是图数据集，后六行是超图数据集。</span><span class="len">Original Table I (Feng et al., TPAMI 2026). The first four rows are graph datasets; the last six are hypergraphs.</span></div>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>走查 1（读一行）：</b>Cora 行逐格念——2,708 篇论文（顶点）；7,440 条引用关系（边）；1,433 个词（特征，每篇论文的词袋表示）；平均边度 2（引用关系两两发生）；平均顶点度 3.9（平均每篇被几条/发出几条引用）；7 个类别（待分类的主题数）。这一行就是"七分类任务、2,708 个样本"的完整简历。</p>
+    <p class="len"><b>Walk 1 (read one row):</b> Cora row by cell — 2,708 papers (vertices); 7,440 citation relations (edges); 1,433 words (features, each paper as a bag of words); average edge degree 2 (citations are pairwise); average vertex degree 3.9; 7 classes. This row is the full CV of a "7-way classification task with 2,708 samples".</p>
+    <p class="lz"><b>走查 2（三行对照，看懂"图 vs 超图"）：</b>同一批论文两种画法的 Cora（7,440 条两两边、平均边度 2）与 CA-Cora（970 条超边、平均边度 4.5）——后者用少得多的关系装下同样的团结构。再看极端的 DBLP-Conf：仅 <b>20</b> 条超边却圈住 4,057 位作者，平均一条超边 982.2 人——自检：20 × 982.2 = 19,644 人次，摊给 4,057 人 ≈ 4.84，与表里的"平均顶点度 4.8"吻合（超图两列互相印证）。</p>
+    <p class="len"><b>Walk 2 (three rows, grasping graph-vs-hypergraph):</b> the same corpus two ways — Cora (7,440 pairwise edges, avg edge degree 2) and CA-Cora (970 hyperedges, avg edge degree 4.5): far fewer relations carry the same crowds. Then the extreme, DBLP-Conf: just <b>20</b> hyperedges embracing 4,057 authors, each averaging 982.2 people — self-check: 20 × 982.2 = 19,644 memberships over 4,057 authors ≈ 4.84, matching the table's vertex degree 4.8 (the hypergraph's two columns cross-confirm).</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">"平均边度"与"平均顶点度"分别数什么？</span><span class="len">What does "average edge degree" count versus "average vertex degree"?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="方向反了——边度看“一条关系牵几个点”，顶点度看“一个点牵几条关系”。"><span class="lz">边度 = 每个点牵几条关系；顶点度 = 每条关系牵几个点</span><span class="len">Edge degree = relations per vertex; vertex degree = vertices per relation</span></button>
+        <button class="opt" data-correct="1" data-expl="对！边度是“一条边牵涉几个点”（两两图恒为 2，超图可大）；顶点度是“一个点牵涉几条边”。"><span class="lz">边度 = 每条关系牵几个点；顶点度 = 每个点牵几条关系</span><span class="len">Edge degree = vertices per relation; vertex degree = relations per vertex</span></button>
+        <button class="opt" data-expl="两列的数并不相等（DBLP 4.5 vs 4.8、Cora 2 vs 3.9）——它们量的是两个不同的方向。"><span class="lz">两者是同一件事的两种叫法</span><span class="len">Two names for the same quantity</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="6" data-tol="0.01" data-hint="数一数表里 Type 列写着 Hypergraph 的行有几行。" data-sol="六行：CA-Cora、DBLP-Conf、CC-Cora、Tencent、ModelNet40、Heloc。其余四行（Cora、Github、Amazon-P、Amazon-C）是普通图。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：表 I 里超图（Hypergraph）数据集有几个？</span><span class="len">Numeric: how many hypergraph datasets does Table I list?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：ModelNet40 一份数据凭什么被论文当"超图"用（它原本是 3D 形状）？</span><span class="len">Transfer: why does the paper use ModelNet40 (originally 3D shapes) as a hypergraph?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="3D 形状本身不是群体关系——论文把点云转成表格特征后，再用 KNN 在特征空间里现连邻居、构成超边（原文 V-A-1 说的做法）。"><span class="lz">因为 3D 形状天然就是超图</span><span class="len">Because 3D shapes are inherently hypergraphs</span></button>
+        <button class="opt" data-correct="1" data-expl="正确！论文把点云转成表格数据后，用 K-Nearest Neighbors 在特征空间里为每个点找邻居、组成超边——“超图”是构造出来的，这也是表里 Heloc（信贷数据）同为超图的原因。"><span class="lz">点云转表格后，用 KNN 在特征空间现建超边（Heloc 同理）</span><span class="len">After tabularizing the point cloud, KNN builds hyperedges in feature space (same for Heloc)</span></button>
+        <button class="opt" data-expl="类别数（40）只决定任务难度——与“怎么把数据连成超图”无关。"><span class="lz">因为它有 40 个类别，类别多就得用超图</span><span class="len">Because 40 classes force a hypergraph</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

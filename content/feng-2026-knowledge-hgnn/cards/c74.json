@@ -1,0 +1,131 @@
+{
+  "id": "74",
+  "kind": "formula",
+  "chapter": "method",
+  "section": "5.15 Equation (10)",
+  "kicker": "5.15 · Equation (10)",
+  "title": "Equation (10): the two models, and a confound worth noticing",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Equation (10) defines the paper's two models in two lines: $\\mathrm{HGNN}\\big(\\varphi_r(X, T),\\, H\\big)$ for RD-HGNN, and $\\mathrm{HGNN}\\big(\\psi(\\varphi_r(X,T),\\, \\varphi_s(X)),\\, H\\big)$ for DD-HGNN. Both receive the incidence matrix $H$ and run the same network layer, Equation (1); they differ only in what arrives as the feature matrix.",
+      "plain": "RD feeds the network the rule embedding alone. DD feeds it the fused vector — rule embedding plus structure. Same network, different input."
+    },
+    {
+      "t": "formula",
+      "tex": "\\begin{aligned} \\mathrm{HGNN}\\big(\\varphi_r(X, T),\\; H\\big) &\\qquad \\text{// RD-HGNN} \\\\[6pt] \\mathrm{HGNN}\\big(\\psi(\\varphi_r(X, T),\\; \\varphi_s(X)),\\; H\\big) &\\qquad \\text{// DD-HGNN} \\end{aligned}",
+      "note": "Read the two lines against each other and the difference is exactly one term: $\\psi$, the fusion, which is what brings $\\varphi_s$ — the structural embedding — into the picture.",
+      "gloss": [
+        { "sym": "\\varphi_r(X, T)", "md": "the rule embedding $X_r$, from the boosted ensemble $T$ and the features $X$" },
+        { "sym": "\\varphi_s(X)", "md": "the structural embedding $X_s$ — written here as a function of $X$ because the paper passes the whole dataset; what it actually reads is $H$" },
+        { "sym": "\\psi", "md": "the fusion function — MDK-Fusion, Equation (9)" },
+        { "sym": "H", "md": "the incidence matrix, supplied to the network in both models" },
+        { "sym": "\\mathrm{HGNN}", "md": "the network: Equation (1) applied as many times as there are layers" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The naming, decoded.** *Rule-Driven* means the model's input is the rules and nothing else. *Dual-Driven* means both kinds of knowledge drive it. And because the fusion is Equation (9), DD's input is $\\tilde{X}_r \\Vert X_r$, while RD's is just $X_r$."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Here is a confound the two-line form makes visible, and it matters for reading the ablation.** RD's network input has $C_r$ columns; DD's has $2C_r$. So switching from RD to DD changes two things at once — it adds the structural knowledge *and* it doubles the width of the first weight matrix. If DD beats RD, part of the gain may come from the extra capacity rather than from the structural information. A clean ablation would compare DD against a model with the same $2C_r$ input and no structural content — for instance $X_r \\Vert X_r$, whose degeneracy the previous card established — or against a version where the broadcast scalar is a learned per-vertex parameter rather than a degree-derived one. **The paper runs neither comparison.** This does not invalidate its result; it bounds what the result can be said to show."
+    },
+    {
+      "t": "p",
+      "md": "**One more thing worth being precise about: RD is not structure-free.** Both models pass $H$ to the network, so in RD the structure still enters — through the smoothing, exactly as in every prior hypergraph network. What RD omits is the structure *as an explicit feature*. The word \"Rule-Driven\" therefore means \"rules are the only embedded knowledge\", not \"the model ignores the graph\". A reader who takes it the second way will misread the whole ablation."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — trace what each model's network actually sees.** Use the two-tree ensemble from Figure 2, so $C_r = 5$, and a vertex with rule row $X_r[v] = (0,\\; 0.5,\\; 0,\\; 0.5,\\; 0)$ and structural value $X_s[v] = 0.9526$."
+    },
+    {
+      "t": "table",
+      "head": ["", "RD-HGNN input", "DD-HGNN input", "Width"],
+      "rows": [
+        ["Feature matrix", "$X_r[v] = (0, 0.5, 0, 0.5, 0)$", "$(0, 0.476, 0, 0.476, 0) \\;\\Vert\\; (0, 0.5, 0, 0.5, 0)$", "5 vs 10"],
+        ["First weight matrix", "$\\Theta \\in \\mathbb{R}^{5 \\times d}$", "$\\Theta \\in \\mathbb{R}^{10 \\times d}$", "half the parameters"],
+        ["Structure used as", "a feature? no", "a feature? yes", "—"],
+        ["Structure used in smoothing?", "yes, via $H$", "yes, via $H$", "—"]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Compute DD's input. $\\tilde{X}_r[v] = 0.9526 \\times (0,\\; 0.5,\\; 0,\\; 0.5,\\; 0) = (0,\\; 0.476,\\; 0,\\; 0.476,\\; 0)$, and concatenating with the original gives ten entries.",
+          "why": "The scaling acts on the whole row at once — the per-row-scalar property from Equation (9). Entries that were zero stay zero, so for a sparse rule row the scaled copy is *also* sparse, and half of DD's input is zero."
+        },
+        {
+          "md": "Note the width difference: 5 columns against 10.",
+          "why": "With $d$ output channels, RD's first layer has $5d$ weights and DD's has $10d$. The extra $5d$ parameters exist whether or not the structural knowledge in them is useful — which is precisely the confound."
+        },
+        {
+          "md": "Now ask the ablation's question in the form that would settle it: would $X_r \\Vert X_r$ — same width, no structural content — match DD?",
+          "why": "It would not, by the argument of the previous card: concatenating a row with itself collapses to a single linear reading. So the width alone cannot explain DD's advantage *in full* — but the comparison needed to establish that is a model with the same width and a non-redundant, non-structural second block, which the paper does not run."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**What Chapter 6 will therefore be able to say, and what it will not.** The DD-versus-RD gap is evidence that the combination helps, given the architecture. It is not clean evidence that *structural knowledge* is what helps, because width and content moved together. Whether that gap is larger on datasets with bigger hyperedges — which is the paper's own prediction — is a separate and more informative check, and it is the one to look for in the results tables."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which term distinguishes the two models in Equation (10)?",
+      "opts": [
+        {
+          "md": "The network function $\\mathrm{HGNN}$",
+          "expl": "Both lines call the same function on the same incidence matrix. If the networks differed, the comparison would not isolate the knowledge encoders."
+        },
+        {
+          "md": "The fusion $\\psi$, which is the only thing bringing the structural embedding into DD's input",
+          "correct": true,
+          "expl": "Correct. Remove $\\psi$ and both lines become identical — RD is literally DD with the fusion and the structural encoder deleted. That is what makes RD a clean test of the rule encoder alone."
+        },
+        {
+          "md": "The incidence matrix $H$",
+          "expl": "Both models are given $H$. RD is not structure-free: it still smooths along hyperedges, exactly as the prior literature does. What it lacks is structure *as a feature*."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "If $C_r = 12$ and the output width is $d$, how many weights does DD's first layer contain, in terms of $d$? Give the answer for $d = 1$.",
+      "answer": 24,
+      "tol": 0.01,
+      "hint": "The input width is twice the rule width; a layer with $d$ outputs has input-width times $d$ weights.",
+      "sol": "$2C_r \\times d = 24 \\times 1 = 24$ weights for $d = 1$. RD's corresponding layer would have $12$. The doubling is a direct consequence of the concatenation in Equation (9) and is the reason the confound exists: DD is not just RD plus information, it is RD plus information *and* capacity.",
+      "unit": "weights"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "DD's input in the walkthrough is half zeros. What does that imply for the confound?",
+      "opts": [
+        {
+          "md": "The confound disappears, since zero entries carry no capacity",
+          "expl": "The entries carry no *information*, but the weight matrix still has a column per input entry — those parameters exist and are trained, whether or not the corresponding inputs are usually zero."
+        },
+        {
+          "md": "The confound is softened but not removed: the extra parameters are trained on inputs that are often zero, so they may end up doing little — but the paper reports no experiment separating the two effects",
+          "correct": true,
+          "expl": "Correct, and this is the honest position. A sparse input means some of the extra capacity is idle, which weakens the alternative explanation without eliminating it. The only way to settle it is the comparison the paper omits — same width, no structural content — which is exactly the kind of gap Chapter 7 collects."
+        },
+        {
+          "md": "It means the fusion is wasted work",
+          "expl": "Not wasted: the nonzero rule entries are genuinely reweighted by the structural value, which is the mechanism the design intends. The observation is about how much of the *width* is informative, not about whether the scaling does anything."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the paper's own discussion of which model to choose — Section IV-D-2, where it states a prediction about when each variant should win, and which dataset property it expects to drive the difference."
+}

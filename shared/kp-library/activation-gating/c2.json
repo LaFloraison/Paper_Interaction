@@ -1,0 +1,217 @@
+{
+  "kind": "extension",
+  "title": "A number in (0, 1) is a gate",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **gate** is a value used as a multiplier, entry by entry. If a vector $v = (v_1, \\dots, v_n)$ is combined with a gate vector $g = (g_1, \\dots, g_n)$ whose every entry lies strictly in $(0,1)$, the gated result is the entrywise product $(g_1 v_1, \\dots, g_n v_n)$. When every $g_i$ is in $(0,1)$, the *magnitude* of each entry can only stay the same or shrink: $|g_i v_i| = g_i |v_i| \\le |v_i|$, with strict decrease whenever $g_i < 1$ and $v_i \\ne 0$.",
+      "plain": "A gate is a dial that sits in front of each number. Because the dial is stuck between 0 and 1, turning it can only make a number smaller in magnitude (closer to zero) — never larger in size."
+    },
+    {
+      "t": "p",
+      "md": "**Why gates exist.** Sometimes a model should be able to turn a piece of information down. It might learn that part of a feature vector is irrelevant for the current example, or that a whole channel should be suppressed. A gate in $(0,1)$ is the simplest such control: multiply by 0.1 and the entry is nearly gone, multiply by 0.9 and it is barely touched. The gate becomes learnable by being produced by a sigmoid (the S-shaped function of card 1, whose range is exactly $(0,1)$) — the sigmoid's range $(0,1)$ is exactly the range a gate needs."
+    },
+    {
+      "t": "p",
+      "md": "**Attenuate, never amplify.** The inequality $|g_i v_i| \\le |v_i|$ holds for every entry, independently, and does not depend on the sign of $v_i$. A negative entry stays negative and shrinks in absolute value; a positive entry stays positive and shrinks. Multiplying by a value in $(0,1)$ is a *contraction*: it can never increase any coordinate, and it can never change a coordinate's sign. That asymmetry is the whole content of this card, and it is what makes the taught paper's word \"amplified\" worth a careful look."
+    },
+    {
+      "t": "p",
+      "md": "**The contrast with attention.** The **attention weights** of a transformer (the model family behind large language models, built on attention as its core operation) are a different pattern that also uses numbers in $(0,1)$. Attention assigns one weight to each **token** (a word or word-piece, the unit the model reads), and those weights are normalised to sum to exactly 1 across the set of tokens. The output is the weighted average of the **value vectors**, one vector per token — the piece of information each token contributes to the mix. So attention and a gate share the range but differ in the constraint placed on the values: gate entries are independent, while attention weights must share a fixed total of 1. That single extra constraint changes what the operation can do — explained concretely below."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Property",
+        "Entrywise gate",
+        "Attention weights"
+      ],
+      "rows": [
+        [
+          "How many values",
+          "one per feature entry",
+          "one per token, reused across all feature entries of that token"
+        ],
+        [
+          "Range of each value",
+          "$(0,1)$",
+          "$(0,1)$"
+        ],
+        [
+          "Extra constraint",
+          "none — entries are independent",
+          "they must sum to exactly 1 across the tokens"
+        ],
+        [
+          "What the operation does",
+          "scales each entry by its own factor",
+          "forms a weighted average of the value vectors"
+        ],
+        [
+          "Effect on the total",
+          "total magnitude shrinks",
+          "total is redistributed, not created"
+        ],
+        [
+          "Can it make an output larger than its inputs",
+          "no",
+          "no — a weighted average lies between the smallest and largest inputs"
+        ]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**When a gate fails.** Two failure modes follow directly from the definition. First, a gate cannot strengthen a signal: if a feature is being suppressed by everything upstream and the only remaining operation is multiplication by a value below 1, the feature only shrinks further. Second, a gate near 0 is also a near-zero derivative. This is the sigmoid's saturation (card 1) showing up again: a gate held at 0.001 blocks the forward value and multiplies the backward gradient by 0.001 as well, so the gate that shut a channel also stops learning to reopen it. Gates are useful precisely when they are allowed to sit away from the extremes."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "Do not read a gate in $(0,1)$ as \"boosts the important part\". It cannot boost anything. It can only leave a value roughly alone (gate near 1) or reduce it (gate nearer 0). Comparisons of the form \"this entry is amplified relative to that one\" are legitimate — the *ratio* between two entries can change — but \"this entry became larger than it started\" is not."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — gate a small vector.** Three entries, gated by three values drawn from the sigmoid's range."
+    },
+    {
+      "t": "calc",
+      "md": "v = (4, −2, 6)      g = (0.9, 0.7, 0.5)"
+    },
+    {
+      "t": "calc",
+      "md": "g ⊙ v = (0.9 × 4, 0.7 × (−2), 0.5 × 6) = (3.6, −1.4, 3.0)"
+    },
+    {
+      "t": "p",
+      "md": "Check each entry against its original: $|4|$ became $3.6$, $|-2|$ became $1.4$, and $|6|$ became $3.0$. Every magnitude fell, and no sign flipped. The sum of absolute values fell from $4 + 2 + 6 = 12$ to $3.6 + 1.4 + 3.0 = 8$ — the vector as a whole shrank by a third. That is what an entrywise gate does to a set of numbers: it removes energy, it does not move it around."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — attention over four tokens.** Now the other pattern. Four tokens, each with a value vector we only need the first coordinate of. The attention weights are $(0.5, 0.3, 0.15, 0.05)$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Confirm the weights sum to one: $0.5 + 0.3 + 0.15 + 0.05 = 1.0$.",
+          "why": "This is the constraint that separates attention from a gate. Without it the operation would be an arbitrary weighted sum rather than an average, and the output could exceed the inputs."
+        },
+        {
+          "md": "Take the first coordinate of each value vector: $(1, 0, 2, -1)$.",
+          "why": "Attention treats each coordinate the same way, so following one coordinate through is enough to see the mechanism."
+        },
+        {
+          "md": "Form the weighted sum: $0.5(1) + 0.3(0) + 0.15(2) + 0.05(-1) = 0.5 + 0 + 0.3 - 0.05 = 0.75$.",
+          "why": "Each weight decides how much of its token contributes. A token with weight 0.5 supplies half its value; a token with weight 0.05 barely registers."
+        },
+        {
+          "md": "Check the result against the inputs: $0.75$ lies between the smallest coordinate $-1$ and the largest $2$.",
+          "why": "A weighted average with weights that sum to 1 always lies inside the range of its inputs. That is the guarantee a convex combination gives, and it is why attention cannot manufacture a value that no token contained."
+        }
+      ]
+    },
+    {
+      "t": "table",
+      "head": [
+        "",
+        "Entrywise gate (Example 1)",
+        "Attention (Example 2)"
+      ],
+      "rows": [
+        [
+          "Input entries",
+          "(4, −2, 6)",
+          "(1, 0, 2, −1)"
+        ],
+        [
+          "Multipliers",
+          "(0.9, 0.7, 0.5)",
+          "(0.5, 0.3, 0.15, 0.05)"
+        ],
+        [
+          "Do multipliers sum to 1",
+          "no — they sum to 2.1",
+          "yes — they sum to 1.0 exactly"
+        ],
+        [
+          "Output",
+          "(3.6, −1.4, 3.0)",
+          "0.75 (for this coordinate)"
+        ],
+        [
+          "Total before → after",
+          "sum of absolute values 12 → 8",
+          "the total is redistributed; every output sits inside the input range"
+        ],
+        [
+          "Can one entry rise while another falls",
+          "yes — a small entry with a gate near 1 can end up larger than a larger entry with a gate near 0, though both still shrank",
+          "yes — but the sum is fixed, so a rise in one token's share is paid for by a fall in another's"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "The distinction in one line: **a gate scales each entry by its own dial and the total shrinks; attention shares out a fixed total of 1 and the total is conserved.** Both sit in $(0,1)$, so neither can amplify — but only attention is forced to pay for one entry's share by another's."
+    },
+    {
+      "t": "callout",
+      "md": "This example used one coordinate of the attention output and one short gate vector. It shows the shrinkage and the sum-to-one constraint, but it does not exhibit gating applied to a whole matrix, nor a case where a gate sits near 0 and suppresses a gradient; those are the territory of the next card, which applies both ideas inside the taught paper."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "An entry with value $-8$ is multiplied by a gate of $0.25$. What can be said about the result?",
+      "opts": [
+        {
+          "md": "It becomes $-2$, so its magnitude fell but its sign did not change",
+          "correct": true,
+          "expl": "Correct: 0.25 × (−8) = −2. A gate in (0,1) scales the magnitude and leaves the sign untouched, because a positive multiplier cannot flip a sign. The entry moved closer to zero, not past it."
+        },
+        {
+          "md": "It becomes $+2$, because gating always produces a positive value",
+          "expl": "This confuses the *gate* with the thing being gated. The gate itself is positive, but a positive times a negative is negative. Gating does not turn a feature positive."
+        },
+        {
+          "md": "It becomes $-32$, because gating amplifies the important entry",
+          "expl": "This is the central misconception of the card. Multiplication by 0.25 divides by 4; it cannot multiply by 4. Amplification requires a factor greater than 1, which a value in (0,1) never provides."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A vector is $v = (5, -4)$, gated by $g = (0.6, 0.25)$. By how much does the sum of absolute values fall after gating?",
+      "answer": 5,
+      "tol": 0.01,
+      "hint": "Compute the sum of absolute values before and after, then subtract. Remember that |0.25 × (−4)| = 1, not −1.",
+      "sol": "Before: |5| + |−4| = 5 + 4 = 9. After: |0.6 × 5| + |0.25 × (−4)| = |3| + |−1| = 3 + 1 = 4. The fall is 9 − 4 = 5. Every magnitude shrank, so the total could only have gone down.",
+      "unit": "reduction"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Attention weights and elementwise gate values both lie in $(0,1)$. Which statement captures the real difference between the two operations?",
+      "opts": [
+        {
+          "md": "Attention can amplify because its weights sum to 1, while a gate cannot",
+          "expl": "Backwards. Summing to 1 makes attention an average, which *cannot* exceed the largest input. If anything, the sum-to-one constraint makes attention the more restricted of the two."
+        },
+        {
+          "md": "Attention weights must sum to 1 across a set, so they redistribute a fixed total; gate values are independent, so they scale each entry and shrink the total",
+          "correct": true,
+          "expl": "Correct. The gate's dials are unlinked: turning one down does not force another up. Attention's weights are linked by the sum-to-one rule, so one token's larger share is drawn from another's. That is why attention can move emphasis around while a gate only removes energy."
+        },
+        {
+          "md": "There is no real difference — both multiply, so the two operations are interchangeable",
+          "expl": "Both multiply, but the constraint on the multipliers differs, and the constraint is what determines the behaviour. Dropping the sum-to-one rule from attention turns it into an unbounded weighted sum whose output can exceed every input."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** gates and attention are the two ways this project's papers use numbers in $(0,1)$. The next card applies the gate idea to the taught paper's fusion, where a sigmoid-produced embedding is multiplied into another embedding — and the shrinkage we computed above sets a hard limit on what that fusion can claim."
+}

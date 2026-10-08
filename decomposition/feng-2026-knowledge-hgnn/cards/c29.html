@@ -1,0 +1,56 @@
+<!-- ============ c29 公式(4)(5) μc ============ -->
+<section class="card" data-c="29" data-title-zh="公式 (4)(5) · 规则内容 μ<sub>c</sub>" data-title-en="Eq. (4)(5) · Rule content μc">
+  <div class="card-inner">
+    <div class="card-kicker k-math"><span class="len">Equations 4–5 · the content registry</span><span class="lz">公式 4–5 · 内容登记表</span></div>
+    <h2><span class="lz">式 (4)(5)：内容登记处怎么打勾</span><span class="len">Eqs. (4)(5): how the content desk ticks boxes</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">第 27 卡说每条规则要登记"内容 + 位置"两份记录。本卡管<b>内容</b>那一份：拿到一个顶点，逐个问"它满足这条规则吗"，把答案记成一个 0 或 1。</p>
+    <p class="len">Card 27 said every rule logs two records, "content + position". This card handles <b>content</b>: given a vertex, ask one by one "does it satisfy this rule", and record the answer as a 0 or a 1.</p>
+    <p class="lz"><b><span class="hl">内容登记只有一条规矩：若顶点满足规则，记 0；不满足，记 1。</span></b>论文把这条规矩写成式 (5)，并先给两张"登记表"起了正式名字——合起来就是式 (4)。</p>
+    <p class="len"><b><span class="hl">The content desk has a single rule: if the vertex satisfies the rule, record 0; otherwise 1.</span></b> The paper writes this as Eq. (5), and first gives the two registries formal names — together, Eq. (4).</p>
+    <span class="tex-display" data-tex="\mu_c : (\mathbb{R}^{C} \times \mathcal{O}_{in}) \to \{0, 1\} \qquad \text{and} \qquad \mu_p : \mathcal{O}_{in} \to \mathbb{R}"></span>
+    <p class="formula-note"><span class="lz">式 (4) 不是一道算式，而是一段"岗位说明"：μ<sub>c</sub>（内容登记表）吃进"一个顶点的特征串 + 一个提问点"，吐出 0 或 1；μ<sub>p</sub>（位置登记表，下一卡的主角）吃进"一个提问点"，吐出一个实数。本卡先把 μ<sub>c</sub> 的活儿干完。</span><span class="len">Eq. (4) is not a computation but a job description: μ<sub>c</sub> (the content registry) eats "one vertex's feature string + one question node" and emits 0 or 1; μ<sub>p</sub> (the position registry, next card's star) eats "one question node" and emits a real number. This card finishes μ<sub>c</sub>'s work.</span></p>
+    <span class="tex-display" data-tex="\mu_c(\mathbf{x}, o) = \begin{cases} 0 & \text{if } \mathbf{x} \text{ satisfies rule } r_o \\ 1 & \text{otherwise} \end{cases}"></span>
+    <p class="formula-note"><span class="lz">式 (5) 逐符号：x = 这个顶点的特征串（如 (1, 3, 4)）；o = 一个提问点；r<sub>o</sub> = 挂在 o 上的那条规则（如"x₂ ≥ 2"）；"满足记 0、否则 1"。<b>不需要计算，例 1 负责全部打勾。</b></span><span class="len">Eq. (5) symbol by symbol: x = the vertex's feature string (e.g. (1, 3, 4)); o = one question node; r<sub>o</sub> = the rule hung on o (e.g. "x₂ ≥ 2"); "satisfied → 0, else 1". <b>No computing needed; Example 1 does all the ticking.</b></span></p>
+    <div class="callout warn">
+      <b><span class="lz">常见误解：</span><span class="len">Common misconception:</span></b>
+      <span class="lz">几乎所有初读者都以为"满足记 1、不满足记 0"——恰恰相反。按论文的写法：<b>满足记 0</b>。读作"这条规则<b>没有</b>拖欠你什么"；记 1 读作"这条规则<b>管不住</b>你，还需要别的规则来解释"。第 3 卡的例子已经埋过这个约定，这里是它的正式出处。</span>
+      <span class="len">Nearly every first-time reader assumes "satisfied = 1, missed = 0" — the opposite holds. In the paper's convention: <b>satisfied → 0</b>, read as "this rule owes you nothing"; a 1 reads as "this rule <b>fails to cover</b> you; other rules must explain you". Card 3 planted this convention; here is its formal source.</span>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>例 1（把 5 条规则逐个打勾）：</b>顶点甲 x = (1, 3, 4)，逐条问：x₂ ≥ 2？3 ≥ 2 <b>满足 → 0</b>；x₁ ≥ 1？1 ≥ 1 <b>满足 → 0</b>；x₃ ≥ 5？4 ≥ 5 不满足 <b>→ 1</b>；x₁ ≥ 2？1 ≥ 2 不满足 <b>→ 1</b>；x₂ ≥ 1？3 ≥ 1 <b>满足 → 0</b>。登记结果：T₁ 的两条 = 【0, 0】；T₂ 的三条 = 【1, 1, 0】。（这两个小清单正是第 27 卡例 2 的"对、对、不对、不对、对"的正式写法——把"对"翻成 0、"不对"翻成 1。）</p>
+    <p class="len"><b>Example 1 (tick five rules one by one):</b> vertex A has x = (1, 3, 4). Ask each: x₂ ≥ 2? 3 ≥ 2 <b>satisfied → 0</b>; x₁ ≥ 1? 1 ≥ 1 <b>satisfied → 0</b>; x₃ ≥ 5? 4 ≥ 5 missed <b>→ 1</b>; x₁ ≥ 2? 1 ≥ 2 missed <b>→ 1</b>; x₂ ≥ 1? 3 ≥ 1 <b>satisfied → 0</b>. Logged: T₁'s two = 【0, 0】; T₂'s three = 【1, 1, 0】. (These two little lists are card 27's "yes, yes, no, no, yes", formally written — "yes" becomes 0, "no" becomes 1.)</p>
+    <p class="lz"><b>例 2（换一个顶点，清单立刻不同）：</b>顶点乙 x = (0, 5, 6)：x₂ ≥ 2？5 ≥ 2 满足 → 0；x₁ ≥ 1？0 ≥ 1 不满足 → 1；x₃ ≥ 5？6 ≥ 5 满足 → 0；x₁ ≥ 2？0 ≥ 2 不满足 → 1；x₂ ≥ 1？5 ≥ 1 满足 → 0。登记结果：T₁ = 【0, 1】、T₂ = 【0, 1, 0】——两个顶点的"被规则覆盖画像"完全不同，这正是"特征知识"的原料。</p>
+    <p class="len"><b>Example 2 (another vertex, another list):</b> vertex B has x = (0, 5, 6): x₂ ≥ 2? 5 ≥ 2 satisfied → 0; x₁ ≥ 1? 0 ≥ 1 missed → 1; x₃ ≥ 5? 6 ≥ 5 satisfied → 0; x₁ ≥ 2? 0 ≥ 2 missed → 1; x₂ ≥ 1? 5 ≥ 1 satisfied → 0. Logged: T₁ = 【0, 1】, T₂ = 【0, 1, 0】 — the two vertices' "rule-coverage portraits" differ completely; this is the raw material of feature knowledge.</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">内容登记里，顶点"满足"一条规则时记几？</span><span class="len">In the content registry, what is recorded when a vertex "satisfies" a rule?</span></p>
+      <div class="opts">
+        <button class="opt" data-correct="1" data-expl="对！满足记 0——读作“这条规则没有拖欠你”；1 表示“规则管不住你”。这正是论文式 (5) 的写法，也是本卡最反直觉的一点。"><span class="lz">记 0</span><span class="len">Record 0</span></button>
+        <button class="opt" data-expl="这是最常见的直觉错——多数人以为“满足=正面=1”。论文恰好反过来：0 表示“规则覆盖了你”，1 表示“规则没管住你”。"><span class="lz">记 1</span><span class="len">Record 1</span></button>
+        <button class="opt" data-expl="内容登记只有 0 和 1 两种可能——没有“视情况”这一说；不确定的是位置权重（下一卡），不是内容。"><span class="lz">视规则而定，没有统一约定</span><span class="len">It depends on the rule; no fixed convention</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="2" data-tol="0.01" data-hint="先逐条问“满足吗”，再数记 1 的条数（记 1 = 不满足）。" data-sol="x = (1, 5, 2)：x₂ ≥ 2？5 ≥ 2 满足 → 0；x₁ ≥ 1？1 ≥ 1 满足 → 0；x₃ ≥ 5？2 ≥ 5 不满足 → 1；x₁ ≥ 2？1 ≥ 2 不满足 → 1；x₂ ≥ 1？5 ≥ 1 满足 → 0。记 1 的共 2 条。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：顶点 x = (1, 5, 2) 过这 5 条规则，登记清单里有几个 1？</span><span class="len">Numeric: vertex x = (1, 5, 2) through the five rules — how many 1s in its list?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：论文为什么不干脆用"满足 = 1、不满足 = 0"，那样不是更直观吗？</span><span class="len">Transfer: why does the paper not simply use "satisfied = 1, missed = 0", the more intuitive way?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="两种写法算力完全一样——0/1 无论怎么指代都只是一个比特。理由在“读法”，不在成本。"><span class="lz">为了节省计算量</span><span class="len">To save computation</span></button>
+        <button class="opt" data-correct="1" data-expl="对！论文的读法是“0=这条规则把你说清楚了；1=这条规则解释不了你，留一笔悬账”。把“悬账”记成 1，后面做加权求和时，悬得越多总分越大——整本账一致地读作“未被解释的程度”。"><span class="lz">为了统一读法：1 表示“这条规则管不住你”的悬账，全账一致地读作“未被解释的程度”</span><span class="len">To keep one reading: 1 marks the unsettled account "this rule cannot explain you" — the whole ledger uniformly reads as "degrees of being unexplained"</span></button>
+        <button class="opt" data-expl="与其他方法的兼容性不是理由——这只是本文内部的记号约定，不影响接口。"><span class="lz">为了兼容其他论文的写法</span><span class="len">To stay compatible with other papers' notation</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout">
+      <b><span class="lz">本文如何用它：</span><span class="len">How the paper uses it:</span></b>
+      <span class="lz">下一卡：位置登记处——同一条规则的"内容对错"已经定好，接下来给它配一个"分量"（越靠根越重）。</span>
+      <span class="len">Next card: the position desk — content is settled; now each rule gets a "weight" (heavier near the root).</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

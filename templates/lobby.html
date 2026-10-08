@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paper_Interaction · papers, taken apart</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f7f8fa;color:#24313f;font-size:16.5px;line-height:1.7;
+     font-family:-apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:900px;margin:0 auto;padding:40px 22px 80px}
+header.top{margin-bottom:26px}
+h1{font-size:31px;line-height:1.25;letter-spacing:-.01em}
+.sub{color:#7a8699;margin-top:8px;font-size:15.5px}
+.stats{display:flex;gap:26px;margin-top:18px;flex-wrap:wrap}
+.stat b{display:block;font-size:22px;color:#1a6bff;line-height:1.2}
+.stat span{font-size:12.5px;color:#7a8699;letter-spacing:.04em;text-transform:uppercase}
+
+/* search */
+.searchbox{margin:26px 0 8px;position:relative}
+#q{width:100%;padding:15px 18px 15px 46px;font-size:16.5px;font-family:inherit;
+   border:1px solid #e5e8ee;border-radius:14px;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+#q:focus{border-color:#1a6bff;box-shadow:0 0 0 4px rgba(26,107,255,.10)}
+.searchbox .ic{position:absolute;left:17px;top:50%;transform:translateY(-50%);color:#9aa6b8;font-size:17px}
+#clearq{position:absolute;right:14px;top:50%;transform:translateY(-50%);border:none;background:none;
+        color:#9aa6b8;font-size:19px;cursor:pointer;display:none;padding:4px 8px}
+#results{margin:6px 0 30px}
+.res-group{margin-top:18px}
+.res-group h3{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#7a8699;margin-bottom:8px;font-weight:800}
+.res{display:block;background:#fff;border:1px solid #e5e8ee;border-radius:11px;padding:12px 16px;margin-bottom:8px;transition:border-color .15s,transform .15s}
+.res:hover{border-color:#1a6bff;transform:translateX(2px)}
+.res b{font-weight:650}
+.res .meta{display:block;font-size:13px;color:#7a8699;margin-top:3px}
+.res mark{background:#fff3c4;color:inherit;border-radius:3px;padding:0 2px}
+.nores{color:#7a8699;padding:20px 4px}
+#everything.hidden{display:none}
+
+/* paper cards */
+.paplist{margin-top:6px}
+.papercard{display:block;background:#fff;border:1px solid #e5e8ee;border-radius:16px;
+           padding:24px 28px;margin-bottom:16px;transition:box-shadow .2s,transform .2s,border-color .2s}
+.papercard:hover{box-shadow:0 8px 26px rgba(26,107,255,.10);transform:translateY(-2px);border-color:#cfdcf5}
+.pc-top{display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+.pc-date{font-family:Consolas,monospace;font-size:13px;color:#7a8699;white-space:nowrap}
+.pc-title{font-size:19.5px;font-weight:700;line-height:1.35;margin:6px 0 4px}
+.pc-auth{font-size:13.5px;color:#7a8699}
+.pc-line{margin-top:12px;padding:12px 16px;background:#f7f9fc;border-left:3px solid #1a6bff;border-radius:0 10px 10px 0;font-size:15px}
+.pc-meta{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;font-size:13px;color:#45566b}
+.pc-meta span{background:#eef4ff;border-radius:999px;padding:3px 12px}
+.pc-meta span.k{background:#f3eeff;color:#7c3aed}
+.pc-prog{margin-top:14px;display:flex;align-items:center;gap:12px}
+.pc-bar{flex:1;height:6px;background:#eef0f4;border-radius:99px;overflow:hidden}
+.pc-fill{height:100%;width:0;background:#1a6bff;border-radius:99px;transition:width .5s}
+.pc-txt{font-size:12.5px;color:#7a8699;white-space:nowrap}
+
+h2.sec{font-size:22px;margin:46px 0 6px;padding-top:26px;border-top:1px solid #e5e8ee}
+p.lead{color:#45566b;margin-bottom:14px}
+.how{background:#fff;border:1px solid #e5e8ee;border-radius:16px;padding:26px 28px;margin-top:12px}
+.how h4{font-size:16px;margin:20px 0 8px}
+.how h4:first-child{margin-top:0}
+.how ul{margin:8px 0 8px 20px}
+.how li{margin-bottom:7px}
+.how .phase{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.12em;border-radius:6px;padding:2px 8px;margin-right:6px}
+.ph-what{color:#1a6bff;background:#eef4ff}.ph-ex{color:#16a34a;background:#e9f9ef}.ph-quiz{color:#b45309;background:#fdf3e3}
+.how code{font-family:Consolas,monospace;font-size:.9em;background:#f2f4f8;border:1px solid #e5e8ee;border-radius:5px;padding:1px 5px}
+table.kptab{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e5e8ee;border-radius:14px;overflow:hidden;font-size:14.5px}
+table.kptab th,table.kptab td{padding:10px 14px;text-align:left;border-bottom:1px solid #eef0f4;vertical-align:top}
+table.kptab th{background:#f7f8fa;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:#7a8699}
+table.kptab tr:last-child td{border-bottom:none}
+table.kptab td.kpid{font-family:Consolas,monospace;font-size:12.5px;color:#7c3aed;white-space:nowrap}
+table.kptab a:hover{color:#1a6bff;text-decoration:underline}
+footer{margin-top:56px;padding-top:22px;border-top:1px solid #e5e8ee;color:#9aa6b8;font-size:13.5px}
+@media(max-width:640px){.wrap{padding:26px 14px 60px}h1{font-size:25px}.papercard{padding:18px 18px}.how{padding:18px 18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>Paper_Interaction</h1>
+  <div class="sub">每篇论文，拆到读懂为止。Each paper taken apart into cards — read in order, or search for anything.</div>
+  <div class="stats">{{STATS}}</div>
+</header>
+
+<div class="searchbox">
+  <span class="ic">⌕</span>
+  <input id="q" type="search" autocomplete="off" placeholder="Search papers, knowledge points, card titles…">
+  <button id="clearq" aria-label="Clear">✕</button>
+</div>
+<div id="results"></div>
+
+<div id="everything">
+
+<h2 class="sec">Papers</h2>
+<p class="lead">Newest decomposition first. Progress is stored in this browser.</p>
+<div class="paplist">
+{{PAPERS}}
+</div>
+
+<h2 class="sec">How this site works</h2>
+<div class="how">
+{{HOWTO}}
+</div>
+
+<h2 class="sec">Knowledge points</h2>
+<p class="lead">{{KPCOUNT}} registered knowledge points across all papers. A knowledge point taught in one paper is linked, not re-taught, in the next.</p>
+{{KPTAB}}
+
+</div>
+
+<footer>
+  Every paper site is a single self-contained HTML file — no external requests, openable offline.
+</footer>
+
+</div>
+
+<script>
+var INDEX = {{SEARCH_INDEX}};
+var qEl = document.getElementById('q');
+var resEl = document.getElementById('results');
+var evEl = document.getElementById('everything');
+var clEl = document.getElementById('clearq');
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function mark(text, terms){
+  var out = esc(text);
+  for (var i=0;i<terms.length;i++){
+    var t = terms[i].replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    if (t.length < 2) continue;
+    out = out.replace(new RegExp('('+t+')','gi'), '<mark>$1</mark>');
+  }
+  return out;
+}
+function score(item, terms){
+  var hay = (item.title+' '+(item.sub||'')+' '+(item.kw||'')).toLowerCase();
+  var s = 0, i;
+  for (i=0;i<terms.length;i++){
+    var t = terms[i];
+    if (t.length < 2) continue;
+    if (hay.indexOf(t) < 0) return -1;
+    if (item.title.toLowerCase().indexOf(t) >= 0) s += 10;
+    else s += 3;
+  }
+  s += (item.kind === 'paper' ? 4 : item.kind === 'kp' ? 2 : 0);
+  return s;
+}
+var LABEL = { paper:'Papers', kp:'Knowledge points', card:'Cards' };
+var ORDER = ['paper','kp','card'];
+
+function render(query){
+  var terms = query.toLowerCase().split(/\s+/).filter(function(x){ return x.length; });
+  if (!terms.length){
+    resEl.innerHTML = '';
+    evEl.classList.remove('hidden');
+    clEl.style.display = 'none';
+    return;
+  }
+  clEl.style.display = 'block';
+  evEl.classList.add('hidden');
+  var hits = [];
+  for (var i=0;i<INDEX.length;i++){
+    var s = score(INDEX[i], terms);
+    if (s >= 0) hits.push({s:s, it:INDEX[i]});
+  }
+  hits.sort(function(a,b){ return b.s - a.s; });
+  if (!hits.length){
+    resEl.innerHTML = '<div class="nores">Nothing matches “'+esc(query)+'”. Try a shorter term — card titles are indexed, not card text.</div>';
+    return;
+  }
+  var html = '', shown = 0;
+  for (var g=0; g<ORDER.length; g++){
+    var kind = ORDER[g];
+    var group = hits.filter(function(h){ return h.it.kind === kind; });
+    if (!group.length) continue;
+    html += '<div class="res-group"><h3>'+LABEL[kind]+' ('+group.length+')</h3>';
+    for (var j=0;j<group.length && j<40;j++){
+      var it = group[j].it;
+      html += '<a class="res" href="'+esc(it.url)+'">'+mark(it.title, terms)
+            + (it.sub ? '<span class="meta">'+mark(it.sub, terms)+'</span>' : '')+'</a>';
+      shown++;
+    }
+    html += '</div>';
+  }
+  var total = hits.length;
+  if (total > shown) html += '<div class="nores">… and '+(total-shown)+' more.</div>';
+  resEl.innerHTML = html;
+}
+
+var timer = null;
+qEl.addEventListener('input', function(){
+  if (timer) clearTimeout(timer);
+  timer = setTimeout(function(){ render(qEl.value.trim()); }, 90);
+});
+clEl.addEventListener('click', function(){ qEl.value=''; render(''); qEl.focus(); });
+document.addEventListener('keydown', function(e){
+  if (e.key === '/' && document.activeElement !== qEl){ e.preventDefault(); qEl.focus(); }
+  if (e.key === 'Escape'){ qEl.value=''; render(''); }
+});
+
+/* progress bars */
+var PAP = {{PAPER_PROGRESS}};
+(function(){
+  for (var i=0;i<PAP.length;i++){
+    var p = PAP[i], raw = null;
+    try { raw = localStorage.getItem('pi-progress-' + p.slug); } catch(e){}
+    var n = 0;
+    if (raw){ try { n = (JSON.parse(raw).card || 0) + 1; } catch(e){} }
+    var pct = p.total ? Math.round(n / p.total * 100) : 0;
+    var f = document.getElementById('fill-' + p.slug);
+    var t = document.getElementById('txt-' + p.slug);
+    if (f) f.style.width = pct + '%';
+    if (t) t.textContent = n ? ('card ' + n + ' / ' + p.total + ' · ' + pct + '%') : ('not started · ' + p.total + ' cards');
+  }
+})();
+render('');
+</script>
+</body>
+</html>

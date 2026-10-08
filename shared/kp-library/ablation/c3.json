@@ -1,0 +1,201 @@
+{
+  "kind": "check",
+  "title": "Reading an ablation table, and the skip check",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "An **ablation table** is a grid whose rows are variants of one model — the full model, plus one variant per removed or neutralised component — and whose columns are the datasets or settings the model is evaluated on. Each cell holds a score. The quantity a reader studies is the **delta**: the difference between a variant's cell and the full model's cell in the same column. The object of study is the *pattern* of deltas down a column and across a row, not any single cell.",
+      "plain": "Rows are models, columns are datasets, cells are scores. Subtract the full-model row from each other row and read the pattern of differences, not one number."
+    },
+    {
+      "t": "p",
+      "md": "**Why the pattern and not the number.** A single delta is one sample of a noisy quantity, so it carries little on its own. The same comparison repeated across several datasets and several variants produces a *shape*: does the gap to the full model keep the same sign and roughly the same size everywhere, or does it appear in one column and vanish — or reverse — in the others? A consistent sign across independent datasets is far harder to produce by noise than any single cell. That is the signal an ablation table is built to expose."
+    },
+    {
+      "t": "list",
+      "ordered": true,
+      "items": [
+        "Find the full-model row. It is the reference; every delta is measured against the cell above or below it in the same column.",
+        "In each column, take variant score minus full-model score, and keep the sign.",
+        "Read each variant *across* the columns: is the gap consistent in sign, and roughly stable in size?",
+        "Read the variants against each other: which one produces the largest gaps? That is the component the data says carries the most weight.",
+        "Compare the gaps with the run-to-run spread the paper reports. If it reports none, treat gaps of a fraction of a point with suspicion."
+      ]
+    },
+    {
+      "t": "h3",
+      "md": "Failure pattern 1 — every delta is inside the noise"
+    },
+    {
+      "t": "p",
+      "md": "If every variant's gap is small and its sign wanders from column to column, the table is consistent with all the variants being equal to the full model. The components may each do nothing. This does not prove they do nothing — the experiment may be too small to detect an effect — but the table supplies no evidence that they help."
+    },
+    {
+      "t": "h3",
+      "md": "Failure pattern 2 — one knob varies while others move too"
+    },
+    {
+      "t": "p",
+      "md": "Suppose the rows are labelled by one hyperparameter, but each row also differs in how many layers it has and how long it trains. Then a gap between two rows is a gap between two complete systems, and no part of it can be assigned to the labelled knob. The table *looks* like an ablation because of its shape, but the single-difference condition is violated, and the pattern is uninterpretable however consistent it looks."
+    },
+    {
+      "t": "h3",
+      "md": "A sweep is not an ablation"
+    },
+    {
+      "t": "p",
+      "md": "A **sweep** (a hyperparameter scan) evaluates one model while varying one of its hyperparameters — the number of trees, the number of layers, a learning rate — usually to find the value that scores best. A sweep and an ablation share the phrase \"vary one thing\" but not its meaning. In an ablation the varied thing is a *component* whose causal role is the question, and the answer is a difference in scores. In a sweep the varied thing is a *setting* whose best value you are selecting, and the answer is a chosen value. Running a sweep and then reporting only the winning setting is model selection, not an ablation — and it hides the curve, which is the most informative part. A sweep turns into an ablation only when you fix the selection (say, at the value chosen for the full model) and then ask what happens when one component is taken away."
+    },
+    {
+      "t": "list",
+      "items": [
+        "Explain what an ablation is for: it turns \"this component improves the model\" into a controlled contrast in which one thing changes.",
+        "Name the controls a valid ablation needs — same data, split, budget, tuning and number of runs — and say why the effect is judged against run-to-run variation rather than against zero.",
+        "Read an ablation table by its pattern of deltas, and recognise the two failure shapes: all deltas inside the noise, and one labelled knob with several others also moving.",
+        "Say what a sweep is, and why printing one chosen setting from it is not an ablation."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The questions below are the check. The bar is not \"mostly right\" — it is that none of them made you think hard. If any one of them felt like a guess, the earlier cards hold the pieces."
+    }
+  ],
+  "example": [
+    {
+      "t": "h3",
+      "md": "Example 1 — reading a small table"
+    },
+    {
+      "t": "p",
+      "md": "Three datasets, four variants. The first row is the reference."
+    },
+    {
+      "t": "table",
+      "head": ["Variant", "Set A", "Set B", "Set C"],
+      "rows": [
+        ["Full model", "82.4", "78.6", "74.1"],
+        ["Full minus M", "81.1", "77.9", "73.6"],
+        ["Full minus N", "82.2", "78.4", "73.9"],
+        ["Full minus M and N", "80.9", "77.6", "73.4"]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Row \"Full minus M\": deltas are 81.1 - 82.4 = -1.3, 77.9 - 78.6 = -0.7, 73.6 - 74.1 = -0.5.",
+          "why": "Same column each time, so the dataset is held constant and only the variant changes."
+        },
+        {
+          "md": "Row \"Full minus N\": deltas are 82.2 - 82.4 = -0.2, 78.4 - 78.6 = -0.2, 73.9 - 74.1 = -0.2.",
+          "why": "Uniform to a tenth of a point, and small. Without a reported noise band this is indistinguishable from zero."
+        },
+        {
+          "md": "Row \"Full minus M and N\": deltas are 80.9 - 82.4 = -1.5, 77.6 - 78.6 = -1.0, 73.4 - 74.1 = -0.7.",
+          "why": "Close to the two single removals added together (-1.5 vs -1.5, -1.0 vs -0.9, -0.7 vs -0.7). Near-additivity suggests the two components are doing largely separate jobs here."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Read the shape. Removing M costs 1.3, 0.7 and 0.5 points: largest on Set A, still present on all three, same sign everywhere — hard to explain by noise. Removing N costs 0.2 points on every set, uniform and tiny. The pattern says M matters and N is unproven, and it says this from all three columns at once, which is exactly what no single cell could do."
+    },
+    {
+      "t": "h3",
+      "md": "Example 2 — the two failure shapes"
+    },
+    {
+      "t": "list",
+      "items": [
+        "**All inside the noise.** A variant scores 80.1, 80.3, 79.9, 80.2 against a full model of 80.0 on four settings. The deltas are +0.1, +0.3, -0.1, +0.2: the sign flips, and no gap exceeds a fraction of a point. Nothing here supports the component doing work.",
+        "**Too many knobs.** Rows are labelled \"1, 2, 4, 8 layers\", but the 8-layer row also trains four times as long and uses a larger learning rate. The score rises from 78.0 to 81.0 across the rows. The labelled knob moved, and two others moved with it — the +3.0 cannot be assigned to depth."
+      ]
+    },
+    {
+      "t": "h3",
+      "md": "Example 3 — what a sweep produces, and what it does not"
+    },
+    {
+      "t": "p",
+      "md": "A team sweeps the number of trees and records: 1 tree gives 76.0, 2 gives 78.2, 4 gives 79.9, 8 gives 80.6, 16 gives 80.8, 32 gives 80.8. The curve rises and then flattens; the team reports 16 trees."
+    },
+    {
+      "t": "callout",
+      "md": "This answers \"which value scores best\". It does not answer \"does the tree count matter as a design choice\" — that would require comparing the full model at its chosen count against a variant with that design decision neutralised, everything else equal. The flattened tail (80.8 at both 16 and 32) is the kind of shape a sweep is for; it is not a delta against a reference, so it is not an ablation."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In an ablation table, what is the delta of a variant in a given column?",
+      "opts": [
+        {
+          "md": "The variant's score in that column",
+          "expl": "A raw score is only readable against a reference. The quantity of interest is a difference, not a level."
+        },
+        {
+          "md": "The variant's score in that column minus the full model's score in the same column",
+          "correct": true,
+          "expl": "Correct. Same column keeps the dataset constant; variant minus full model makes the sign say whether the removal helped or hurt."
+        },
+        {
+          "md": "The gap between the variant's best and worst columns",
+          "expl": "That measures how much the datasets differ in difficulty, not what the component contributes."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A variant reports 77.4 on Set B, while the full model reports 78.1 on Set B. What is the variant's delta?",
+      "answer": -0.7,
+      "tol": 0.05,
+      "hint": "Variant minus full model, in that order.",
+      "sol": "77.4 − 78.1 = -0.7 points. Removing the component cost 0.7 points on Set B.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "An ablation table shows every variant's deltas ranging from -0.1 to +0.2, with signs flipping across columns, and the paper reports no spread. What is the honest reading?",
+      "opts": [
+        {
+          "md": "The components each help slightly, since most deltas are positive",
+          "expl": "Counting positives ignores the flips, and flips are exactly what noise looks like. Small and positive is not the same as real."
+        },
+        {
+          "md": "The table supplies no evidence that any component helps; the deltas are consistent with noise",
+          "correct": true,
+          "expl": "Correct. With sign flips of a fraction of a point and no reported spread, the honest reading is inconclusive."
+        },
+        {
+          "md": "The table proves the components do nothing",
+          "expl": "It does not prove that either. An under-powered experiment is also consistent with a real but small effect. \"No evidence\" is not \"evidence of no effect\"."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A paper sweeps the number of trees from 1 to 32, finds that 16 scores best, and prints only \"16 trees: 80.8\". Why is this not an ablation of the tree count?",
+      "opts": [
+        {
+          "md": "Because sweeps use too little data to be informative",
+          "expl": "Data quantity is not the issue. The issue is which question the table answers."
+        },
+        {
+          "md": "Because it selects a setting by score and reports one point of the curve, instead of contrasting a design choice with everything else held fixed",
+          "correct": true,
+          "expl": "Correct. A sweep answers \"which value scores best\"; an ablation asks \"does this design choice cause an improvement\". Printing only the winner is selection, and it hides the curve."
+        },
+        {
+          "md": "Because 16 trees is not a large enough count to matter",
+          "expl": "The chosen value is irrelevant. Any single chosen value reported alone has the same problem."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the paper's experimental chapter presents ablations over a module, a tree count and a layer count, and a later chapter judges them. You now have the three criteria that judgement uses — one factor changed, effect measured against the spread, and the pattern of deltas read across datasets rather than one cell at a time. If you skipped this section, those three sentences are the summary to keep."
+}

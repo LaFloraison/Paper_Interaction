@@ -1,0 +1,7 @@
+{
+  "key": "evaluation-protocols",
+  "name": "Evaluation protocols",
+  "title": "Evaluation protocols: transductive, inductive, and what a mixed number means",
+  "blurb": "The same model, on the same graph, scores differently depending on three rules that are rarely stated together: which vertices may be learned from, which vertices are graded, and whether the graded vertices were already visible while the model trained. This section makes those rules explicit, contrasts the transductive and inductive regimes, explains what a protocol that mixes them can and cannot claim, and works through why a memorising model can look perfect under one discipline and worthless under another.",
+  "skip_hint": "If you can say why a transductive score does not support a claim about unseen graphs, and what a blended transductive/inductive average does and does not tell you, skip this section."
+}

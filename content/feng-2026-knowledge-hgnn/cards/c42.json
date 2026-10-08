@@ -1,0 +1,127 @@
+{
+  "id": "42",
+  "kind": "abstract",
+  "chapter": "abstract",
+  "section": "3.3 The numbers",
+  "kicker": "3.3 · The abstract",
+  "title": "The numbers in the abstract, and the ones that disagree with them",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A reported improvement is meaningless without its basis, which has three components: the **quantity** (absolute score points, or relative percentage, or a rank), the **comparison target** (which method it is measured against), and the **aggregation** (a single dataset, or a mean over datasets — and if a mean, weighted or not). An improvement quoted without all three cannot be checked.",
+      "plain": "Saying a method is \"better by 2.5%\" means nothing until you know: 2.5% of what, better than whom, and averaged how? Those three answers are the basis."
+    },
+    {
+      "t": "p",
+      "md": "**This paper quotes two sets of headline numbers, and they are not the same measurement.** The abstract and the conclusion both say:"
+    },
+    {
+      "t": "callout",
+      "md": "\"…achieving a **7.3% gain** on the Cora dataset and an **average improvement of 2.5%** across all datasets.\""
+    },
+    {
+      "t": "p",
+      "md": "The experiments section, discussing the same results, says something different:"
+    },
+    {
+      "t": "callout",
+      "md": "\"…our approaches exhibited substantial improvements, with **average gains of 5.86 and 2.28**, respectively\" — where \"respectively\" refers to comparisons **against GBDT and against HGNN**."
+    },
+    {
+      "t": "table",
+      "head": ["Where", "Number", "Quantity", "Target", "Aggregation"],
+      "rows": [
+        ["Abstract & conclusion", "7.3%", "not stated — percentage or points", "not stated (Cora's baselines make HGNN the likely one)", "one dataset (Cora)"],
+        ["Abstract & conclusion", "2.5%", "not stated", "**not stated**", "mean over ten datasets"],
+        ["Experiments text", "5.86", "not stated, but consistent with score points", "GBDT", "mean over datasets"],
+        ["Experiments text", "2.28", "same", "HGNN", "mean over datasets"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**What can be established from the text alone.** Four distinct improvement figures are quoted across the paper for the same body of experiments, and **the paper never defines the basis of any of them.** Three of the four name their comparison target; the 2.5% does not. None states whether the unit is score points or a relative percentage — a distinction that changes the number by an order of magnitude, since a 2.5-point gain on a dataset scoring around 85 is a 2.9% relative gain, not 2.5."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**This is the honest state of affairs at this point in the site.** These are quotations, not yet an audit. Whether any of the four numbers can be reproduced from the tables is a question that needs the tables — so it is deferred to Chapter 6, where every one of them is recomputed from scratch. What you can do *now* is notice the shape of the problem: a reader who quotes \"2.5% average improvement\" is quoting a number whose basis the paper never supplied."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — why points and percent are not interchangeable.** Suppose a dataset's baseline scores 80.0 and the proposed method scores 82.0."
+    },
+    {
+      "t": "table",
+      "head": ["Statement", "Value", "How it is computed"],
+      "rows": [
+        ["Absolute gain", "+2.0 **points**", "$82.0 - 80.0$"],
+        ["Relative gain", "+2.5 **percent**", "$(82.0 - 80.0) / 80.0 = 0.025$"],
+        ["Relative gain on the *error*", "+10 percent", "$(100 - 80) = 20$ points of error shrinking to $18$"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Three defensible ways to describe **the same result**, differing by a factor of five. This is why \"an improvement of 2.5%\" is not a small imprecision — it is an unresolvable statement. And notice the third row: reporting the reduction in *error* is a legitimate convention that produces the largest number. A careful paper says which convention it uses; this one does not."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — why the comparison target matters more than the number.** The experiments text reports two averages, 5.86 against GBDT and 2.28 against HGNN. Read as a pair, they tell a story: the method beats a purely tabular model by a wide margin and beats the strongest graph baseline by a much narrower one. An abstract that reports only the first comparison would be technically accurate and seriously misleading. **Whenever a paper quotes one improvement figure, ask which of its comparisons that figure came from.**"
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What are the three components that make an improvement figure checkable?",
+      "opts": [
+        {
+          "md": "The dataset, the year, and the venue",
+          "expl": "Those identify the work, not the measurement. A figure can be perfectly identified and still be uninterpretable."
+        },
+        {
+          "md": "The quantity (points, percent, or rank), the comparison target, and the aggregation over datasets",
+          "correct": true,
+          "expl": "Correct. The paper supplies the target for three of its four headline figures and the quantity for none. That is not a crime, but it is the reason a reader cannot quote these numbers without also quoting a caveat."
+        },
+        {
+          "md": "The p-value, the sample size, and the confidence interval",
+          "expl": "Those matter enormously — and Chapter 6's extension on statistical significance covers them — but they come *after* the basis is settled. A p-value on an undefined quantity is still undefined."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A baseline scores 80.0 and a new method scores 82.0. What is the **relative** improvement, in percent, to one decimal place?",
+      "answer": 2.5,
+      "tol": 0.05,
+      "hint": "Divide the gain by the baseline, then express as a percentage.",
+      "sol": "$(82.0 - 80.0) / 80.0 = 2.0 / 80.0 = 0.025$, i.e. **2.5%**. Answering 2.0 gives the absolute gain in points, and answering 10 interprets the gain against the remaining error (20 points of headroom) rather than against the baseline. All three are used in the literature; only the convention stated by the paper is the right one to quote.",
+      "unit": "percent"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The experiments text reports improvements against two different baselines, 5.86 and 2.28. If a paper reported only the larger of the two in its abstract, would that be dishonest?",
+      "opts": [
+        {
+          "md": "Yes — quoting one comparison while hiding another is misrepresentation",
+          "expl": "Too strong. Abstracts must compress, and choosing one comparison to highlight is normal. The number quoted is accurate against the target it names; the problem would be failing to state the target at all."
+        },
+        {
+          "md": "Not necessarily dishonest, but incomplete — the abstract is obliged to say which comparison it is quoting, and this one does not even do that",
+          "correct": true,
+          "expl": "Correct, and this is the precise criticism available here. The severity is not fabrication but **unverifiability**: a reader cannot reproduce a figure whose basis is unstated, so the number functions as rhetoric rather than evidence. That is a smaller sin than inventing a number and a larger one than compressing a stated result."
+        },
+        {
+          "md": "No — abstracts are promotional and readers should expect unstated bases",
+          "expl": "Expecting the flaw does not make it acceptable. The standard the reader should hold is: a number in an abstract must be traceable to a table, and traceability requires the basis."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the final abstract card — what the abstract does *not* say, which is often more informative than what it does."
+}

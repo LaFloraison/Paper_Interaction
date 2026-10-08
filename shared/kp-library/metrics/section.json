@@ -1,0 +1,7 @@
+{
+  "key": "metrics",
+  "name": "Classification metrics",
+  "title": "Classification metrics: what a reported score is actually measuring",
+  "blurb": "A paper reports one number for a node-classification task, and that number is only as meaningful as the metric behind it. This section builds accuracy, precision, recall and F1 from zero, works them on small confusion matrices by hand, and gives the rule for which one to report — and when accuracy misleads.",
+  "skip_hint": "If you can compute precision, recall, macro-F1 and micro-F1 from a confusion matrix, and say when accuracy misleads, skip this section."
+}

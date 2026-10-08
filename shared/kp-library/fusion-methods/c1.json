@@ -1,0 +1,192 @@
+{
+  "kind": "extension",
+  "title": "The problem: two descriptions of the same object",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Fusion** is any operation that takes two matrices describing the same set of $n$ objects and returns a single matrix describing those same $n$ objects. The two inputs are the **signals** (or **streams**); each has one row per object. The **width** of a signal is its number of columns — the number of numbers stored per object. Formally, fusion is a function $F: \\mathbb{R}^{n \\times d_1} \\times \\mathbb{R}^{n \\times d_2} \\to \\mathbb{R}^{n \\times d_3}$ that maps a first signal of width $d_1$ and a second of width $d_2$ to a combined signal of width $d_3$. The widths $d_1$ and $d_2$ need not be equal, and the choice of $F$ is the whole subject of this section.",
+      "plain": "You have two tables with the same rows, where each row is one object. The tables have different numbers of columns. Fusion glues them into one table that the rest of the network can read."
+    },
+    {
+      "t": "p",
+      "md": "**Why anyone faces this problem.** The taught paper describes every vertex of a graph twice. The first description gives **one number** per vertex, so that signal has width 1 — it is a single column. The second description gives **many numbers** per vertex (one per rule feature), so that signal has a wide shape, for example 200 columns. Both tables have the same $n$ rows, one per vertex, but they are not the same kind of table, and they are not the same width."
+    },
+    {
+      "t": "p",
+      "md": "This matters because of what comes next. A linear layer — the matrix multiply that does the actual learning — reads **one** matrix. It cannot accept two matrices and mix them entry by entry unless they have identical shapes. So the two descriptions must be merged before any downstream arithmetic sees them. Fusion is that bridge, and it is not a formality: the choice of $F$ decides how much the single-column signal is allowed to influence the result."
+    },
+    {
+      "t": "p",
+      "md": "**The menu.** Four mechanisms account for almost every fusion used in modern networks. They differ along two axes: whether they keep the two signals side by side or mix them into one number, and whether the mixing is fixed in advance or computed per object."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Mechanism",
+        "Effect on shapes",
+        "What it can express",
+        "What it cannot",
+        "Cost"
+      ],
+      "rows": [
+        [
+          "Concatenation",
+          "$(n, d_1)$ and $(n, d_2)$ → $(n, d_1 + d_2)$; both signals stacked side by side, unchanged",
+          "A downstream layer may weight the two blocks **independently** — any coefficient on the first block, any on the second",
+          "No interaction *between* the signals: a linear layer downstream reads each block separately, it cannot multiply one block by the other",
+          "The downstream input grows to $d_1 + d_2$, so the next weight matrix gains $d_1 + d_2$ columns of parameters"
+        ],
+        [
+          "Weighted sum (fixed weights)",
+          "The narrower signal is broadcast across the wider one; the output keeps the wider width, $d_3 = d_2$",
+          "One mixed number per column, produced cheaply, with no extra width",
+          "The ratio between the two signals is **fixed at design time**; a downstream layer can rescale the mixed number but cannot pull the two parts apart again",
+          "No extra width; the two constant weights are two extra scalars"
+        ],
+        [
+          "Elementwise gating (Hadamard product, broadcast)",
+          "$(n, 1) \\odot (n, d)$ → $(n, d)$; the single column is stretched across the row and multiplies entry by entry",
+          "Per-object emphasis: each row is scaled by its own factor, so the same feature can be strong at one vertex and weak at another",
+          "One gate value per row, so **all columns of a row share the same factor**; and a gate in $(0,1)$ can only attenuate, never amplify",
+          "Same width as the wider input, plus the cost of whatever produces the gate"
+        ],
+        [
+          "Cross-attention",
+          "$(n, d_1)$ and $(n, d_2)$ → $(n, d_v)$; each entry of one signal is reweighted by its match with entries of the other",
+          "Input-dependent, **normalised** reweighting: emphasis is chosen per object and per feature, and the total is shared out rather than fixed",
+          "Needs projections on both sides to form the match scores, and the scores cost extra computation; because the weights are normalised, it reallocates a fixed total rather than scaling freely",
+          "Extra projection matrices plus the pairwise scores — much heavier than the other three"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "The commonest mistake at this stage is to treat the four rows as interchangeable. They are not. Concatenation keeps **both** signals and hands the weighting decision to a later layer. A weighted sum **merges** them and fixes the weighting now. Gating **modulates** one signal by the other per object. Attention **reallocates** emphasis based on content. Each choice is a different claim about what the relationship between the two signals is, and picking the wrong one bakes that claim into the architecture. Card 2 prices the first two, card 3 the third."
+    },
+    {
+      "t": "p",
+      "md": "**When fusion fails.** Fusion cannot create information. If one of the two signals is uninformative for the task, no mechanism here will rescue it — a weighted sum will merely dilute the useful signal with noise, and a gate will multiply the other signal by noise. A fusion's job is to combine what is there, not to invent what is not."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a scale model you can count by eye.** Three objects, described by a width-1 signal $S$ and a width-4 signal $R$ (four columns instead of the real two hundred, so the numbers stay readable)."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "$S$ has shape $(3, 1)$: three rows, one column. $R$ has shape $(3, 4)$: the same three rows, four columns.",
+          "why": "Both tables describe the same three objects, so they share the number of rows. Only the widths differ — that mismatch is the entire problem fusion solves."
+        },
+        {
+          "md": "Concatenate along the columns: the result has $1 + 4 = 5$ columns, so its shape is $(3, 5)$.",
+          "why": "Concatenation adds widths, not rows. The three objects are still three; each now carries five numbers instead of one plus four."
+        },
+        {
+          "md": "The single column's share of the entries is $1 / 5 = 0.20$, i.e. 20%.",
+          "why": "Every row has five numbers, of which exactly one came from $S$. This fraction is the representation share, and the next example shows how small it becomes at the real width."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the same arithmetic at the real widths.** Now $S$ has width 1 and $R$ has width 200, as in the taught paper's setting (the rule embedding is wide; the structural embedding is a single column)."
+    },
+    {
+      "t": "calc",
+      "md": "fused width  =  1 + 200  =  201 columns"
+    },
+    {
+      "t": "calc",
+      "md": "structural share  =  1 / 201  =  0.004975  =  0.4975%"
+    },
+    {
+      "t": "calc",
+      "md": "rule share        =  200 / 201 =  0.995025  =  99.5025%"
+    },
+    {
+      "t": "p",
+      "md": "So under plain concatenation the single structural column supplies only about **half of one percent** of the fused representation — $0.4975\\%$, which is slightly less than the $0.5\\%$ one would guess from \"one in two hundred\", because the total is 201 columns, not 200. Compare that with 20% in the scale model: widening the rule embedding from 4 to 200 columns shrank the structural signal's share by a factor of about 40. This is the dilution the next card examines."
+    },
+    {
+      "t": "callout",
+      "md": "This example covers concatenation only. It does not show what a weighted sum, a gate, or attention would produce from the same two signals; those are worked in the cards that follow."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why must the two vertex descriptions be combined before the next layer can use them?",
+      "opts": [
+        {
+          "md": "Because a matrix multiply reads one matrix, and the two descriptions have different widths",
+          "correct": true,
+          "expl": "Correct. The downstream layer is a single matrix multiply; it needs one table. The two descriptions also have shapes (n, 1) and (n, 200), which no entrywise operation can reconcile without first deciding how to combine them. Fusion is that decision."
+        },
+        {
+          "md": "Because the two descriptions have different numbers of rows",
+          "expl": "They have the **same** number of rows — one row per vertex. Believing otherwise suggests you are picturing the two signals as different datasets rather than two views of the same objects."
+        },
+        {
+          "md": "Because concatenation is undefined when the widths differ",
+          "expl": "Concatenation is exactly the operation that *handles* different widths, joining them end to end. What concatenation requires is matching numbers of rows, and here those already match."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "According to the comparison table, which mechanism keeps both signals at full strength and leaves their relative weighting to be learned later?",
+      "opts": [
+        {
+          "md": "Concatenation",
+          "correct": true,
+          "expl": "Correct. Concatenation copies both blocks unchanged into the wider table, so a downstream linear layer is free to put any coefficient on each block. That freedom is the point — and the cost is that the next weight matrix grows."
+        },
+        {
+          "md": "A fixed weighted sum",
+          "expl": "The reverse: a weighted sum **removes** the freedom by choosing the ratio in advance and merging the two signals into one number per column. Nothing downstream can undo that merge."
+        },
+        {
+          "md": "Elementwise gating",
+          "expl": "Gating modulates one signal by the other; it does not preserve both at full strength. If the gate lies in (0, 1) the modulated copy is strictly smaller in magnitude than the signal it multiplies."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A width-1 structural signal is concatenated with a width-24 rule signal. What percentage of the fused entries come from the structural column? Give the answer as a percentage number (for example, write 7 for 7%).",
+      "answer": 4,
+      "tol": 0.05,
+      "hint": "The structural column contributes one entry out of every row of the fused table. First find how many columns the fused table has, then form the fraction.",
+      "sol": "The fused width is 1 + 24 = 25 columns. Each row therefore holds 25 numbers, exactly one of which is structural, so the share is 1/25 = 0.04 = 4%. Note the asymptotic behaviour: the share is 1/(d+1), which tends towards zero as the rule width d grows, so the wider the rule signal, the smaller the structural signal's share of a plain concatenation.",
+      "unit": "%"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A colleague says: \"Concatenation combines the two signals.\" What does concatenation actually do?",
+      "opts": [
+        {
+          "md": "It stacks the signals side by side unchanged; any interaction between them must be produced by a later layer",
+          "correct": true,
+          "expl": "Correct. Concatenation performs no arithmetic on the values at all — it only widens the table. If you want one signal to *influence* the other, that influence has to come from an operation that actually multiplies or adds them, such as the gating in card 3."
+        },
+        {
+          "md": "It multiplies the two signals entry by entry, so their interaction is immediate",
+          "expl": "That describes an elementwise gate, not concatenation. And an entrywise product of a (n, 1) and an (n, 200) signal is not even defined until the single column is broadcast — the very step card 3 works through."
+        },
+        {
+          "md": "It averages the two signals into a single block of entries",
+          "expl": "Averaging is a weighted sum with equal weights, which card 2 shows is a different (and lossy) mechanism. Concatenation does not average; it appends."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the table is a menu, but the first two rows have a hidden cost. The next card prices them with arithmetic — showing how much a single column is diluted by concatenation, and why a fixed weighted sum commits to a ratio that no amount of training can revise."
+}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pi-spec" content="v5">
+<title>PI-LOADING · {{TITLE}} | Paper_Interaction</title>
+<style>
+<!--PI-STYLE-->
+</style>
+</head>
+<body>
+<div id="progressBar"><div id="progressFill"></div></div>
+<header id="topbar">
+  <button id="menuBtn" aria-label="Outline">☰</button>
+  <div id="topbarTitle">{{HEAD_TITLE}}<span class="tb-sub">{{SUBTITLE}}</span></div>
+  <div id="chapStrip"></div>
+</header>
+<nav id="outline">
+  <div id="outlineHead"><span>Outline</span> · <span id="outlineCount">{{COUNT}}</span><button id="outlineClose">✕</button></div>
+  <ul id="outlineList"></ul>
+</nav>
+<div id="scrim"></div>
+
+<main id="cardArea">
+<!--CARD-CONTENT-->
+</main>
+
+<nav id="navbar">
+  <button id="navPrev">← Back</button>
+  <div id="pageNum">1 / {{COUNT}}</div>
+  <button id="navNext">Continue →</button>
+</nav>
+
+<div id="editorOverlay">
+  <div class="edbox">
+    <h3>Insert your own card</h3>
+    <p class="dim">Placed right after the anchor card; stored locally in your browser.</p>
+    <label for="edAnchor">Anchor card number (insert after)</label>
+    <input id="edAnchor" type="text" readonly>
+    <label for="edTitle">Title</label>
+    <input id="edTitle" type="text">
+    <label for="edBody">Content</label>
+    <textarea id="edBody" rows="6"></textarea>
+    <button class="btn" id="edSave">Save</button>
+    <button class="btn-ghost btn" id="edCancel">Cancel</button>
+  </div>
+</div>
+
+<script id="pi-core">
+<!--PI-CORE-->
+</script>
+<script id="pi-widgets">
+<!--PI-WIDGETS-->
+</script>
+</body>
+</html>

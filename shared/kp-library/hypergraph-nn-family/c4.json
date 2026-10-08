@@ -1,0 +1,132 @@
+{
+  "kind": "extension",
+  "title": "UniGNN, AllSet and HGNN+: unifying, formalising, generalising",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Three later works step back from individual models. **UniGNN** (Huang and Yang, 2021) is a unified framework in which graph and hypergraph networks are both written as two-stage message passing: a vertex-to-edge aggregation, then an edge-to-vertex aggregation. **AllSet** (Chien et al., 2022) formalises a hypergraph network as a pair of permutation-invariant **multiset functions** — a function of a collection whose output does not depend on the order in which the collection is listed. **HGNN+** (Gao et al., 2023) generalises the HGNN layer to typed, weighted, multiway relations rather than a single kind of hyperedge.",
+      "plain": "UniGNN shows that the graph networks and the hypergraph networks are the same two-step recipe, so they can be studied together. AllSet writes that recipe as two order-independent functions and proves the earlier models are special cases of it. HGNN+ widens the layer to handle several kinds of relation at once."
+    },
+    {
+      "t": "p",
+      "md": "**UniGNN: two stages, with hyperedges as the middle.** The recipe is a round trip. First, vertices send to the hyperedges that contain them and each hyperedge aggregates its members — a vertex-to-edge stage. Then each vertex aggregates the values of the hyperedges it belongs to — an edge-to-vertex stage. Written for one layer, with $\\mathrm{AGG}_1$ and $\\mathrm{AGG}_2$ the two aggregations, a hyperedge $e$ becomes $m_e = \\mathrm{AGG}_1\\{x_v : v \\in e\\}$ and a vertex $v$ becomes $x'_v = \\mathrm{AGG}_2\\{m_e : e \\ni v\\}$. Both aggregations must be order-independent, for the reason given in the graph-network material: a hyperedge's members are an unordered set. **The unification claim is that when every hyperedge has size 2, this collapses to an ordinary graph network** — choose the right aggregations and it becomes GCN, GAT or a GIN-style sum aggregator."
+    },
+    {
+      "t": "p",
+      "md": "**AllSet: the recipe as two multiset functions.** AllSet notices that both stages are the same kind of object — a function of a multiset. It defines a hypergraph network as one multiset function that maps the members of a hyperedge to the hyperedge's value, and a second that maps a vertex's hyperedges to the vertex's new value, with the single requirement that both ignore order. HGNN, HyperGCN and the UniGNN family all turn out to be particular choices of these two functions. This level of abstraction is what makes a new model provably a member of the family rather than merely similar to one."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**Why AllSet is in this section rather than a footnote.** Its permutation-invariant multiset formulation is a direct ancestor of the paper's own **structural encoder** — the module the paper places in front of the backbone layer — and the paper cites AllSet for exactly that reason. Reading AllSet first is what makes the paper's encoder legible: the encoder is a multiset function over structure, chosen to satisfy the same order-independence requirement."
+    },
+    {
+      "t": "p",
+      "md": "**HGNN+: widening the layer.** HGNN assumes one kind of vertex and one kind of hyperedge. HGNN+ allows several vertex types and several hyperedge types, with weights on the relations, and treats the single-type case as a special instance. In practice this is what lets one layer consume a dataset built from relations that are not all of the same nature — for example co-authorship and co-citation side by side — without forcing them into one undifferentiated set of hyperedges."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**What unification does not buy, and the misconception to avoid.** It is tempting to read \"unified\" or \"general\" as \"more capable\". It is not. UniGNN and AllSet reorganise how the smoothing is expressed, but every function they admit still takes the structure as fixed input and returns a smoothed vertex feature. HGNN+ widens what may count as a relation, yet the widening is about the input's shape, not about turning structure into information the layer can read. A clearer map of the family is not a larger family — and the gap that card 5 names is left untouched by all three."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — UniGNN's two stages, by hand.** Take the same four-vertex hypergraph, $e_1=\\{1,2,3\\}$, $e_2=\\{1,4\\}$, $e_3=\\{2,4\\}$, features $x=(2,4,6,8)$, and let both aggregations be sums."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "**Vertex-to-edge.** Each hyperedge sums its members: $m_{e_1} = 2+4+6 = 12$, $m_{e_2} = 2+8 = 10$, $m_{e_3} = 4+8 = 12$.",
+          "why": "A sum rather than a mean. The sum keeps the hyperedge's size in the value, so the two-member hyperedges and the three-member one are not forced to the same scale — the opposite choice from the $D_e^{-1}$ averaging of HGNN."
+        },
+        {
+          "md": "**Edge-to-vertex.** Each vertex sums the hyperedges it belongs to: $x'_1 = 12+10 = 22$, $x'_2 = 12+12 = 24$, $x'_3 = 12$, $x'_4 = 10+12 = 22$.",
+          "why": "Vertex 3 belongs to $e_1$ alone, so it inherits that hyperedge's value unchanged. Compare HGNN, which would have averaged and degree-normalised; the two-stage view keeps the steps separate and visible."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The two-stage form is not a different computation from HGNN — it is the same round trip written as two named aggregations instead of one product of matrices. What UniGNN adds is the ability to change each stage independently and to say what the result reduces to. Replacing both sums with means would give edge values $(4,5,6)$ and vertex values $(4.5,5,4,5.5)$: the same pipeline, different aggregations, a different model."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the reduction, checked numerically.** Take the four-vertex graph used in the graph-theory material — edges $1$–$2$, $2$–$3$, $2$–$4$ — and read it as a hypergraph whose three hyperedges all have size 2. Because every edge degree is 2, $D_e^{-1}$ is one half times the identity, and the operator's inner part becomes"
+    },
+    {
+      "t": "formula",
+      "tex": "H\\, D_e^{-1}\\, H^{\\top} = \\tfrac{1}{2}(D + A)",
+      "note": "Here $D$ is the vertex-degree diagonal and $A$ the adjacency matrix of the graph. The diagonal of the left side counts, for each vertex, its edges divided by 2; the off-diagonal entries are $1/2$ wherever two vertices share an edge.",
+      "gloss": [
+        { "sym": "D", "md": "vertex degrees down the diagonal — for this graph $(1,3,1,1)$" },
+        { "sym": "A", "md": "the adjacency matrix: 1 where two vertices share an edge" },
+        { "sym": "\\tfrac{1}{2}", "md": "the factor $1/\\delta(e) = 1/2$ that every size-2 hyperedge introduces" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "Applying the full operator (with $W_e$ and $\\Theta$ the identity) to $x=(2,4,6,8)$ gives $(2.1547,\\ 6.6188,\\ 4.1547,\\ 5.1547)$. The formula behind it is $\\tfrac{1}{2}\\!\\left(I + D^{-1/2} A D^{-1/2}\\right)$ — a degree-normalised graph operator with an implicit self-loop, which is precisely the shape of the graph convolution. **On pairwise data, the hypergraph layer is a graph layer.** That is UniGNN's unification made arithmetic rather than asserted."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**What these examples do not show.** Example 1 uses sums in both stages, which is only one choice among the aggregations AllSet allows; a mean or a max would give different numbers and a different special case. Example 2 covers pairwise hypergraphs only; it does not demonstrate HGNN+'s typed relations, which the original work defines in more detail than this section needs."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is the defining property AllSet requires of both of its functions?",
+      "opts": [
+        {
+          "md": "That they are linear in the features",
+          "expl": "Linearity is neither required nor sufficient. HGNN's operator is linear, but the abstraction AllSet formalises is about *order*, not about linearity — learning linearity would also rule out the nonlinear choices the family uses."
+        },
+        {
+          "md": "That they are permutation-invariant — their output does not depend on the order the elements are listed in",
+          "correct": true,
+          "expl": "Correct. Because a hyperedge's members and a vertex's hyperedges are unordered collections, any valid function of them must ignore order. AllSet isolates exactly that requirement, which is what lets it contain HGNN, HyperGCN and the UniGNN family as special cases — and it is why the paper's own structural encoder, which cites AllSet, is built the same way."
+        },
+        {
+          "md": "That they output a single scalar per vertex",
+          "expl": "The functions output vectors, not scalars. Fixing a scalar output would exclude almost every real hypergraph network, so it cannot be the definition."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Use UniGNN's two stages with sum aggregation (no degree factors) on the four-vertex hypergraph, with vertex features $(1,2,3,4)$. What is vertex 4's value after one round?",
+      "answer": 11,
+      "tol": 0.02,
+      "hint": "Vertex 4 belongs to e2 and e3. Sum each hyperedge's members first, then sum the hyperedges vertex 4 sits in.",
+      "sol": "Vertex-to-edge: m(e₂) = 1+4 = 5, m(e₃) = 2+4 = 6. Edge-to-vertex for vertex 4: 5+6 = 11. Answering 5 or 6 stops after the first stage; the round trip finishes at the vertex. Vertex 3, for contrast, would give m(e₁) = 1+2+3 = 6 and then 6 unchanged, because it belongs to one hyperedge.",
+      "unit": "feature value"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why does it matter that HGNN+ accepts several vertex and hyperedge types rather than a single kind?",
+      "opts": [
+        {
+          "md": "It lets one layer consume relations of different kinds side by side, without forcing them into a single undifferentiated set of hyperedges",
+          "correct": true,
+          "expl": "Correct. Real datasets mix relations — co-authorship and co-citation in the same citation network, say. Treating them as one kind of hyperedge discards the distinction; HGNN+ keeps it while still running one layer, with the single-type HGNN as its special case."
+        },
+        {
+          "md": "It removes the need for the incidence matrix",
+          "expl": "The incidence matrix still carries the memberships; typed relations add a per-type structure on top of it. Nothing replaces the matrix."
+        },
+        {
+          "md": "It makes the layer permutation-invariant, which HGNN was not",
+          "expl": "HGNN's layer is already permutation-invariant in the vertices and hyperedges, from its symmetric matrix form. Typed relations are about what the layer can distinguish, not about order."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the family is now complete — a standard layer, three ways to alter the structure, and an abstract form that contains them all. Card 5 states the one limitation they share, and closes the section with a skip check."
+}

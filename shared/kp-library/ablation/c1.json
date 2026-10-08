@@ -1,0 +1,141 @@
+{
+  "kind": "extension",
+  "title": "What an ablation is for",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "An **ablation** is a controlled experiment in which exactly one component of a system is removed — or replaced by a version that contributes nothing — while every other ingredient (the data, the split between training and test, the training budget, the tuning procedure) is held fixed. The measured change in the reported number is then attributed to that component.",
+      "plain": "Take one piece out of the model, leave everything else exactly as it was, and see how much the result changes. If the result drops, that piece was doing work."
+    },
+    {
+      "t": "p",
+      "md": "**Why a claim needs it.** A paper states that a module improves the model. That is a statement about a cause. Causes are never visible in a single number: a high score shows that the whole system works and nothing more. A cause becomes visible only in a *contrast* — a run with the module and a run without it, identical in every other respect. An ablation is that contrast, written down and measured."
+    },
+    {
+      "t": "p",
+      "md": "**The two ways to take the piece away.** The component can be deleted, or it can be left in place with its contribution forced to nothing. The two are not interchangeable, and a paper that does not say which it used has left part of the result underspecified."
+    },
+    {
+      "t": "table",
+      "head": ["Method", "What you do", "When it is the right choice"],
+      "rows": [
+        ["Removal", "Delete the component and its connections. Where the component fed something downstream, add a bypass so the shapes still match.", "When the component can be deleted without changing what the rest of the network sees."],
+        ["Neutral replacement", "Keep the component's place in the network, but force its output to carry no information: a learned gate set to 1, a gate closed to a constant, a set of attention weights made uniform.", "When deleting the component would also disturb the architecture — its shapes, its parameter count, its layer structure — so a deletion would change more than one thing."]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**When an ablation stops meaning anything.** It fails as soon as more than one thing changes between the two runs. If the ablated version also gets a different learning rate, a different number of passes over the training data, or a different data split, then the score difference is a difference between two complete systems, and no part of it can be assigned to the piece you removed. It fails again when each arm is run only once, because a single run cannot separate a real effect from the run-to-run wobble; the next card makes that precise."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The common misreading.** Readers treat \"without the module, the score fell\" as proof that the module is clever. It is not proof of that. It shows only that removing this module hurts in this setup. A module that quietly adds parameters, a module that adds random noise during training, or a module that changes some other quantity as a side effect will all produce the same drop. The ablation localises *where* the effect lives, not *why* it lives there."
+    }
+  ],
+  "example": [
+    {
+      "t": "h3",
+      "md": "Example 1 — the smallest useful ablation"
+    },
+    {
+      "t": "p",
+      "md": "A model is assembled from three parts. A paper claims that part Z helps."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Run the full model on a fixed test set. Reported accuracy: 82.5.",
+          "why": "This is the reference run. Its score is not interesting by itself; it is the number every later run is compared against."
+        },
+        {
+          "md": "Remove Z, add a bypass so the downstream layer still receives correctly shaped input, change nothing else, and rerun on the same test set: 80.9.",
+          "why": "Only one thing changed. Adding the bypass is part of the removal, not a second change — it restores the interface the rest of the network already expected."
+        },
+        {
+          "md": "Take the contrast: 82.5 - 80.9 = 1.6 points. That 1.6 is what this experiment attributes to Z.",
+          "why": "The subtraction is the ablation. Without it there are two numbers and no claim."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**What this example did not show.** Nothing here says whether 1.6 is larger than the run-to-run wobble. Each arm was run once. With a single run per arm, an effect of 1.6 could be the luck of the seed. Putting a size on the noise is the job of the next card's example."
+    },
+    {
+      "t": "h3",
+      "md": "Example 2 — removal versus neutral replacement"
+    },
+    {
+      "t": "p",
+      "md": "The component in this second model is a learned gate $g$ that multiplies a feature vector, so the layer computes $g$ times the feature. During training, $g$ settles somewhere between 0 and 1."
+    },
+    {
+      "t": "list",
+      "items": [
+        "**Removal.** Delete the multiplication. Now the layer produces a different output, the parameter count drops by the gate's weights, and the layer that consumed the gated features has to be rewired.",
+        "**Neutral replacement.** Keep the multiplication and force $g = 1$. The layer now outputs the unchanged feature vector — the gate contributes nothing — while the architecture, the shapes and the parameter count are untouched.",
+        "The neutral version changes exactly one thing: the gate's *value*. The removal version changes the gate and the architecture together."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "When a table entry reads \"w/o gate\", the honest question is which of the two was done. The neutral run answers \"what is the gate worth, with everything else left as it is\". The removal run answers a slightly muddier question — it is one step closer to *changed the model* than to *switched off a mechanism*."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which of these turns two experimental runs into an ablation?",
+      "opts": [
+        {
+          "md": "Two runs of two different models on the same data",
+          "expl": "Comparing two different systems tells you which system is better, not which *component* causes the difference. Nothing is held fixed."
+        },
+        {
+          "md": "Two runs that differ in exactly one component, with data, split, budget and tuning identical",
+          "correct": true,
+          "expl": "Correct. The single difference is what licenses the word \"cause\"; every other ingredient acts as a control."
+        },
+        {
+          "md": "One run of your model, compared with a number published in another paper",
+          "expl": "The published number came from a different dataset version, split, tuning procedure and probably different hardware, so the gap cannot be assigned to your component."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A full model reports 79.3. The same model with component W removed reports 78.1. By how many points does this ablation attribute the change to W?",
+      "answer": 1.2,
+      "tol": 0.05,
+      "hint": "Subtract, in the direction that shows what W is worth.",
+      "sol": "79.3 - 78.1 = 1.2 points. The contrast is taken between two runs that differ only in W, so this experiment attributes the whole 1.2 to W.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A team reports \"w/o attention: 80.2\", but in that run they also halved the learning rate to keep training stable. How should the number be read?",
+      "opts": [
+        {
+          "md": "As a valid estimate of the attention module's contribution",
+          "expl": "Two things changed: the module and the learning rate. The 80.2 cannot be split between them."
+        },
+        {
+          "md": "As a comparison between two different systems, from which no part can be assigned to the attention module",
+          "correct": true,
+          "expl": "Correct. This is the failure the card describes: more than one factor moved, so attribution is lost and the entry should not be quoted as \"attention is worth X\"."
+        },
+        {
+          "md": "As evidence the attention module helps even more, since the smaller learning rate put the ablated run at a disadvantage",
+          "expl": "A charitable guess, but without a separate run you cannot know the size or even the direction of that disadvantage. The correct reading is \"uninterpretable\", not \"conservative\"."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** an ablation is only as good as the quantities it holds fixed. The next card states those controls, and supplies the missing piece this card deliberately left out — a size for the run-to-run noise."
+}

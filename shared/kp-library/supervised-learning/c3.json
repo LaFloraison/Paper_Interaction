@@ -1,0 +1,147 @@
+{
+  "kind": "extension",
+  "title": "Cross-validation: estimating generalisation when data is scarce",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "In **$k$-fold cross-validation** the data is partitioned into $k$ folds of roughly equal size. Training is run $k$ times: on round $j$, fold $j$ is held out for scoring and the other $k-1$ folds are used for training. The reported score is the average of the $k$ held-out scores. Every example is held out exactly once, so all of the data is used both for training (in $k-1$ rounds) and for evaluation (in one round).",
+      "plain": "Cut the data into $k$ parts. Train $k$ times, each time hiding one part and scoring on it. Average the $k$ held-out scores. Nothing is wasted, because every example gets a turn as test data."
+    },
+    {
+      "t": "p",
+      "md": "**Why it exists.** A single split spends most of its data on fitting and keeps a slice aside that never helps fit anything. When the dataset is small — 25 examples, or 200 labelled nodes — that slice is a large fraction of everything you have, and giving it up both weakens the model and leaves you with a noisy estimate computed on very little. Cross-validation recycles the held-out portion."
+    },
+    {
+      "t": "p",
+      "md": "**What the average estimates.** The $k$ held-out scores estimate how a model trained on $k-1$ folds behaves on the remaining fold. Their average is an estimate of the procedure's generalisation performance, and because it averages $k$ numbers it is less variable than any single holdout score. It is *not* the performance of one particular trained model — it is the performance of the training procedure itself, retrained $k$ times. For reporting what a method does, that is usually the more honest target."
+    },
+    {
+      "t": "p",
+      "md": "**The cost.** Cross-validation multiplies training time by $k$, and leaves you with $k$ fitted models instead of one. In the end you still have to choose: either train a final model on all the data and accept that its score is not the cross-validated one, or average the $k$ models' predictions. For expensive models the multiplier is the whole decision — $k = 10$ on a model that takes a day to train is a ten-day experiment."
+    },
+    {
+      "t": "table",
+      "head": ["scheme", "data used for training", "training runs", "variance of the estimate"],
+      "rows": [
+        ["single holdout", "one fixed fraction, say 80%", "1", "high — the score depends on which examples landed in the holdout"],
+        ["5-fold", "80% per round, 100% overall", "5", "moderate — averaged over 5 held-out scores"],
+        ["10-fold", "90% per round, 100% overall", "10", "lower, with diminishing returns past about 10"],
+        ["leave-one-out", "$(n-1)/n$ per round, 100% overall", "$n$", "low bias, but high variance and very expensive"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**When it fails.** Two failure modes are common. First, leakage inside the folds: any preprocessing learned from the data — a mean and standard deviation for scaling, a choice of which features to keep — must be fitted on the training folds only and applied to the held-out fold. Fitting it on everything first lets information from the held-out fold reach the model, and the cross-validated score is then as optimistic as a plain training score. Second, dependence between examples: if the data contains groups (several nodes from one graph, several images of one patient), folds must be split along those groups. A random split will place near-duplicates in both training and held-out folds and score the model on data it has effectively already seen."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "Cross-validation gives you a better *estimate*. It does not give you a test set. If cross-validation is used to compare hyperparameter settings, the scores it produces are validation scores and are subject to the same optimism as card 2's tuning leak. To both tune and report honestly you nest the two: an inner cross-validation chooses settings, an outer one produces the reported number."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a 5-fold split of 25 items, done by hand.** Twenty-five labelled items, split into $k = 5$ folds. Since $25 = 5 \\times 5$, each fold holds exactly 5 items."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Fold sizes: five folds of 5 items each. On each round one fold of 5 is held out and the other four folds, $4 \\times 5 = 20$ items, are used for training.",
+          "why": "Every item is held out exactly once across the five rounds, and appears in the training portion in the other four. That is the recycling that a single holdout cannot do."
+        },
+        {
+          "md": "Suppose the held-out scores come back as $0.8$, $0.6$, $1.0$, $0.4$, $0.8$. The reported score is the average: $(0.8 + 0.6 + 1.0 + 0.4 + 0.8) / 5 = 3.6 / 5 = 0.72$.",
+          "why": "The average is over five numbers, so it moves less than any one of them. The single fold that scored 0.4 has weight one-fifth, not all of it."
+        },
+        {
+          "md": "Each fold score is a count out of 5: 4, 3, 5, 2, 4 correct. Sum them: $4 + 3 + 5 + 2 + 4 = 18$. As a pooled fraction over all 25 items, $18 / 25 = 0.72$ — the same number.",
+          "why": "With folds of equal size, averaging the fold accuracies equals the overall accuracy over the pooled held-out predictions. That identity is a useful check: if your reported average disagrees with the pooled count, a fold size or a weights error has crept in."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "The cost is visible in the same example. Five folds means five training runs on 20 items each, not one run on 25. The benefit is that all 25 items contribute a held-out prediction, and the estimate is an average over five numbers instead of one."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — scaling up, and leave-one-out as the limit.** With 250 items and $k = 10$, each fold holds $250/10 = 25$ items and each model trains on $250 - 25 = 225$. Push the scheme to its extreme, $k = n = 25$, and each round trains on 24 items and scores 1 — leave-one-out. It uses the most training data per round and produces the least biased single-fold estimate, but it requires $n$ training runs, and its held-out scores are now highly correlated with one another because the 25 training sets differ by a single item. The average of many nearly identical scores barely reduces variance, so leave-one-out often has *higher* variance than 10-fold despite costing far more. This is why 5-fold and 10-fold are the defaults and leave-one-out is reserved for very small datasets."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In $k$-fold cross-validation, what does the reported number estimate?",
+      "opts": [
+        {
+          "md": "The performance of one particular trained model on new data",
+          "expl": "There is no single trained model to point at — $k$ models were fitted on $k$ overlapping training sets. The average describes the training procedure, not one of its outputs."
+        },
+        {
+          "md": "The generalisation performance of the training procedure, averaged over the folds",
+          "correct": true,
+          "expl": "Correct. Because each fold is held out once and the scores are averaged, the number answers \"how does this procedure do on data it did not train on?\" rather than \"how does this one fitted model do?\""
+        },
+        {
+          "md": "The training accuracy of the final model",
+          "expl": "Training accuracy is the quantity card 1 showed is uninformative. Cross-validation exists precisely to avoid reporting it."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A 5-fold cross-validation on 60 items gives held-out scores of 0.9, 0.8, 0.7 and 0.6 on the first four folds. What must the fifth fold score for the reported average to equal 0.75?",
+      "answer": 0.75,
+      "tol": 0.01,
+      "hint": "The reported score is the mean of all five fold scores. Work backwards from what the mean must be to what the missing fold must contribute.",
+      "sol": "A mean of 0.75 over five folds requires a total of $5 \\times 0.75 = 3.75$. The four known folds sum to $0.9 + 0.8 + 0.7 + 0.6 = 3.0$. The fifth must therefore be $3.75 - 3.0 = 0.75$. Answering 0.6 or 0.9 is the usual slip — those are individual fold scores, and the question is about what the mean forces the last one to be.",
+      "unit": "accuracy"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A dataset has 200 images from 40 patients, 5 images each. Why does ordinary random 5-fold cross-validation over the 200 images give a number that is too optimistic?",
+      "opts": [
+        {
+          "md": "Because 5-fold is too few folds for 200 examples",
+          "expl": "The number of folds is not the problem. Ten folds would be just as affected, because the issue is how examples relate to one another."
+        },
+        {
+          "md": "Because images from the same patient are similar, so the held-out fold contains cases the model has effectively already seen",
+          "correct": true,
+          "expl": "Correct. This is the dependence failure mode: the folds are not independent, so a held-out image is nearly a copy of a training image from the same patient. The fix is to split by patient — all 5 images of a patient stay on the same side — which is why grouped cross-validation exists."
+        },
+        {
+          "md": "Because 200 examples is too few to cross-validate",
+          "expl": "200 examples is workable. What matters is that the held-out examples be genuinely unseen, which patient-level grouping is required to ensure."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "You want to both choose hyperparameters and report an honest score using cross-validation. What is the standard arrangement?",
+      "opts": [
+        {
+          "md": "Use one cross-validation to pick the settings and report the best score it produced",
+          "expl": "That makes the reported value a maximum over settings, so it inherits exactly the optimism of card 2's tuning leak. Choosing and reporting on the same folds is the error being avoided."
+        },
+        {
+          "md": "Nest two loops: an inner cross-validation chooses settings, an outer one produces the reported score",
+          "correct": true,
+          "expl": "Correct. The outer folds never take part in choosing anything, so they play the role of a test set while still using all the data. This is nested cross-validation, and it is why rigorous small-data papers describe two loops rather than one."
+        },
+        {
+          "md": "Report the average of the training-fold scores instead",
+          "expl": "Training-fold scores are the uninformative quantity from card 1. Averaging them does not make them measure generalisation."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** cross-validation multiplies training runs because it retrains under many settings. Deciding *which* settings to try belongs to a separate category of choices — the hyperparameters — and the next card draws the line between what the model learns and what the experimenter decides."
+}

@@ -1,0 +1,109 @@
+{
+  "kind": "extension",
+  "title": "Concatenation: placing two vectors side by side",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "The concatenation of vectors $u \\in \\mathbb{R}^{m}$ and $v \\in \\mathbb{R}^{n}$, written $u \\Vert v$, is the vector in $\\mathbb{R}^{m+n}$ whose first $m$ entries are those of $u$ and whose remaining $n$ entries are those of $v$. Concatenating matrices works column-wise or row-wise in the same way.",
+      "plain": "Put the two lists one after the other to make a longer list. Nothing is added and nothing is averaged — the two parts simply sit side by side."
+    },
+    {
+      "t": "p",
+      "md": "**The reason to concatenate rather than add is provenance.** Adding two vectors discards which number came from where: $(2,0,3) + (1,4,2) = (3,4,5)$ is a single vector from which neither original can be recovered. Concatenating keeps the two parts apart and legible: from $(2,0,3,1,4,2)$ you can read off both halves exactly. When a later layer needs to know *which source* a number came from, only concatenation preserves that."
+    },
+    {
+      "t": "p",
+      "md": "**The cost is width.** The concatenated vector is longer — its dimension is the sum. In the paper's Equation (9), two knowledge vectors of length $C_r$ each are concatenated into one of length $2C_r$, while the gated product that precedes it stays at length $C_r$. That factor of two is why the paper reports $Z$'s dimension as \"two times the number of rules\" rather than the number of rules, and it is one of the costs Chapter 7 asks about."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — side by side against added up.** Take the same two vectors as in card 3, $a = (2,0,3)$ and $b = (1,4,2)$."
+    },
+    {
+      "t": "table",
+      "head": ["Operation", "Result", "Dimension"],
+      "rows": [
+        ["$a \\Vert b$ (concatenation)", "$(2, 0, 3, 1, 4, 2)$", "6"],
+        ["$a + b$ (addition)", "$(3, 4, 5)$", "3"],
+        ["$a \\odot b$ (Hadamard)", "$(2, 0, 6)$", "3"]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Ask of the concatenated result: can you recover $a$ and $b$? Yes — the first three entries are $a$, the last three are $b$.",
+          "why": "This is the property that makes concatenation safe to use when the two sources mean different things."
+        },
+        {
+          "md": "Ask the same of the sum: can you recover $a$ and $b$ from $(3,4,5)$? No. Infinitely many pairs $(a,b)$ sum to it.",
+          "why": "Addition is lossy in exactly this way. If a later layer must treat rule knowledge differently from structural knowledge, adding them has already destroyed the distinction."
+        },
+        {
+          "md": "Now write the paper's fusion as shapes: $X_r \\in \\mathbb{R}^{C_r}$, $\\widetilde{X}_r \\in \\mathbb{R}^{C_r}$, so $Z = \\widetilde{X}_r \\Vert X_r \\in \\mathbb{R}^{2C_r}$.",
+          "why": "The shape tells you the design intent. The two halves are kept separate all the way into the network — the network, not a hand-written rule, decides how much to weigh each half."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Notice the division of labour between the two operations in Equation (9). The Hadamard product **selects** — it produces one vector of the same width in which entries have been suppressed. Concatenation **preserves** — it produces a wider vector carrying both the selected and the unselected version. The paper does both, which is why it needs both symbols."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is the dimension of $u \\Vert v$ when $u \\in \\mathbb{R}^{5}$ and $v \\in \\mathbb{R}^{3}$?",
+      "opts": [
+        {
+          "md": "5",
+          "expl": "That is the dimension of one operand, as if the other were discarded. Concatenation discards nothing."
+        },
+        {
+          "md": "8",
+          "correct": true,
+          "expl": "Correct: $5 + 3 = 8$. The dimensions add because the entries are placed in sequence. This is the single most useful fact for checking a concatenating formula's shape."
+        },
+        {
+          "md": "15",
+          "expl": "That is $5 \\times 3$, which is a count of pairs, not a concatenation. No pairing happens here."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "In the paper's Equation (9), a rule vector has $C_r = 5$ entries. What is the dimension of $Z = \\widetilde{X}_r \\Vert X_r$?",
+      "answer": 10,
+      "tol": 0.01,
+      "hint": "Concatenating two vectors of the same length doubles the length — it does not leave it unchanged.",
+      "sol": "$Z \\in \\mathbb{R}^{2C_r}$, so with $C_r = 5$ the dimension is $10$. Answering 5 is the trap: that is the width of $\\widetilde{X}_r$ alone, which is what the Hadamard product on the previous line produces. Chapter 5's laboratory prints both numbers side by side for exactly this check.",
+      "unit": "dimensions"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Why would a designer concatenate two kinds of knowledge rather than add them?",
+      "opts": [
+        {
+          "md": "Because concatenation is cheaper to compute",
+          "expl": "It produces a wider vector, which makes subsequent layers *more* expensive, not less."
+        },
+        {
+          "md": "Because addition merges the two sources irreversibly, while concatenation lets the network decide how to weight each one",
+          "correct": true,
+          "expl": "Correct. Concatenation defers the decision to the learned weights — the network can learn to ignore one half if it wants. Addition pre-commits to equal weighting, and no amount of training can undo it. This is why the paper's fusion is a gated product followed by concatenation, rather than a sum."
+        },
+        {
+          "md": "Because the two vectors have different dimensions",
+          "expl": "They do not: in Equation (9) both have length $C_r$, which is precisely why a Hadamard product between them is even defined. If the dimensions differed, concatenation would be the *only* option and the choice would carry no information."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** Equation (9) now reads as three operations you can name — gate, then concatenate. Card 5 supplies the last piece of notation the paper uses everywhere: the normalisation that keeps hub vertices from dominating."
+}

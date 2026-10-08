@@ -1,0 +1,131 @@
+{
+  "kind": "extension",
+  "title": "Bagging and random forests: diversity by resampling",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Bagging** (bootstrap aggregating) draws $M$ **bootstrap samples** from the training set — each is the full dataset of $n$ rows sampled *with replacement*, so some rows appear several times and others not at all — fits one base learner per sample, and averages the $M$ predictions. A **random forest** is bagging with decision trees as the base learners, plus one extra ingredient: at each split of each tree, only a random subset of $m$ of the $p$ features is considered as candidates, rather than all $p$.",
+      "plain": "Train each tree on its own random sample of the data (drawn with replacement), and also let each split look at only a random handful of the features. Then average the trees. The random sampling and the random feature choice make the trees different from one another, which is what makes the averaging pay off."
+    },
+    {
+      "t": "p",
+      "md": "**Why \"with replacement\" matters.** Drawing *with replacement* means you pick a row, note it, and put it back before the next pick, so the same row can be chosen twice or not at all. If you drew without replacement every sample would be a reshuffle of the same data and every tree would see essentially the same information. With replacement, each sample is a genuinely different dataset."
+    },
+    {
+      "t": "p",
+      "md": "**How much of the data does one sample miss?** A specific row is left out of a given draw with probability $1 - 1/n$; across all $n$ independent draws it is left out with probability $(1 - 1/n)^n$. As $n$ grows this approaches $1/e \\approx 0.368$, so roughly $37\\%$ of the rows are missing from any one bootstrap sample and about $63\\%$ are present (some of them more than once). The missing rows are called **out-of-bag** rows."
+    },
+    {
+      "t": "formula",
+      "tex": "P(\\text{row omitted}) = \\left(1 - \\frac{1}{n}\\right)^{n} \\;\\xrightarrow{\\;n\\to\\infty\\;}\\; \\frac{1}{e} \\approx 0.368",
+      "note": "For the sample sizes used in practice the limit is already tight: at $n = 10$ the probability is $0.3487$, at $n = 100$ it is $0.3660$, and at $n = 1000$ it is $0.3677$ — each within a hair of $0.368$.",
+      "gloss": [
+        {
+          "sym": "n",
+          "md": "the number of rows in the training set, and also the number of draws in one bootstrap sample"
+        },
+        {
+          "sym": "1 - 1/n",
+          "md": "the chance a specific row is *not* picked on a single draw"
+        },
+        {
+          "sym": "1/e",
+          "md": "the limit of the expression, $\\approx 0.368$ — the fraction of rows a bootstrap sample leaves out"
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The extra ingredient in a random forest: feature randomisation.** Bagging alone gives each tree a different sample, but on a dataset with a few dominant features the trees will still lean on the same split again and again, and their errors stay correlated. A random forest breaks that by restricting each split: instead of searching all $p$ features for the best cut, it searches a random subset of $m$ of them. A commonly used default is $m = \\sqrt{p}$ for classification and $m = p/3$ for regression. With $p = 100$ features, a classification forest considers about $10$ at each split rather than $100$."
+    },
+    {
+      "t": "p",
+      "md": "**Why that decorrelates the trees.** A split that would be chosen by nearly every tree is often unavailable now, so different trees are forced to build on different features and to make different mistakes. On the variance formula of card 1, this is a direct attack on $\\rho$: it lowers the floor $\\rho\\sigma^2$ that averaging alone can never get under. The cost is that each individual tree becomes slightly weaker — restricting the candidate features can only reduce the quality of any single split — but the drop in correlation more than pays for it, and the average comes out better."
+    },
+    {
+      "t": "p",
+      "md": "**Parallel, not sequential.** The $M$ bootstrap samples are drawn independently and the $M$ trees are fitted independently, so the whole forest can be built in parallel across cores. No tree ever sees another tree's output or its mistakes. This is the sharpest point of contrast with boosting, where every model depends on the one before it — the subject of the next card."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Two common misconceptions.** First, \"a random forest's trees are trained one after another, each fixing the last\" — they are not; they are trained independently and in parallel. Second, \"each tree uses the full dataset\" — each tree uses one bootstrap sample, which contains only about $63\\%$ of the distinct rows and repeats others."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — how many rows a bootstrap sample misses.** Take a dataset of $n = 5$ rows. A specific row is omitted from one draw with probability $1 - 1/5 = 0.8$, and from all five draws with probability $0.8^{5}$."
+    },
+    {
+      "t": "list",
+      "ordered": true,
+      "items": [
+        "$0.8^2 = 0.64$, $0.8^3 = 0.512$, $0.8^4 = 0.4096$, $0.8^5 = 0.32768$. So the row is left out with probability about $0.328$.",
+        "Therefore it is present (in at least one draw) with probability $1 - 0.328 = 0.672$.",
+        "That is the same qualitative picture as the large-$n$ limit $1/e \\approx 0.368$, just further from it: at tiny $n$ the sample keeps a larger fraction of distinct rows."
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the limit, and out-of-bag data as a free test set.** Scale the same calculation up. At $n = 100$ the omission probability is $0.99^{100} = 0.3660$; at $n = 1000$ it is $0.999^{1000} = 0.3677$; both are already within $0.001$ of $1/e = 0.3679$. The practical reading: for any realistic dataset, about a third of the rows are left out of each tree's sample. Those out-of-bag rows were never seen by that tree, so the tree's predictions on them act as a held-out check without carving out a separate validation set."
+    },
+    {
+      "t": "calc",
+      "md": "**Feature randomisation in numbers.** With $p = 16$ features and classification defaults, $m = \\sqrt{16} = 4$ candidates per split instead of $16$. With $p = 100$, $m = \\sqrt{100} = 10$ candidates instead of $100$. With $p = 10000$, $m = \\sqrt{10000} = 100$ instead of $10000$. In every case the tree is choosing among a small, differently-chosen set each time, which is precisely what forces the trees apart."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does a random forest restrict each split to a random subset of features, given that this makes each individual tree slightly worse?",
+      "opts": [
+        {
+          "md": "To make training faster by searching fewer features",
+          "expl": "Speed is a real side effect, but it is not the reason the technique exists. Speed alone would not justify accepting weaker trees."
+        },
+        {
+          "md": "To reduce the correlation between trees, lowering the floor that averaging cannot get below",
+          "correct": true,
+          "expl": "Correct. Without it, all trees keep choosing the same few dominant splits and their errors stay correlated. Randomising the candidate features forces different trees onto different features, lowering rho and hence the irreducible variance rho·sigma^2. Each tree weakens a little; the ensemble strengthens a lot."
+        },
+        {
+          "md": "To guarantee each feature is used by at least one tree",
+          "expl": "There is no such guarantee — a feature can be absent from the candidate subsets of every split of every tree. The aim is decorrelation, not coverage."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A training set has $n = 100$ rows. Using the large-sample limit $1/e \\approx 0.368$, how many distinct rows would you expect a single bootstrap sample to omit, on average?",
+      "answer": 36.8,
+      "tol": 0.5,
+      "hint": "Apply the omitted-row fraction to the size of the dataset.",
+      "sol": "A fraction 1/e ≈ 0.368 of the rows is omitted, so 100 · 0.368 = 36.8 rows. (The exact value is 100 · 0.99^100 = 36.60 rows; the limit is a good approximation already at n = 100.) The remaining 63.2 rows are present, some of them repeated.",
+      "unit": "rows omitted"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You double the number of trees in a random forest from 200 to 400 and see almost no improvement in validation error. What is the most likely explanation?",
+      "opts": [
+        {
+          "md": "The trees are broken; more trees should always help",
+          "expl": "Nothing is broken. Doubling the count only shrinks the reducible part of the variance, and at 200 trees that part is already close to zero."
+        },
+        {
+          "md": "At 200 trees the reducible variance is already small, so the total is dominated by the correlation floor $\\rho\\sigma^2$ that count cannot reduce",
+          "correct": true,
+          "expl": "Correct. The reducible term is (1-rho)/M · sigma^2; with M = 200 it is already tiny unless rho is very close to 1. What remains is the floor. To make further progress you must lower rho — for example by allowing fewer features per split — not add more trees."
+        },
+        {
+          "md": "You need exactly 1000 trees for a random forest to work",
+          "expl": "There is no magic number. The right count is the point where the error curve flattens, which is what you observed at 200."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** bagging buys diversity from resampling and trains in parallel. The next card buys it from a completely different source — sequence — where each tree is fitted to the ensemble's remaining mistakes."
+}

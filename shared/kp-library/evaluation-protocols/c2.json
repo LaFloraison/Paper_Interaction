@@ -1,0 +1,133 @@
+{
+  "kind": "extension",
+  "title": "Transductive learning: the scored vertices are already there",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **transductive** protocol is one in which the vertices that will be scored are present in the graph, with their features and their edges, for the whole of training. Their labels are withheld: the loss never sees them. The model therefore builds representations of the very vertices it will later be asked to label, and the task is to fill in blanks whose surrounding structure it has already been shown.",
+      "plain": "In a transductive setup the scored vertices are already in the graph while the model trains. Their connections and features are fully visible; only their answers are hidden. The model labels the vertices it has been standing next to."
+    },
+    {
+      "t": "p",
+      "md": "**Why this is legitimate, and when.** Transductive evaluation is not a trick. When there is one fixed graph and the question is \"label the vertices of this graph\", the graph genuinely is known in advance: a citation network is published in full before anyone asks which papers belong to which field. Withholding only the labels is honest, because the model cannot copy an answer it never receives. This is the standard setting for citation and co-purchase benchmarks, where all the entities are collected first and classified afterwards."
+    },
+    {
+      "t": "p",
+      "md": "**What it does not let you claim.** The model that comes out of a transductive run is a labelling of this graph, not a function you can carry elsewhere. It was trained on this particular set of vertices, and nothing in the protocol required it to handle a vertex it has not seen. Two claims are therefore unsupported."
+    },
+    {
+      "t": "list",
+      "ordered": false,
+      "items": [
+        "**Generalisation to another graph.** A model trained on graph G, with G's scoring vertices visible throughout, has learned about G. Its score on G says nothing about its score on a graph H.",
+        "**Handling a graph that grows.** If a new vertex arrives after training, the transductive model has no place to put it. Producing a label for it requires retraining, and retraining replaces the model that produced the earlier number."
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**How message passing uses the visibility.** A graph network labels a vertex by aggregating information from its neighbours. When the scored vertex is present, its neighbours include other scored vertices, and the aggregation performed during training already flows through them. Remove the scored vertices and the same aggregation sees a smaller neighbourhood. The protocol therefore changes the computation the model performs, not only the reporting."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The misconception to kill.** A reader who believes \"test means unseen\" will treat a transductive number as evidence of generalisation. It is not. The accurate sentence is: this model labels the vertices of this graph, which it saw unlabelled during training. Whether it works on a new graph is a different experiment — card 3's."
+    },
+    {
+      "t": "p",
+      "md": "**When it fails.** Three concrete cases. When the deployed graph is not the training graph — new users, new papers, a rebuilt graph. When the graph is a sample of a larger population you care about, and you quote the sample's score as the population's. And when a transductive number is placed beside an inductive number in one table without a note: the two are not on the same scale, and the gap may be entirely the protocol."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the six-vertex graph under the transductive rule.** Recall the graph from card 1: vertices v1 to v6, edges v1–v2, v1–v3, v2–v3, v3–v4, v4–v5, v5–v6; training labels on v1, v2, v3; validation label on v4; scoring on v5 and v6."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "v5 has one edge, to v4, and v6 has one edge, to v5. Because both scored vertices are present, the model reads v5's features and uses the path v6 → v5 → v4 during training.",
+          "why": "The visibility rule is what permits this. The edge v5–v6 exists in the graph the model trains on, so two rounds of aggregation carry information from v6 to v4 and back."
+        },
+        {
+          "md": "The loss may use the labels of v1, v2 and v3 only. The labels of v5 and v6 are withheld during training, so no update to the model's weights ever depends on them.",
+          "why": "This is the entire safeguard. The structure is visible and the answers are not, so the model cannot copy a label it never receives."
+        },
+        {
+          "md": "At scoring time the model is asked for v5 and v6. It has already built representations for both, so it answers without any retraining.",
+          "why": "A transductive protocol does not re-run training between learning and scoring, because the vertices were there from the start. That is also why its number cannot be read as a claim about a vertex that was not there."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the same graph after it grows.** Suppose a seventh vertex, v7, is published a week later with an edge to v4. The trained transductive model was built for the six vertices it saw. v7 was never inside any aggregation, so it has no representation, and no neighbour of v7 has a message that was ever updated for it."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "To score v7 you add it to the graph and retrain. The new run sees 7 vertices instead of 6, and every vertex's representation may change.",
+          "why": "Retraining is not a formality here. Aggregation couples the vertices, so adding v7 changes what v4 aggregates, which changes v5's representation, and so on through the graph."
+        },
+        {
+          "md": "The earlier reported number — over v5 and v6 in the six-vertex graph — now belongs to a model that no longer exists. It is not the score of the seven-vertex model, and it is not a bound on it either.",
+          "why": "This is the practical cost of the transductive rule. The number was a statement about one fixed graph; the graph changed, and the statement expired with it."
+        }
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In a transductive protocol, what exactly is withheld from the model during training?",
+      "opts": [
+        {
+          "md": "The features of the scored vertices",
+          "expl": "Features are visible. Hiding them would change the task into a harder one; the visibility of features is what the protocol is for."
+        },
+        {
+          "md": "The labels of the scored vertices",
+          "correct": true,
+          "expl": "Correct. Features and edges are present; only the labels are withheld. This is why the protocol is honest, and also why it demonstrates nothing about generalisation."
+        },
+        {
+          "md": "The edges connecting the scored vertices",
+          "expl": "Edges are visible too, and they matter: they are the paths by which scored vertices receive messages during training. Hiding the edges would turn a transductive run into an inductive one."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A transductive experiment has 40 labelled training vertices and a scoring set of 10 vertices. How many vertices does the graph contain while the model trains?",
+      "answer": 50,
+      "tol": 0.5,
+      "hint": "Apply the transductive visibility rule to the scoring set before adding anything.",
+      "sol": "40 labelled training vertices + 10 scored vertices = 50 vertices present during training. Under an inductive rule the count would be 40, because the scored vertices would not be in the graph at all.",
+      "unit": "vertices"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A team reports 92% on a citation graph using a transductive model, then deploys it to classify newly published papers. What went wrong conceptually?",
+      "opts": [
+        {
+          "md": "Nothing — the score is high enough that deployment should work",
+          "expl": "A high transductive score is not evidence about new vertices. It was measured on vertices that were in the graph during training, which is exactly what the new papers are not."
+        },
+        {
+          "md": "Deployment introduces vertices the model never saw, and the reported number says nothing about its performance on them",
+          "correct": true,
+          "expl": "Correct. The visibility rule put every scored vertex into training. New papers arrive afterwards, so labelling them needs a model built to handle unseen vertices — the inductive protocol of card 3."
+        },
+        {
+          "md": "Deployment is always illegitimate after a transductive experiment",
+          "expl": "Not always. Adding the new papers to the graph, retraining, and scoring on a held-out slice of the updated graph is a legitimate transductive study. What fails is carrying the old number over to vertices it never described."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the transductive number stops at the graph it was measured on. The claim a deployment needs — that unseen vertices are handled — is the inductive protocol, and it costs something."
+}

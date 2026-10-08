@@ -1,0 +1,169 @@
+{
+  "kind": "check",
+  "title": "Which road the paper's layer belongs to — and can you leave this section?",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A layer is **stated on the spectral road** when the operator itself is written as a function of the graph's spectrum — the Laplacian's eigenvalues $\\Lambda$, with $U$ the matrix whose columns are its eigenvectors — for instance a filter $g_\\theta(\\Lambda)$ applied in the eigenbasis. It is **stated on the spatial road** when the operator is written directly in terms of the graph's vertices and relations — an explicit aggregation over neighbours or members, using only the adjacency or incidence matrices. The paper's Equation (1) is spatial: it is assembled from the incidence matrix, and no eigenvector or eigendecomposition appears anywhere in it.",
+      "plain": "One road describes a layer by what it does to the graph's frequencies; the other by who sends what to whom along the graph's relations. The paper's layer is written entirely the second way."
+    },
+    {
+      "t": "p",
+      "md": "**The paper's layer is spatial, and its algebra says so.** Equation (1) is built from the incidence matrix $H$ — rows for vertices, columns for relations — in the sandwich $D_v^{-1/2} H W_e D_e^{-1} H^{\\mathsf T} D_v^{-1/2}$. That expression names vertices and relations and nothing else. There is no eigenvector matrix $U$, no eigenvalue matrix $\\Lambda$, no eigenvalue, and no step that would require one. Where the spectral road would begin 'take the eigendecomposition', this layer begins 'send each vertex's feature to the relations that contain it, and send the summaries back'."
+    },
+    {
+      "t": "formula",
+      "tex": "X^{(l+1)} = \\sigma\\!\\left( D_v^{-1/2}\\, H\\, W_e\\, D_e^{-1}\\, H^{\\mathsf T}\\, D_v^{-1/2}\\, X^{(l)}\\, \\Theta \\right)",
+      "note": "Read the middle as two passes. Because $H$ has one row per vertex and one column per relation, its transpose $H^{\\mathsf T}$ is what carries each vertex's feature to the relations containing it; $W_e$ weights each relation as a whole; $D_e^{-1}$ averages within each relation; and $H$ then carries the relation summaries back to their members. The two $D_v^{-1/2}$ factors normalise by how many relations each vertex belongs to. Nothing here consults a spectrum — which is exactly why the same expression survives when a relation has any number of members.",
+      "gloss": [
+        { "sym": "H", "md": "the incidence matrix — rows are vertices, columns are relations, entry 1 when a vertex belongs to a relation" },
+        { "sym": "D_v", "md": "vertex degrees down the diagonal — how many relations each vertex belongs to (the row sums of $H$)" },
+        { "sym": "D_e", "md": "relation sizes down the diagonal — how many vertices each relation contains (the column sums of $H$); $D_e^{-1}$ turns a relation's sum into a mean" },
+        { "sym": "W_e", "md": "a diagonal matrix of relation *weights*, letting one relation count more than another. It is often set to the identity, which is what this card's example does." },
+        { "sym": "\\Theta", "md": "the learned weight matrix — the only trained object" },
+        { "sym": "\\sigma", "md": "the nonlinearity, applied entry by entry" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Why the spatial form matters here.** The spectral road's central object, the Laplacian, is defined for pairwise relations. A hyperedge of any size has no single pairwise Laplacian waiting for it. Writing the layer with the incidence matrix sidesteps that entirely: the same formula runs whether every relation has two members or a thousand, because the incidence matrix records membership rather than pairs. The paper's choice of the spatial road is not a stylistic preference — it is what makes relations of arbitrary size expressible in the first place."
+    },
+    {
+      "t": "p",
+      "md": "**When the spatial form fails.** Three concrete ways. (i) A vertex belonging to no relation has vertex-degree $0$, and $D_v^{-1/2}$ then divides by zero — isolated vertices break the formula unless they are handled separately. (ii) The $D_e^{-1}$ factor equalises relation sizes: a relation with a thousand members contributes the same mean as one with two, which is usually desirable but discards any signal that lives in the *size difference* itself. (iii) The incidence matrix records membership only, so it cannot express ordering or intensity within a relation — a vertex is in or out, with nothing in between. And like any single-hop aggregation, it sees one hop per layer, so depth is needed to reach far, carrying the same over-smoothing risk as a graph network."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**An honest caveat about the two roads.** They are not disjoint families. The polynomial filter of the previous card is the meeting point: it is *derived* from the spectral road, but stated as powers of $L$ it is a plain aggregation over neighbours — a spatial operator. GCN (the graph convolutional network of Kipf and Welling) is the prototype, a spatial formula with a spectral justification. So the two labels describe how an operator is *written and justified*, not two disjoint kinds of mathematics. What does separate them in practice is transferability: spatial parameters act on features and move between graphs, while a spectral filter is indexed by one graph's spectrum."
+    },
+    {
+      "t": "p",
+      "md": "**Section recap.** This section built the spectral road, its costs, its repair, and placed the paper on the other road. If you can do all six of the following unaided, skip ahead."
+    },
+    {
+      "t": "list",
+      "items": [
+        "Say why the Laplacian's eigenvectors play the role of a graph's Fourier modes, and why its eigenvalues are squared frequencies (card 1).",
+        "Write the spectral convolution $y = U\\,g_\\theta(\\Lambda)\\,U^{\\mathsf T}x$ and explain what makes it a genuine convolution (card 2).",
+        "State the two blockers of the spectral road: the $O(N^{3})$ eigendecomposition and the filter being tied to one graph's spectrum (card 2).",
+        "Explain why a polynomial filter needs no eigenvectors, using $U\\,g(\\Lambda)\\,U^{\\mathsf T} = g(L)$, and why a degree-$K$ polynomial is a $K$-hop operator (card 3).",
+        "Recognise GCN's $\\hat{D}^{-1/2}\\hat{A}\\hat{D}^{-1/2}$ — where $\\hat{A} = A + I$ adds self-loops and $\\hat{D}$ holds those degrees — as the $K = 1$, tied-parameter collapse of the spectral derivation (card 3).",
+        "Say why the paper's Equation (1) is spatial, and what the incidence form buys that a Laplacian cannot (this card)."
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The threshold.** The questions below are the check. The bar is not 'two of four correct' — it is that none of them made you stop and reconstruct something. If the polynomial identity $U\\,g(\\Lambda)\\,U^{\\mathsf T} = g(L)$ did not come back to you cleanly, stay and reread card 3; the paper's spatial form is a deliberate departure from exactly that identity, and you will read it better knowing what is being departed from."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example — where the two roads meet, concretely.** Take the three-vertex path $1\\!-\\!2\\!-\\!3$ and record it as a hypergraph with two size-two relations, $e_1 = \\{1,2\\}$ and $e_2 = \\{2,3\\}$. The incidence matrix is"
+    },
+    {
+      "t": "formula",
+      "tex": "H = \\begin{pmatrix} 1 & 0 \\\\ 1 & 1 \\\\ 0 & 1 \\end{pmatrix}, \\qquad H H^{\\mathsf T} = \\begin{pmatrix} 1 & 1 & 0 \\\\ 1 & 2 & 1 \\\\ 0 & 1 & 1 \\end{pmatrix}",
+      "note": "Row sums are the vertex degrees $(1,2,1)$; column sums are the relation sizes $(2,2)$ — every relation has two members, as a path graph's edges do."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Set $W_e = I$ and use $D_e^{-1} = \\tfrac{1}{2}I$, since every relation has size $2$. The middle block becomes $\\tfrac{1}{2} H H^{\\mathsf T} = \\begin{pmatrix} 0.5 & 0.5 & 0 \\\\ 0.5 & 1 & 0.5 \\\\ 0 & 0.5 & 0.5 \\end{pmatrix}$.",
+          "why": "The division by the relation size is what makes each relation contribute a mean rather than a raw sum — with all sizes equal to $2$, it is a uniform factor of one half."
+        },
+        {
+          "md": "Sandwich it with $D_v^{-1/2} = \\mathrm{diag}(1, 1/\\sqrt{2}, 1)$, since the vertex degrees are $(1,2,1)$. The result has entry $(1,2)$ equal to $1 \\times 0.5 \\times 1/\\sqrt{2} = 0.3536$, and the full operator is $\\begin{pmatrix} 0.5 & 0.3536 & 0 \\\\ 0.3536 & 0.5 & 0.3536 \\\\ 0 & 0.3536 & 0.5 \\end{pmatrix}$.",
+          "why": "Entry $(1,2)$ is $D_v^{-1/2}$ on vertex $1$, times the relation-average $0.5$, times $D_v^{-1/2}$ on vertex $2$ — the same shape of computation as GCN's normalisation, but reached from the incidence matrix rather than from a spectrum."
+        },
+        {
+          "md": "Compare with card 3's GCN operator on the same path: $\\begin{pmatrix} 0.5 & 0.4082 & 0 \\\\ 0.4082 & 0.3333 & 0.4082 \\\\ 0 & 0.4082 & 0.5 \\end{pmatrix}$. The two agree only where the path has no edge to carry: at the two endpoint diagonals ($0.5$ in both) and at the zero corners $(1,3)$ and $(3,1)$ ($0$ in both). Every position where the operator is nonzero differs — the incidence operator's middle diagonal is $0.5$ against GCN's $0.3333$, and each nonzero off-diagonal is $0.3536$ against GCN's $0.4082$. The reason is the self-loop: GCN's degrees are augmented, $\\hat{d} = (2,3,2)$, while the incidence operator's vertex degrees are $(1,2,1)$, so the two normalise the same path differently.",
+          "why": "Agreement at the endpoints and disagreement in the middle is exactly the point: the incidence construction reproduces the *shape* of a pairwise normalised operator when all relations have size two, and it generalises that shape the moment a relation is larger. The two roads build the same kind of object, which is why the distinction is about how the layer is written, not about disjoint mathematics."
+        },
+        {
+          "md": "Python check: $D_v^{-1/2}\\,(\\tfrac{1}{2}H H^{\\mathsf T})\\,D_v^{-1/2}$ returns the matrix above, with $1/\\sqrt{8} \\approx 0.3536$ in every off-diagonal nonzero entry.",
+          "why": "$1/\\sqrt{8}$ arises as $0.5 \\times 1/\\sqrt{2}$; writing it as $1/\\sqrt{8}$ shows the three factors have merged into one number, the hallmark of a normalised operator."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**What this example does not show.** With all relation sizes equal to $2$, $D_e^{-1}$ was a uniform factor and did no interesting work; its role only becomes visible when relation sizes differ. The example also fixes $W_e = I$, so relation weights were not exercised, and it uses a graph small enough that the normalisations barely bite."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "The paper's Equation (1) is built from the incidence matrix $H$ with no eigenvectors anywhere. Which road is it on, and what does that structure buy?",
+      "opts": [
+        {
+          "md": "The spectral road, because the incidence matrix is a variant of the Laplacian",
+          "expl": "The incidence matrix and the Laplacian are related objects, but Equation (1) names no spectrum, eigenvalue, or eigenvector, so it is not written on the spectral road. Calling it spectral because a related matrix exists conflates the object with the construction."
+        },
+        {
+          "md": "The spatial road, because it aggregates explicitly over vertices and relations — and the incidence form is what lets a relation have any number of members",
+          "correct": true,
+          "expl": "Correct on both parts. The operator sends features along memberships and back, using no frequency information; and because membership is recorded rather than pairs, the same expression handles a relation of size two or a thousand."
+        },
+        {
+          "md": "Neither road, because it is a hypergraph operator and both roads are for ordinary graphs",
+          "expl": "Both roads extend to hypergraphs in one form or another. The incidence construction is precisely the spatial extension, and it is the one the paper chose."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "In the paper's operator $D_v^{-1/2} H W_e D_e^{-1} H^{\\mathsf T} D_v^{-1/2}$, a citation network has one relation (a paper) with $10$ authors. With $W_e = I$, what factor does $D_e^{-1}$ contribute for that relation?",
+      "answer": 0.1,
+      "tol": 0.001,
+      "hint": "It is the reciprocal of the relation's size — how many vertices the relation contains.",
+      "sol": "The relation has $10$ members, so its entry in $D_e$ is $10$ and $D_e^{-1}$ contributes $1/10 = 0.1$. This division turns the sum over the relation's members into a mean, so a paper with ten authors does not send each of them a contribution ten times larger than a two-author paper would — the same damping role GCN's degree factors play.",
+      "unit": "factor"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Is it accurate to say the spectral and spatial roads are disjoint — that a layer is one or the other with no overlap?",
+      "opts": [
+        {
+          "md": "Yes: a layer either uses eigenvectors or it does not, and that is a clean dividing line",
+          "expl": "The division is clean only if you look at how a layer is written, not at what it is. GCN is a spatial formula that is provably a spectral approximation — it sits on both roads at once."
+        },
+        {
+          "md": "No: many spatial operators are polynomial approximations of spectral ones, and a truncated spectral filter is itself a finite-hop spatial operator",
+          "correct": true,
+          "expl": "Correct. The polynomial identity $U\\,g(\\Lambda)\\,U^{\\mathsf T} = g(L)$ is a two-way bridge: it lets a spectral filter be evaluated spatially, and it explains a spatial operator as a spectral one in disguise. The practical dividing line is transferability, not mathematics."
+        },
+        {
+          "md": "No: the roads overlap only for the graph Laplacian, not for hypergraphs",
+          "expl": "The overlap is a property of the polynomial bridge, which is about how a filter is represented rather than about whether relations are pairwise. Restricting the overlap to pairwise graphs is not what makes the two roads meet."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A colleague rewrites the paper's layer by first converting the hypergraph to a graph with pairwise edges (clique expansion) and then applying a normalised graph operator. What has been lost?",
+      "opts": [
+        {
+          "md": "Nothing important — the expanded graph carries the same information",
+          "expl": "Expansion records which pairs are connected, not how many relations a pair shares or how large the group was. A ten-author paper and a two-author paper over the same pair produce the same expanded edge."
+        },
+        {
+          "md": "The relation as a unit: its size and identity are gone, so equal-membership relations become indistinguishable and a large relation no longer influences its members differently from a small one",
+          "correct": true,
+          "expl": "Correct. The incidence form keeps the relation whole — its size drives $D_e^{-1}$, its identity survives as a column. Collapsing to edges discards exactly that, which is why the paper's layer stays on the incidence matrix and does not expand."
+        },
+        {
+          "md": "Only computational efficiency, since expansion is exactly equivalent but slower",
+          "expl": "Expansion is not equivalent, and it is not only a speed question. It erases relation size and multiplicity, so the two operators compute different things regardless of cost."
+        }
+      ]
+    }
+  ],
+  "close": "**The road forks are understood.** You can now write the spectral convolution, name the two costs that stalled it, explain the polynomial repair that produced GCN, and say why the paper's incidence-matrix layer is deliberately spatial. Everything downstream — the hypergraph operator's own properties and its behaviour under stacking — assumes exactly this much."
+}

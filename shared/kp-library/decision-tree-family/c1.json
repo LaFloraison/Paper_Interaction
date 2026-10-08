@@ -1,0 +1,186 @@
+{
+  "kind": "extension",
+  "title": "What a decision tree is",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **decision tree** is a predictor that routes an input through a fixed sequence of tests to exactly one region. Each internal node holds one test on one feature: for a numeric feature a threshold comparison $x_j \\le t$ against a constant $t$; for a categorical feature a membership question $x_j \\in S$ against a chosen subset $S$ of that feature's categories. Each leaf holds a prediction — the majority class of the training rows that reached it, if the target is a class; their mean, if the target is a number. To predict for an input $x$ you start at the root, follow the branch each test selects, and read off the leaf you arrive at. The tree therefore **partitions the feature space into one region per leaf, and the prediction is constant on each region**.",
+      "plain": "A decision tree is a flowchart of questions about the features; you answer each question in turn, follow the branch, and the leaf you land on holds the answer."
+    },
+    {
+      "t": "p",
+      "md": "**The whole model is a readable list of rules.** Every path from the root to a leaf is a conjunction — the tests along that path, joined by AND. Reading all the paths off a tree gives you an if-then rule list that a domain expert can inspect, argue with, and overrule. Almost no other model of comparable accuracy offers this, and it is the reason trees are still the default first attempt on structured business data."
+    },
+    {
+      "t": "p",
+      "md": "**Why tabular data in particular.** A tree makes no assumption that the features are comparable to each other, no assumption that the rows have an intrinsic distance, and no assumption that the prediction varies smoothly as a feature moves. It uses each feature only through the question $x_j \\le t$ or $x_j \\in S$. This matters because real tables are mixtures: an age in years next to a country code next to a price in yuan. A tree consumes all three without any preprocessing, and it does not care whether you measured the age in days or in decades — multiplying a feature by a positive constant merely renames every threshold $t$ to $c\\,t$, and the same partition results."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "One tree is readable; the model in the paper is not. A boosted model is a sum of hundreds of small trees, and the sum of hundreds of readable rules is not itself readable. Keep the scale of the claim straight: the tree is the unit you have to understand in order to understand the ensemble, not a description of what the ensemble outputs."
+    },
+    {
+      "t": "p",
+      "md": "**What this section does.** Card 2 explains how a tree decides which question to ask, and names the three classical measures of a good question. Cards 3, 4 and 5 work each measure through on real numbers and introduce the three algorithms that use them — ID3, C4.5 and CART. Card 6 covers pruning, card 7 gives the four concrete ways a tree fails, and card 8 is the skip check."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — one tree, walked by hand.** The task is to decide whether to play outside, from two features: temperature in degrees, and wind, which is either Weak or Strong. The tree has two internal nodes and three leaves:"
+    },
+    {
+      "t": "list",
+      "items": [
+        "Root test: is temperature $\\le 20$? If yes, go left to Leaf A.",
+        "If no, go right and ask a second question: is wind = Strong? If yes, go to Leaf B; if no, go to Leaf C.",
+        "Leaf A holds the prediction No. Leaf B holds No. Leaf C holds Yes."
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Predict for the input temperature $= 15$, wind $=$ Strong. The root asks: is $15 \\le 20$? Yes. Go left.",
+          "why": "The test is evaluated, not discussed. There is no arithmetic on the second feature at all, because this branch never asks about wind."
+        },
+        {
+          "md": "The left branch is Leaf A, which holds No. The prediction is No.",
+          "why": "A leaf terminates the route. Every input stops at exactly one leaf, and the leaf's stored value is the prediction."
+        },
+        {
+          "md": "Predict for temperature $= 25$, wind $=$ Weak. Is $25 \\le 20$? No. Go right. Is wind $=$ Strong? No, it is Weak. Go right again to Leaf C.",
+          "why": "This input takes a longer path, so it is answered by a *narrower* rule — it had to satisfy both tests rather than one. That is where the conjunctions in the rule list come from."
+        },
+        {
+          "md": "Leaf C holds Yes, so the prediction is Yes. For contrast, temperature $= 25$ with wind $=$ Strong also goes right at the root, then takes the left branch at the second node and lands in Leaf B, predicting No.",
+          "why": "Two inputs that agree on temperature and differ only in wind receive different predictions whenever the temperature is above 20 — which is exactly what the second test is for."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the same tree as a rule list and as a partition.** Walking every root-to-leaf path and joining the tests along it with AND gives the entire model in three lines:"
+    },
+    {
+      "t": "list",
+      "ordered": true,
+      "items": [
+        "IF temperature $\\le 20$ THEN No.",
+        "IF temperature $> 20$ AND wind $=$ Strong THEN No.",
+        "IF temperature $> 20$ AND wind $=$ Weak THEN Yes."
+      ]
+    },
+    {
+      "t": "p",
+      "md": "Equivalently, the tree carves the plane of (temperature, wind) into three regions, one per leaf:"
+    },
+    {
+      "t": "table",
+      "head": [
+        "Region",
+        "Condition that defines it",
+        "Prediction"
+      ],
+      "rows": [
+        [
+          "1",
+          "temperature $\\le 20$",
+          "No"
+        ],
+        [
+          "2",
+          "temperature $> 20$ and wind $=$ Strong",
+          "No"
+        ],
+        [
+          "3",
+          "temperature $> 20$ and wind $=$ Weak",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "Two structural facts are worth reading off this table. First, the regions are **nested, not overlapping**: region 2 and region 3 both live inside the half-plane temperature $> 20$, and between them they leave no gap, so every possible input lands in exactly one region. Second, the boundary between regions 2 and 3 is a vertical line in the wind direction and runs the whole length of the temperature range above 20 — a tree's boundaries are always perpendicular to one feature axis, never diagonal."
+    },
+    {
+      "t": "callout",
+      "md": "**What this example does not show.** It is a classification tree, so its leaves hold class labels; a *regression* tree's leaves hold numbers instead, and card 5 works one out. It also never asks about a feature twice on the same path, and it has only two levels of tests. Both gaps are filled later: re-asking a feature is legal (card 7 uses it to explain instability), and depth is what cards 6 and 7 are about."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In a decision tree, what exactly does a leaf hold?",
+      "opts": [
+        {
+          "md": "A test on one feature",
+          "expl": "That is what an internal node holds, and it is the most common mix-up. A test sends the input onwards; a leaf is where the input stops."
+        },
+        {
+          "md": "The prediction assigned to every input that arrives there",
+          "correct": true,
+          "expl": "Correct. A leaf is a region of the feature space plus one constant answer for that region — the majority class of the training rows that reached it, or their mean if the target is a number. Because a leaf is a region and not a point, the model's prediction cannot vary inside it."
+        },
+        {
+          "md": "The list of training rows that reached it, which is consulted at prediction time",
+          "expl": "The training rows are used while the tree is being built, to decide the tests and to choose each leaf's answer. After that they are discarded; predicting never looks at the training set again. A model that stored its rows and looked them up at prediction time would be a nearest-neighbour method, not a tree."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A binary decision tree in which every internal node has exactly two children, and in which every root-to-leaf path contains exactly 3 tests, is grown until no further tests are allowed. At most how many leaves can it have?",
+      "answer": 8,
+      "tol": 0.01,
+      "hint": "Count the branches level by level: how many nodes are reachable after one test, after two, after three.",
+      "sol": "Each test doubles the number of positions. After 1 test there are at most 2 nodes, after 2 tests at most 2 × 2 = 4, after 3 tests at most 2 × 2 × 2 = 2^3 = 8. So the maximum leaf count is 2^3 = 8. The tree in Example 1 has the same depth, 2, so its maximum would be 2^2 = 4 leaves — it uses only 3, because the first branch was stopped early.",
+      "unit": "leaves"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The paper's model is a gradient-boosted ensemble of several hundred trees. Which statement about reading it off as rules is correct?",
+      "opts": [
+        {
+          "md": "You can extract one rule list of several hundred lines and read it as a single model",
+          "expl": "The paths do concatenate, but the prediction of a boosted model is a *sum* of all the trees' outputs, not the output of one path. You would have to add several hundred numbers to obtain any single prediction, so no single line of the concatenated list determines any answer."
+        },
+        {
+          "md": "Each individual tree is still a readable rule list, but the ensemble's prediction is the sum of all of them, so the ensemble is not readable",
+          "correct": true,
+          "expl": "Correct, and this is the honest split. Interpretability is a property of one tree. Adding trees buys accuracy and spends exactly that property — which is why the interpretability of boosted models is studied as its own problem rather than assumed."
+        },
+        {
+          "md": "A tree's rule list is not readable in the first place, because the thresholds are fitted rather than chosen by a human",
+          "expl": "A fitted threshold is still a number a human can read, exactly as a hand-chosen one is. The threshold x ≤ 20 means what it says whether a person or an algorithm picked the 20."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Multiplying a numeric feature by 100 (so a temperature in degrees becomes a temperature in hundredths of a degree) is applied to a table, and the tree is then rebuilt from scratch on the rescaled table. What happens?",
+      "opts": [
+        {
+          "md": "The tree is different, because the feature now covers a wider range",
+          "expl": "A wider numeric range is not new information. The set of orderings of the rows along that feature is identical before and after rescaling, and a threshold test can only express an ordering — so nothing the tree can do has changed."
+        },
+        {
+          "md": "Every threshold is multiplied by 100 and the resulting partition of the data, and hence the predictions, are identical",
+          "correct": true,
+          "expl": "Correct. A test x ≤ t becomes 100x ≤ 100t, which is the same statement about the same rows, so every candidate split scores the same as before and the algorithm's choices are unchanged. This invariance to monotone rescaling is a genuine advantage over distance-based and gradient-based models, which need features put on a common scale first — card 7 lists it among the tree's strengths."
+        },
+        {
+          "md": "The tree is different because the numeric feature now competes on unequal footing with the other features",
+          "expl": "Features never compete on a scale in a tree: each test involves one feature and its own threshold, and the split score depends only on which rows go left and which go right. Card 4 is about the one respect in which a criterion *is* biased between features — the number of distinct values a feature has — and that bias is created by the counting, not by the scale."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** a tree is defined, but nothing yet says how it chooses its tests. The next card supplies the criterion — a numerical score for \"which question separates the labels best\" — and names the three classical versions of it."
+}

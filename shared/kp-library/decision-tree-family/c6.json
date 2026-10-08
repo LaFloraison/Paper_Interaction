@@ -1,0 +1,210 @@
+{
+  "kind": "extension",
+  "title": "Pruning: why the tree has to be cut back",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Pruning** is any procedure that removes nodes from a grown tree in order to improve its accuracy on data it was not fitted to. **Pre-pruning** (also called early stopping) halts the growth of a branch before it reaches purity, according to a condition checked during fitting — a minimum information gain, a minimum number of rows in a node, or a maximum depth. **Post-pruning** grows the tree to a stopping rule first and then replaces selected subtrees by single leaves, using an estimate of error computed on data held back from the split decisions. **Cost-complexity pruning** does the second of these with a specific objective: it chooses the subtree $T$ minimising $R_\\alpha(T) = R(T) + \\alpha\\,|T|$, where $R(T)$ is the total misclassification count of the tree's leaves, $|T|$ is the number of leaves, and $\\alpha \\ge 0$ is a penalty per leaf.",
+      "plain": "Pruning is removing the parts of a tree that fit the training rows but not the pattern. You either stop growing early, or you grow fully and then cut branches off."
+    },
+    {
+      "t": "p",
+      "md": "**Why an unpruned tree memorises.** Keep splitting any node that still contains two labels. Each split reduces the node's impurity, and since impurity is 0 exactly at purity, the process terminates only when every leaf is pure. A leaf containing a single training row is pure by definition, so a tree grown without restraint can always reach a state where every training row is correctly classified — training error exactly zero, no exceptions and no matter how noisy the labels are. The mechanism is worth naming precisely: work through the Sunny branch of the dataset in card 3, split until the tie between rows 3 and 4 is broken by some incidental third feature that happens to differ between them, and the tie disappears. The tree has not learned that the two rows are genuinely alike; it has learned an accident of the table."
+    },
+    {
+      "t": "p",
+      "md": "**Why zero training error is not automatically bad.** The argument above does not say every perfectly fitted tree is useless. If the labels really are a deterministic function of the features, a tree that fits every row has found the function, and cutting it back would only hurt. The problem is that in real tables the labels are usually noisy: two rows with the same feature values can carry different labels, and no model can resolve them. Zero training error then guarantees that the tree has fitted the noise as well as the signal, because the last few splits were forced to isolate individual rows. The remedy is to decide the amount of cutting from data the tree did not see, which is what both pruning families do — the first by an early-stopping rule tuned by validation, the second by direct measurement."
+    },
+    {
+      "t": "table",
+      "head": [
+        "",
+        "Pre-pruning (early stopping)",
+        "Post-pruning (grow, then cut)"
+      ],
+      "rows": [
+        [
+          "When the decision is made",
+          "During growth, at each node, before any descendants exist",
+          "After the full tree exists, on complete subtrees"
+        ],
+        [
+          "What it can see",
+          "Only local evidence at the node being considered",
+          "The whole subtree's performance, including its descendants"
+        ],
+        [
+          "Principal defect",
+          "Myopic: it can stop a split that is useless alone but necessary as a first step, and then the useful deeper structure is never built",
+          "It must fit the full tree first, so it costs one extra fit; and its estimate of error must be built from held-back data"
+        ],
+        [
+          "Typical settings",
+          "Minimum rows per leaf, maximum depth, minimum gain threshold",
+          "Cost-complexity pruning with $\\alpha$ chosen by cross-validation"
+        ]
+      ]
+    },
+    {
+      "t": "formula",
+      "tex": "R_\\alpha(T) = R(T) + \\alpha\\,|T|",
+      "note": "The cost-complexity objective. The first term wants accuracy; the second charges for every leaf. Increasing $\\alpha$ is like raising a tax on complexity, and the minimising tree shrinks as the tax rises — first losing a leaf or two, then collapsing whole subtrees, and finally becoming the single root leaf.",
+      "gloss": [
+        {
+          "sym": "T",
+          "md": "a candidate subtree, regarded as a set of leaves"
+        },
+        {
+          "sym": "|T|",
+          "md": "the number of leaves in that subtree — the complexity measure being charged for"
+        },
+        {
+          "sym": "R(T)",
+          "md": "total misclassification: sum over leaves of the number of training rows in the leaf that disagree with the leaf's prediction"
+        },
+        {
+          "sym": "\\alpha",
+          "md": "the price per leaf, in units of misclassified rows. At $\\alpha = 0$ only accuracy matters; as $\\alpha$ grows, correctness stops being worth the extra leaves."
+        }
+      ]
+    }
+  ],
+  "example": [
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "**Step 1 — the two candidates.** A node holds 12 rows: 8 labelled A and 4 labelled B. Candidate 1 is to stop here and make it a leaf. Its prediction is the majority label A, so it misclassifies the 4 B rows: $R = 4$, and with one leaf $R_\\alpha = 4 + \\alpha$.",
+          "why": "The single leaf is the smallest possible tree, and it is not a strawman: it is what the pruning procedure will collapse the whole subtree into if the subtree does not earn its keep."
+        },
+        {
+          "md": "**Step 2 — the subtree.** Candidate 2 splits those 12 rows into three leaves: one with 6 rows all A (0 errors), one with 4 rows of which 2 are A and 2 are B (2 errors, since it predicts A), and one with 2 rows all B (0 errors). So $R = 0 + 2 + 0 = 2$, with 3 leaves, giving $R_\\alpha = 2 + 3\\alpha$.",
+          "why": "The subtree is more accurate — 2 errors against 4 — and it pays for that with two extra leaves. The whole question of pruning is whether the accuracy is worth the complexity, and $\\alpha$ is the exchange rate."
+        },
+        {
+          "md": "**Step 3 — solve for the break-even penalty.** Set the costs equal: $4 + \\alpha = 2 + 3\\alpha$. Subtracting 2 and $\\alpha$ from both sides gives $2 = 2\\alpha$, so $\\alpha = 1$.",
+          "why": "At exactly $\\alpha = 1$ the two candidates tie, and by convention the smaller tree is preferred when the costs are equal. So the break-even penalty is 1 misclassified row per leaf."
+        },
+        {
+          "md": "**Step 4 — check the answer on both sides.** At $\\alpha = 0.5$: the leaf costs $4 + 0.5 = 4.5$ and the subtree costs $2 + 1.5 = 3.5$, so the subtree wins. At $\\alpha = 2$: the leaf costs $4 + 2 = 6$ and the subtree costs $2 + 6 = 8$, so the leaf wins.",
+          "why": "The direction reverses exactly at $\\alpha = 1$ and not before, which confirms the algebra. The economic reading: when each leaf is cheap, three leaves are a good buy for two fewer errors; once each leaf costs two errors, three leaves cost six and the accuracy no longer pays for them."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The myopia of pre-pruning, made concrete.** The classic failing case is the exclusive-or pattern. Four training rows with two binary features A and B, and the label set to 1 exactly when the two features differ."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Row",
+        "A",
+        "B",
+        "Label"
+      ],
+      "rows": [
+        [
+          "1",
+          "0",
+          "0",
+          "0"
+        ],
+        [
+          "2",
+          "0",
+          "1",
+          "1"
+        ],
+        [
+          "3",
+          "1",
+          "0",
+          "1"
+        ],
+        [
+          "4",
+          "1",
+          "1",
+          "0"
+        ]
+      ]
+    },
+    {
+      "t": "calc",
+      "md": "Two of the four labels are 1 and two are 0, so the root entropy is $H = 1.0000$ bit. Split the root on A: the branch A $= 0$ holds rows 1 and 2 with labels 0 and 1, one of each, so its entropy is 1.0000 bit; the branch A $= 1$ holds rows 3 and 4 with labels 1 and 0, also one of each, entropy 1.0000 bit. Weighted child entropy is $(2/4)(1.0000) + (2/4)(1.0000) = 1.0000$, so the information gain of A is exactly 0. By symmetry the gain of B is also exactly 0."
+    },
+    {
+      "t": "p",
+      "md": "A pre-pruning rule that refuses to split when the gain is 0 therefore stops at the root and outputs a single leaf with one label, which is correct on 2 of the 4 rows — 50 percent. Yet a tree that splits on A *and then* on B has four leaves of one row each and is perfect. The first split looked worthless in isolation and was indispensable as a first step. Pre-pruning cannot see this, because when it evaluates the root it has no descendants to look at; post-pruning cannot fall into it, because the subtree it evaluates exists in full when the decision is made."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**How this connects to the paper.** A boosted ensemble never wants a deep, accurate tree anyway: the boosting loop adds a *weak* learner repeatedly, and the standard way to make each learner weak is to cap its depth — a single split, or a depth of a few levels. That is pre-pruning by another name, and it is why the myopia argument above does not sink gradient boosting: the ensemble's total depth is built across hundreds of trees rather than inside one, so a single tree being unable to express the interaction between A and B is not fatal — a later tree in the sequence is fitted precisely to what the earlier ones got wrong. The single tree's failure modes in card 7 are survivable in an ensemble for the same structural reason."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "A tree grown without any stopping rule classifies 100 percent of its training rows correctly. What does this establish?",
+      "opts": [
+        {
+          "md": "That the model has found the true relationship between features and label",
+          "expl": "Perfect fit is consistent with having found the truth and equally consistent with having memorised the noise. On a table where two rows share their feature values and differ in their labels, no model can be right on both, so a tree that achieves 100 percent has necessarily fitted something that does not generalise."
+        },
+        {
+          "md": "Nothing about generalisation, because a tree grown to purity can always reach 100 percent training accuracy by isolating rows",
+          "correct": true,
+          "expl": "Correct. The construction is mechanical: split any impure node, and since impurity hits 0 exactly at purity, the process ends only when every leaf is pure — and a leaf holding one row is pure. So training error zero is a property of the fitting procedure, not evidence about the data. It becomes informative only when compared with performance on rows the tree never saw."
+        },
+        {
+          "md": "That the data contains no noise, since a noisy table could not be fitted perfectly",
+          "expl": "This is the inference to avoid, and it runs backwards. Noise in the labels is exactly what forces a fully grown tree to keep splitting: the last splits are the ones that isolate rows whose labels disagree with their neighbours."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A subtree has 2 leaves and misclassifies 3 rows. Collapsing it to a single leaf would misclassify 7 rows. At what value of $\\alpha$ do the two candidates have exactly equal cost?",
+      "answer": 4,
+      "tol": 0.01,
+      "hint": "Write each candidate's cost as its error count plus alpha times its number of leaves, then set the two expressions equal.",
+      "sol": "The subtree costs 3 + 2alpha and the single leaf costs 7 + 1alpha. Setting them equal: 3 + 2alpha = 7 + alpha, so alpha = 4. Below alpha = 4 the subtree's two fewer errors outweigh the cost of its extra leaf; above it, the leaf is cheaper and pruning removes the subtree. Note the pattern from the worked example: the break-even alpha is the error saved divided by the extra leaves, (7-3)/(2-1) = 4.",
+      "unit": "alpha"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A tree has 5 leaves and misclassifies 6 of the 40 training rows. Collapsing it to a single root leaf would misclassify 20 rows. With $\\alpha = 4$, what is the cost $R_\\alpha$ of the 5-leaf tree?",
+      "answer": 26,
+      "tol": 0.01,
+      "hint": "The complexity charge applies to every leaf of the tree, including the ones that are already correct.",
+      "sol": "The 5-leaf tree costs R + alpha|T| = 6 + 4 × 5 = 6 + 20 = 26. For comparison the single leaf costs 20 + 4 × 1 = 24, so at alpha = 4 the pruning procedure prefers the single leaf despite its 20 errors. That is the correct call rather than a bug: 14 extra errors are being traded for 16 units of complexity charge, and at this exchange rate the trade is not worth making.",
+      "unit": "R-alpha"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A practitioner wants to pre-prune and picks the rule \"never split a node whose best information gain is below 0.05\". On a dataset built from an exclusive-or pattern of two binary features, what happens?",
+      "opts": [
+        {
+          "md": "The tree grows normally, because exclusive-or has a high information gain at the root",
+          "expl": "It has exactly zero gain at the root, which is the point of the example. Neither feature separates the labels on its own: each branch of either feature ends up with one row of each label."
+        },
+        {
+          "md": "The tree stops at the root and predicts one label for everything, even though a two-level tree would be perfect",
+          "correct": true,
+          "expl": "Correct, and this is why the rule is a bad one rather than a conservative one. The gain at the root is exactly 0, so the threshold rejects the only split that could ever lead anywhere, and the final model is right on half the rows. The deeper structure is not merely missed — it becomes unreachable, because it lives below the split that was refused."
+        },
+        {
+          "md": "The tree splits on one feature and then on the other, because after the first split the second feature's gain becomes high",
+          "expl": "This would be the redemption of pre-pruning if it could happen, and it is exactly what cannot happen under this rule: the first split is refused, so there is no second level at which the second feature could show its value. A rule that permits the first split would indeed let the second one complete the pattern, which is why minimum-gain thresholds are dangerous and depth or leaf-size limits are more common."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** pruning treats one symptom — fitting the noise. Card 7 collects the structural limits that pruning cannot treat at all, because they follow from the shape of a tree rather than from how far it was grown."
+}

@@ -1,0 +1,221 @@
+{
+  "kind": "extension",
+  "title": "Chebyshev truncation, and the step to GCN",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **polynomial filter** is a filter $g_\\theta$ — a chosen function of the eigenvalue, applied in the Laplacian's eigenbasis — that is itself a polynomial, $g_\\theta(\\lambda) = \\sum_{k=0}^{K} \\theta_k\\, \\lambda^{k}$. The consequence is that the **spectral convolution** (feeding the signal through the eigenbasis, scaling each frequency by the filter, and coming back) can be rewritten with no eigenvectors at all, as a polynomial in a graph shift operator $L$. Here $L$ is either the combinatorial Laplacian $L = D - A$ (with $D$ the diagonal matrix of vertex degrees and $A$ the adjacency matrix) or, as the GCN derivation below uses, the symmetric normalised Laplacian $L_{\\text{sym}} = I - D^{-1/2}AD^{-1/2}$; $U$ is the matrix whose columns are that operator's eigenvectors and $\\Lambda$ the diagonal matrix of its eigenvalues. A **Chebyshev approximation** is the standard way to choose such a polynomial: the filter is expanded in Chebyshev polynomials $T_k$ (introduced below) and truncated at degree $K$, which approximates a general smooth filter while being numerically stable.",
+      "plain": "Replace the filter by a polynomial in the Laplacian. Polynomials in the Laplacian can be applied directly to the signal by repeated sparse multiplication, and the eigenvectors cancel out of the algebra entirely."
+    },
+    {
+      "t": "p",
+      "md": "**Why a polynomial is the escape hatch.** Both problems of the last card came from needing $U$: the cubic cost of computing it, and the filter being tied to its eigenvalues. A polynomial in $\\lambda$ defeats both at once. If $g_\\theta(\\lambda)$ is a sum of powers of $\\lambda$, then $g_\\theta(\\Lambda)$ is the same sum of powers of the diagonal matrix, and the two $U$'s that bracket it collapse:"
+    },
+    {
+      "t": "formula",
+      "tex": "U\\, g_\\theta(\\Lambda)\\, U^{\\mathsf T} = \\sum_{k=0}^{K} \\theta_k\\, U\\Lambda^{k}U^{\\mathsf T} = \\sum_{k=0}^{K} \\theta_k\\, (U\\Lambda U^{\\mathsf T})^{k} = \\sum_{k=0}^{K} \\theta_k\\, L^{k}",
+      "note": "The middle equality uses the fact that for powers of a diagonal matrix, $U\\Lambda^{k}U^{\\mathsf T} = (U\\Lambda U^{\\mathsf T})^{k}$. Once written this way, the operator is a polynomial in $L$ alone — no $U$, no eigenvalues, no eigendecomposition.",
+      "gloss": [
+        { "sym": "K", "md": "the degree of the polynomial — how many powers of $L$ are kept" },
+        { "sym": "\\theta_k", "md": "the coefficient of the $k$-th power; these are the learned parameters, replacing the function $g_\\theta$" },
+        { "sym": "L^{k}", "md": "the $k$-th power of the Laplacian. It is applied to a signal by $k$ successive multiplications by the sparse matrix $L$." },
+        { "sym": "U\\Lambda^{k}U^{\\mathsf T}", "md": "the same operator written in the spectral form; the identity says the two descriptions are one and the same operator" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**A K-th order polynomial is a K-hop operator.** The Laplacian connects each vertex only to its immediate neighbours, so multiplying by $L$ once mixes a vertex with its one-hop neighbourhood, twice with its two-hop neighbourhood, and $k$ times with its $k$-hop neighbourhood. A degree-$K$ polynomial in $L$ therefore reaches every vertex within $K$ hops — no further out than that, and, when the constant term $\\theta_0$ is nonzero, always the vertex itself. Two consequences follow: the operator is **local**, since information travels only $K$ steps per layer; and it is **sparse**, since each of the $k$ multiplications touches only the graph's existing edges rather than a dense matrix. A general smooth filter is approximated to any accuracy by some polynomial (this is the classical Weierstrass fact that polynomials are dense among continuous functions), so nothing is lost by restricting to polynomials — only accuracy is traded for degree $K$."
+    },
+    {
+      "t": "p",
+      "md": "**Why Chebyshev specifically.** Among the many polynomials that could approximate a filter, the Chebyshev family $T_k$ is chosen because on an interval it spreads the approximation error evenly rather than concentrating it at the ends, and it is evaluated by a stable three-term recurrence, $T_{k+1}(x) = 2x\\,T_k(x) - T_{k-1}(x)$, starting from $T_0(x) = 1$ and $T_1(x) = x$. To use it, the eigenvalues are rescaled into $[-1,1]$ by $\\tilde{\\Lambda} = \\frac{2}{\\lambda_{\\max}}\\Lambda - I$, where $\\lambda_{\\max}$ is the largest eigenvalue. For the symmetric normalised Laplacian $L_{\\text{sym}} = I - D^{-1/2}AD^{-1/2}$ — the variant whose eigenvalues lie in $[0,2]$ — this bound is exactly $2$, so $\\lambda_{\\max} \\approx 2$ is not a crude guess but the actual ceiling."
+    },
+    {
+      "t": "p",
+      "md": "**The GCN simplification: keep only the first two terms.** Truncate at $K = 1$ and tie the two remaining coefficients together. The chain of algebra is short, and every step is worth seeing, because it is where a spectral filter becomes a plain aggregation."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Truncate at $K = 1$: $g_\\theta(\\Lambda) \\approx \\theta_0 I + \\theta_1\\tilde{\\Lambda}$. With the rescaling $\\tilde{\\Lambda} = \\Lambda - I$ — legitimate because $\\lambda_{\\max} = 2$ — this reads $\\theta_0 I + \\theta_1(\\Lambda - I)$.",
+          "why": "Only the first two Chebyshev terms are kept, so the filter becomes a straight line in $\\lambda$, fixed by the two coefficients $\\theta_0$ and $\\theta_1$."
+        },
+        {
+          "md": "Replace the eigenvalue matrix by the operator it belongs to. The truncated filter is the operator $\\theta_0 I + \\theta_1(L_{\\text{sym}} - I)$, and since $L_{\\text{sym}} - I = -D^{-1/2}AD^{-1/2}$, this becomes $\\theta_0 I - \\theta_1 D^{-1/2}AD^{-1/2}$.",
+          "why": "This is the identity that has driven the whole card: a polynomial in $\\Lambda$ is the matching polynomial in $L$. The constant $I$ survives and $\\Lambda - I$ is replaced by the operator $L_{\\text{sym}} - I = -D^{-1/2}AD^{-1/2}$."
+        },
+        {
+          "md": "Tie the coefficients: set $\\theta_0 = -\\theta_1 = \\theta$. Then $\\theta_0 I - \\theta_1 D^{-1/2}AD^{-1/2} = \\theta\\,(I + D^{-1/2}AD^{-1/2})$.",
+          "why": "Two coefficients collapse into one, halving the parameters and forcing the filter to a single degree of freedom — the shape Kipf and Welling chose."
+        },
+        {
+          "md": "Renormalise: replace $D^{-1/2}AD^{-1/2}$ with $\\hat{D}^{-1/2}\\hat{A}\\hat{D}^{-1/2}$, where $\\hat{A} = A + I$ and $\\hat{D}$ holds its degrees. This is the layer written below.",
+          "why": "The replacement adds the self-loop and rescales the degrees. The reason it is needed is in the warning box that follows, and it is not something the truncation itself produced."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**From one scalar to a weight matrix.** The derivation above ran on a signal with a single feature channel, where the tied coefficient $\\theta$ is a single number. A real layer carries $C$ input channels and produces $F$ output channels, and there the scalar generalises to a $C \\times F$ matrix $\\Theta$ that mixes the channels; the fixed coupling matrix $\\hat{D}^{-1/2}\\hat{A}\\hat{D}^{-1/2}$ stays as it is and contributes no learned parameters. That is the layer written below."
+    },
+    {
+      "t": "formula",
+      "tex": "H^{(l+1)} = \\sigma\\!\\left( \\hat{D}^{-1/2}\\, \\hat{A}\\, \\hat{D}^{-1/2}\\, H^{(l)}\\, \\Theta \\right), \\qquad \\hat{A} = A + I",
+      "note": "Everything learnable is in $\\Theta$. The middle three factors are a fixed coupling matrix: entry $(u,v)$ is $1/\\sqrt{\\hat{d}_u \\hat{d}_v}$ when $u$ and $v$ are joined (counting the self-loop), zero otherwise. This is the graph convolutional network's layer of Kipf and Welling (2017).",
+      "gloss": [
+        { "sym": "A", "md": "the adjacency matrix — 1 where two vertices are joined" },
+        { "sym": "I", "md": "the identity; adding it gives each vertex an edge to itself, the *self-loop*" },
+        { "sym": "\\hat{A} = A + I", "md": "the self-loop-augmented adjacency. Its row sums $\\hat{d}_v$ are the ordinary degrees plus one." },
+        { "sym": "\\hat{D}", "md": "the diagonal matrix of those augmented degrees" },
+        { "sym": "H^{(l)}", "md": "the matrix of all vertices' current features, one row per vertex" },
+        { "sym": "\\Theta", "md": "the learned weight matrix, mixing feature channels — the only trained object here" },
+        { "sym": "\\sigma", "md": "the nonlinearity, applied entry by entry" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**When this fails.** The truncation is the source of the trade-offs. At $K = 1$ the filter reaches only one hop: it does keep each vertex's own feature, through the constant term $\\theta_0 I$, but anything beyond the one-hop neighbourhood is invisible in a single layer. Reaching further means stacking layers, which brings back over-smoothing: many rounds of neighbour-averaging push every vertex towards the same value, until the differences a classifier needs are gone. (An operator built from the bare $D^{-1/2}AD^{-1/2}$ — with no constant term — *would* discard each vertex's own feature, but that is not what the $K = 1$ truncation produces; the $I$ is there.) Larger $K$ approximates the filter better and sees further in one layer, at more compute and with a wider smoothing footprint. And the Chebyshev recurrence, applied without the rescaling into $[-1,1]$, can amplify rather than contract, so the rescaling is not optional."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "One honest correction to the tidy story: the self-loop and the $\\hat{D}^{-1/2}$ normalisation are **not** forced by the truncation. The derivation as written gives the operator $I + D^{-1/2}AD^{-1/2}$, whose repeated application grows without bound. Kipf and Welling replace it with the same recipe evaluated on the self-loop-augmented graph, $\\hat{D}^{-1/2}\\hat{A}\\hat{D}^{-1/2}$, so that the values stay in a stable range when layers stack. The self-loop is a deliberate renormalisation, not a term that fell out of the algebra."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a polynomial filter needs no eigenvectors.** On the two-vertex graph, take the polynomial $p(L) = I - \\tfrac{1}{2}L$. (Every degree here is $1$, so the combinatorial and normalised Laplacians coincide, and $L$ is unambiguous.) Its eigenvalues are $p(0) = 1$ and $p(2) = 1 - 1 = 0$, so as a function of frequency it is the same low-pass filter — it keeps the smooth modes and suppresses the fast ones — as $g(\\lambda) = 1 - \\lambda/2$ in the last card. Apply it to $x = (3,1)$ directly, with no $U$ in sight."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "First compute $Lx$: with $L = \\begin{pmatrix} 1 & -1 \\\\ -1 & 1 \\end{pmatrix}$, $Lx = (1\\cdot3 - 1\\cdot1,\\ -1\\cdot3 + 1\\cdot1) = (2, -2)$.",
+          "why": "This is one sparse multiplication — the only kind of operation the polynomial method ever performs."
+        },
+        {
+          "md": "Form $p(L)x = Ix - \\tfrac{1}{2}Lx = (3,1) - \\tfrac{1}{2}(2,-2) = (3,1) - (1,-1) = (2,2)$.",
+          "why": "The identity contributes the first term and the Laplacian contributes the second; both act on the same signal, and their difference is the output."
+        },
+        {
+          "md": "Compare with the previous card. The spectral route transformed into the eigenbasis, multiplied the two frequency coefficients by the gains $(1, 0)$, and transformed back to reach $(2,2)$. This route performed two sparse multiplications and never formed an eigenvector, and reached the identical answer.",
+          "why": "That equality is the algebraic identity $U\\,g_\\theta(\\Lambda)\\,U^{\\mathsf T} = g_\\theta(L)$ in a concrete case. It is why the polynomial road escapes both problems of the last card."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — one GCN layer, by hand.** The three-vertex path $1\\!-\\!2\\!-\\!3$, with degrees $d = (1,2,1)$. This layer is built on the symmetric normalised Laplacian — the variant the derivation above used — so it is the normalised operator that appears, not $D - A$. Adding self-loops gives augmented degrees $\\hat{d} = (2,3,2)$, so"
+    },
+    {
+      "t": "formula",
+      "tex": "\\hat{D}^{-1/2}\\hat{A}\\hat{D}^{-1/2} = \\begin{pmatrix} 0.5 & 0.4082 & 0 \\\\ 0.4082 & 0.3333 & 0.4082 \\\\ 0 & 0.4082 & 0.5 \\end{pmatrix}",
+      "note": "Every entry is one of three numbers. Diagonal entries are $1/\\hat{d}_v$: $1/2 = 0.5$ for the leaves and $1/3 = 0.3333$ for the middle vertex. Off-diagonal entries are $1/\\sqrt{\\hat{d}_u\\hat{d}_v} = 1/\\sqrt{2\\cdot3} = 1/\\sqrt{6} \\approx 0.4082$.",
+      "gloss": [
+        { "sym": "0.5", "md": "$1/\\hat{d}_v$ for a vertex with augmented degree $2$ — a leaf's self-loop weight" },
+        { "sym": "0.3333", "md": "$1/\\hat{d}_v$ for the middle vertex, whose augmented degree is $3$ — it listens to itself least, because it has the most neighbours" },
+        { "sym": "0.4082", "md": "$1/\\sqrt{6}$ — the weight on each real edge, shared by both directions because the operator is symmetric" }
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Give the vertices features $x = (1, 2, 3)$, take $\\Theta$ to be the identity (so no feature-mixing), and let $\\sigma$ be the ReLU (the rectified linear unit, $\\max(0, \\cdot)$ applied entry by entry). Vertex 1's new value: $0.5 \\times 1 + 0.40825 \\times 2 = 0.5 + 0.8165 = 1.3165$.",
+          "why": "Vertex 1 keeps a damped copy of itself through the self-loop and hears its one neighbour. Row 1 has only two nonzero entries, both used here."
+        },
+        {
+          "md": "Vertex 2's new value: $\\frac{1}{\\sqrt6} \\times 1 + \\frac{1}{3} \\times 2 + \\frac{1}{\\sqrt6} \\times 3 = 0.40825 + 0.66667 + 1.22474 = 2.29966 \\approx 2.2997$.",
+          "why": "The middle vertex has three terms. Its self-weight $0.3333$ is the smallest in its row, because its augmented degree of $3$ is the largest — the more neighbours a vertex has, the less it trusts its own value."
+        },
+        {
+          "md": "Vertex 3's new value: $0.40825 \\times 2 + 0.5 \\times 3 = 0.8165 + 1.5 = 2.3165$.",
+          "why": "Symmetric to vertex 1 in structure, but its own feature differs, so the numbers differ."
+        },
+        {
+          "md": "The layer's output is $(1.3165,\\ 2.2997,\\ 2.3165)$, and the ReLU leaves all three untouched since they are positive.",
+          "why": "Compare the spreads: the input ranged from $1$ to $3$, a spread of $2$; the output ranges from $1.3165$ to $2.3165$, a spread of exactly $1$. One round of neighbour-averaging has halved the spread — the first visible symptom of the smoothing that a deep stack of these layers carries too far."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**What this example does not show.** $\\Theta$ was set to the identity, so no feature channels were mixed; a real layer's $\\Theta$ has shape (input features) $\\times$ (output features) and combines them. The graph has three vertices, so degree normalisation barely does any work — its effect grows with how unequal the degrees are. And one layer says nothing about what happens when many are stacked, which is where over-smoothing becomes the binding constraint."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does turning the filter into a polynomial remove the need for an eigendecomposition?",
+      "opts": [
+        {
+          "md": "Because Chebyshev polynomials are orthogonal, so they can be evaluated quickly",
+          "expl": "Orthogonality is a real property of Chebyshev polynomials, but it is not why the eigendecomposition disappears. The escape comes from powers of $L$ replacing powers of $\\Lambda$ — orthogonality is only about which polynomial is easy to compute."
+        },
+        {
+          "md": "Because for a polynomial, $U g(\\Lambda) U^{\\mathsf T} = g(L)$: the two $U$'s cancel, leaving powers of the sparse Laplacian applied by repeated multiplication",
+          "correct": true,
+          "expl": "Correct. The identity $U\\Lambda^{k}U^{\\mathsf T} = L^{k}$ lets the operator be expressed entirely in $L$, which is sparse, so each power costs one sparse multiplication and no eigenvectors are ever formed."
+        },
+        {
+          "md": "Because the graph is sparse, so the Laplacian has few nonzero entries",
+          "expl": "Sparsity makes each multiplication cheap once you are working with $L$, which is why the method is fast. But sparsity alone would not remove $U$ — a sparse matrix still has a full set of eigenvectors that a general filter would need."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Before any filter is applied, on which vertices does a $K$-th order polynomial filter's value at a given vertex depend?",
+      "opts": [
+        {
+          "md": "Every vertex in the graph, because the polynomial is a global object",
+          "expl": "That is true of a general spectral filter, and it is one reason to prefer polynomials. A polynomial in $L$ is local precisely because $L$ connects only immediate neighbours."
+        },
+        {
+          "md": "Only the vertices within $K$ hops of it, because each multiplication by $L$ extends the reach by one hop",
+          "correct": true,
+          "expl": "Correct. One multiplication by $L$ mixes in the one-hop neighbours, two multiplications reach two hops, and degree $K$ reaches $K$ hops and no further. This locality is what makes the operator sparse and cheap, and it is exactly what a general spectral filter does not guarantee."
+        },
+        {
+          "md": "Only the vertex itself and its direct neighbours, for any $K$",
+          "expl": "That is the $K = 1$ case. Higher $K$ reaches further; the reach equals the degree, one hop per power of $L$."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "For the three-vertex path $1\\!-\\!2\\!-\\!3$, apply one GCN layer with $\\Theta$ the identity and no nonlinearity, to the features $x = (1, 0, 1)$. What is vertex 2's output?",
+      "answer": 0.816,
+      "tol": 0.01,
+      "hint": "Vertex 2's row of the operator above holds the coefficient 0.4082 twice and 0.3333 once. Match them to x₁, x₂ and x₃ by their positions in that row.",
+      "sol": "Vertex 2's row holds $0.4082$ in column 1, $0.3333$ in column 2, and $0.4082$ in column 3. The output is $0.4082 \\times 1 + 0.3333 \\times 0 + 0.4082 \\times 1 = 0.4082 + 0 + 0.4082 = 0.8165 \\approx 0.816$. Note vertex 2's own feature was $0$, so the output comes entirely from its two neighbours.",
+      "unit": "output value"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A colleague raises the Chebyshev degree from $K = 1$ to $K = 4$ in a single layer. What is the most direct effect?",
+      "opts": [
+        {
+          "md": "The layer now sees a four-hop neighbourhood and approximates the filter more closely, at a cost of more multiplications and a wider smoothing footprint",
+          "correct": true,
+          "expl": "Correct on both the benefit and the cost. Higher $K$ buys fidelity and reach in one layer, but each extra power of $L$ is another sparse multiplication and another hop of mixing, so features from distant vertices arrive already averaged."
+        },
+        {
+          "md": "The layer becomes nonlinear, because higher-degree polynomials are not linear",
+          "expl": "Nonlinearity comes from $\\sigma$, not from the degree of the filter. A polynomial in $L$ is still a linear operator on the signal, whatever its degree."
+        },
+        {
+          "md": "The eigendecomposition becomes necessary again",
+          "expl": "The opposite — polynomial filters of any degree avoid the eigendecomposition. Increasing $K$ adds powers of $L$, which is still a sparse $L$ multiplied repeatedly."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the polynomial road produced GCN, a spatial-looking operator with a spectral pedigree. The last card asks which road the paper's own layer travels, and it turns out the answer is stated in the algebra itself."
+}

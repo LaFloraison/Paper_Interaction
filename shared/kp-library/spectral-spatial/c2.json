@@ -1,0 +1,202 @@
+{
+  "kind": "extension",
+  "title": "Spectral convolution, and its two problems",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "The **graph Fourier transform** of a signal $x$ on the vertices is $\\hat{x} = U^{\\mathsf T} x$, its coordinates in the Laplacian's eigenbasis; the inverse transform is $x = U\\hat{x}$. A **spectral graph convolution** chooses a filter — a function $g_\\theta$ of the eigenvalue, applied to every frequency at once — and defines $y = U\\, g_\\theta(\\Lambda)\\, U^{\\mathsf T} x$, where $g_\\theta(\\Lambda)$ is the diagonal matrix holding $g_\\theta(\\lambda_i)$. It is called a convolution because it acts *diagonally* in the frequency basis, scaling each frequency independently, which is the property the classical convolution theorem singles out.",
+      "plain": "Send the signal into the frequency basis, scale each frequency by a chosen amount, and send it back. That scaling-in-the-frequency-basis rule is the definition of convolution on a graph."
+    },
+    {
+      "t": "p",
+      "md": "**Where the definition comes from.** On a line, convolving a signal with a small window is the same as multiplying their Fourier transforms: the transform turns convolution into an ordinary product, one factor at each frequency. Two facts are bundled in that theorem — convolution is built from shifts, and being built from shifts is *why* it becomes diagonal in the Fourier basis. A graph has no shift (the translation you were told it lacks), so the spectral road keeps the second fact and promotes it to the definition: choose the operator that scales each frequency independently, and call it convolution."
+    },
+    {
+      "t": "p",
+      "md": "**A graph convolution is an operator that multiplies each frequency by its own factor in the Laplacian's eigenbasis.** That single sentence is the convolution theorem with the eigenvectors standing in for sines and cosines. Diagonal in the frequency basis means no frequency is mixed with any other — each mode comes out of the operation scaled, never blended, exactly as on a line."
+    },
+    {
+      "t": "formula",
+      "tex": "y = U\\, g_\\theta(\\Lambda)\\, U^{\\mathsf T} x",
+      "note": "Three steps left to right. $U^{\\mathsf T}x$ transforms the signal into frequency coordinates. $g_\\theta(\\Lambda)$ multiplies the $i$-th coordinate by $g_\\theta(\\lambda_i)$ — one gain per frequency, and $\theta$ are the parameters that choose the filter. $U(\\cdot)$ transforms back to the vertices. Because $g_\\theta(\\Lambda)$ is diagonal, no two frequencies interact.",
+      "gloss": [
+        { "sym": "x", "md": "the input signal, one value per vertex" },
+        { "sym": "U^{\\mathsf T}x", "md": "the Fourier transform: the signal rewritten as amounts of each eigenvector" },
+        { "sym": "g_\\theta", "md": "the filter — a function of the eigenvalue. The subscript $\\theta$ marks its learnable parameters; different $\\theta$ give different filters." },
+        { "sym": "g_\\theta(\\Lambda)", "md": "the diagonal matrix with $g_\\theta(\\lambda_i)$ in position $(i,i)$ — the gain applied to each frequency" },
+        { "sym": "U(\\cdot)", "md": "the inverse transform: turn frequency coefficients back into vertex values" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**It is a real convolution, not a metaphor.** Two things have to hold, and they do. First, the operation is diagonal in the frequency basis, so every frequency is scaled and none is mixed — precisely the structure the convolution theorem produces on the line. Second, when the graph is a cycle, the Laplacian's eigenvectors *are* the discrete Fourier modes, so $g_\\theta(\\Lambda)$ reduces to the classical Fourier multiplier and the line's convolution is the special case. The spectral construction is therefore a strict generalisation."
+    },
+    {
+      "t": "p",
+      "md": "**Problem one — the eigendecomposition is cubic.** To use $U$ you must compute it, and computing all eigenvectors of an $N\\times N$ matrix costs $O(N^{3})$ operations; the matrix itself holds $N^{2}$ numbers, and even applying it once costs $O(N^{2})$. For the graph sizes papers care about this is fatal, and it must be redone for every new graph. Worse, there is no fast transform to help: the intuition that Fourier transforms are cheap comes from the grid, where the FFT exploits the regular spacing. A graph's $U$ is dense and irregular, and multiplying by it is a full dense matrix-vector product."
+    },
+    {
+      "t": "p",
+      "md": "**Problem two — the filter is tied to one graph.** The gains $g_\\theta(\\lambda_i)$ are indexed by *this graph's* eigenvalues. Training learns the parameters $\\theta$ against one particular spectrum; applied to a graph with a different spectrum, the same $\\theta$ defines a different function of frequency. So a spectral filter does not transfer between graphs — it is **transductive**, tied to the graph it was fit on. A layer whose parameters act on the features instead of on the spectrum does not have this problem, and that distinction is the whole reason the field moved on."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**When this construction fails.** Besides the two costs above: if eigenvalues repeat, $g_\\theta$ assigns the same gain to every mode sharing that eigenvalue and cannot separate them (the four-vertex graph of the last card has $\\lambda=1$ with multiplicity two). And the filter gives no control over *locality* — a single gain per frequency can make every vertex depend on every other vertex, with no notion of 'neighbours only'. The next card's polynomial approximation repairs both the cost and, incidentally, the locality."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — a filter you can compute by hand.** On the two-vertex graph of the last card, $U = \\frac{1}{\\sqrt{2}}\\begin{pmatrix} 1 & 1 \\\\ 1 & -1 \\end{pmatrix}$ (columns are the two modes), and the eigenvalues are $\\lambda = 0$ and $\\lambda = 2$. Take the signal $x = (3,1)$ and the filter $g_\\theta(\\lambda) = 1 - \\lambda/2$, a low-pass that keeps the smooth mode and kills the fast one."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Transform: $U^{\\mathsf T}x = \\frac{1}{\\sqrt{2}}\\begin{pmatrix} 3 + 1 \\\\ 3 - 1 \\end{pmatrix} = \\frac{1}{\\sqrt{2}}(4,\\ 2) = (2.8284,\\ 1.4142)$. So the signal holds $2.8284$ of the constant mode and $1.4142$ of the alternating mode.",
+          "why": "The first coordinate is the sum direction (the DC projection) and the second is the difference direction; the $1/\\sqrt{2}$ makes both coordinates comparable in size."
+        },
+        {
+          "md": "Apply the gains. $g_\\theta(0) = 1 - 0/2 = 1$ and $g_\\theta(2) = 1 - 2/2 = 0$. Multiply coordinatewise: $(1 \\times 2.8284,\\ 0 \\times 1.4142) = (2.8284,\\ 0)$.",
+          "why": "This is the diagonal step, and it is where the filter acts: the constant frequency passes through untouched, the alternating frequency is removed entirely."
+        },
+        {
+          "md": "Invert: $U(2.8284,\\ 0) = \\frac{1}{\\sqrt{2}}\\begin{pmatrix} 2.8284 + 0 \\\\ 2.8284 - 0 \\end{pmatrix} = (2,\\ 2)$.",
+          "why": "The two coordinates of the answer are equal, so the output is constant across the graph. Note $2$ is exactly the mean of the input, $(3+1)/2 = 2$."
+        },
+        {
+          "md": "Read the operator. Killing the fast mode leaves the graph average — this filter *is* neighbour-averaging, seen from the frequency side. Swap to the high-pass $g_\\theta(\\lambda) = \\lambda/2$, whose gains are $g(0)=0$ and $g(2)=1$: the transform $(2.8284, 1.4142)$ scales to $(0, 1.4142)$, and inverting gives $(1, -1) = x - \\text{mean}$ — the difference from the average, with the smooth part removed.",
+          "why": "Low-pass and high-pass are two ends of the same dial. Recognising that averaging is a low-pass spectral filter is what lets the spectral and spatial roads later be shown to meet."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — the same filter, a different graph, a different meaning.** Apply that same $g_\\theta(\\lambda) = 1 - \\lambda/2$ to the three-vertex path $1\\!-\\!2\\!-\\!3$, whose eigenvalues are $0$, $1$ and $3$. The gains become:"
+    },
+    {
+      "t": "table",
+      "head": ["Graph", "Eigenvalues", "Gains of g(λ) = 1 − λ/2"],
+      "rows": [
+        ["Two-vertex edge", "$0,\\ 2$", "$1,\\ 0$"],
+        ["Three-vertex path", "$0,\\ 1,\\ 3$", "$1,\\ 0.5,\\ -0.5$"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "Read the last entry. On the two-vertex graph the filter merely *silenced* the top frequency; on the three-vertex path it gives the top frequency a **negative** gain of $-0.5$, inverting it and keeping half its strength. The parameters $\\theta$ did not change, but the meaning of the filter did, because the eigenvalue it now acts on is $3$ rather than $2$. This is Problem two made visible: a spectral filter describes an action on a spectrum, and every graph brings its own spectrum."
+    },
+    {
+      "t": "p",
+      "md": "**The cost, counted.** The eigendecomposition is cubic in the number of vertices, so the numbers grow quickly:"
+    },
+    {
+      "t": "table",
+      "head": ["Vertices N", "Matrix entries (N²)", "Eigendecomposition (order N³)"],
+      "rows": [
+        ["100", "10,000", "about 10⁶"],
+        ["1,000", "10⁶", "about 10⁹"],
+        ["1,000,000", "10¹²", "about 10¹⁸"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**What this example does not show.** The filters here are hand-chosen; a trained spectral filter would tune $\\theta$ by gradient descent, and the derivative passes through $U$ as well. Nor does the example show the cost in wall-clock time — only the operation counts, which are what separate a workable method from an unusable one."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What makes the spectral recipe a *convolution* rather than merely some linear operation on a graph?",
+      "opts": [
+        {
+          "md": "It slides a weighted window across the vertices, as classical convolution does",
+          "expl": "A graph has no shift, so no window can be slid — that absence is why this road exists at all. The recipe never slides anything; it multiplies in the frequency basis."
+        },
+        {
+          "md": "It acts diagonally in the frequency basis, scaling each frequency independently and mixing none — the same structure the convolution theorem produces on a line, and which reduces to classical convolution when the graph is a cycle",
+          "correct": true,
+          "expl": "Correct on all parts. The defining feature is diagonal action in the eigenbasis; the cycle case shows this is a strict generalisation rather than a different idea."
+        },
+        {
+          "md": "It is symmetric in the two graph signals being combined",
+          "expl": "Symmetry is a property of convolution on the line but is not what defines it, and a filter $g_\\theta$ need not be symmetric anyway. The load-bearing property is diagonality in the frequency basis."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "On the two-vertex graph, apply the filter $g_\\theta(\\lambda) = 1 - \\lambda/4$ to the signal $x = (4,2)$. What is the output value at vertex 1?",
+      "answer": 3.5,
+      "tol": 0.02,
+      "hint": "Transform with $U^{\\mathsf T}$, apply one gain to each of the two frequencies, then transform back. The two gains are not $0$ and $1$ this time.",
+      "sol": "Eigenvalues are $0$ and $2$, so the gains are $g(0) = 1$ and $g(2) = 1 - 2/4 = 0.5$. Transform: $U^{\\mathsf T}x = \\frac{1}{\\sqrt{2}}(4+2,\\ 4-2) = \\frac{1}{\\sqrt{2}}(6,\\ 2) = (4.2426,\\ 1.4142)$. Scale: $(4.2426,\\ 0.7071)$. Invert: $U(4.2426,\\ 0.7071) = \\frac{1}{\\sqrt{2}}(4.2426+0.7071,\\ 4.2426-0.7071) = \\frac{1}{\\sqrt{2}}(4.9497,\\ 3.5355) = (3.5,\\ 2.5)$. Both vertices output non-equal values; vertex 1 gives 3.5 and vertex 2 gives 2.5, so the answer is 3.5. The output sits between the input values, pulled towards their mean of $3$ because the fast mode was halved rather than killed.",
+      "unit": "output value"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A spectral filter is trained on a 700-vertex graph and then applied unchanged to a 20,000-vertex graph. Which statement is true?",
+      "opts": [
+        {
+          "md": "It works as intended, because the filter is a function of frequency and both graphs have frequencies",
+          "expl": "Each graph has its own eigenvalues, so $g_\\theta(\\lambda)$ samples a different set of points. The learned gains land on different frequencies — the filter has quietly changed meaning, as the three-vertex-path example shows."
+        },
+        {
+          "md": "Its parameters are tied to the training graph's spectrum, so the same gains now apply at different frequencies; and the new graph's eigenvectors must be computed separately",
+          "correct": true,
+          "expl": "Correct on both counts — Problem two and Problem one together. The learned $\\theta$ indexes one spectrum and has no meaning on another, and there is no way to reuse the old $U$ because the new graph has its own. This double failure is the reason the spatial road is attractive."
+        },
+        {
+          "md": "It fails only because the new graph is larger, so the same filter is too small",
+          "expl": "Size is incidental. Even a same-size graph with a different structure breaks the filter, because the eigenvalues differ; the problem is the spectrum, not the count of vertices."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why is the eigendecomposition called a *blocker* rather than a mere inconvenience?",
+      "opts": [
+        {
+          "md": "Because it is expensive in a way that no algorithmic trick can remove, and it must be recomputed for every new graph",
+          "correct": true,
+          "expl": "Correct. Doubling the vertex count multiplies the work by about eight, and there is no graph analogue of the FFT to exploit regularity that is not there. Every new graph forces the whole thing again, which rules out training on one graph and deploying on another."
+        },
+        {
+          "md": "Because eigenvectors are irrational numbers and cannot be stored exactly",
+          "expl": "Floating-point rounding is a real but minor concern, and it is not why the method was abandoned. The blocker is the cubic cost and its per-graph repetition."
+        },
+        {
+          "md": "Because the Laplacian is sparse while its eigenvectors are dense",
+          "expl": "The denseness of $U$ is a genuine related cost — applying it is $O(N^{2})$ per signal — and it is part of the story. But the headline blocker is the $O(N^{3})$ computation of $U$ itself, which denseness alone does not explain."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You double the number of vertices in your graph. Roughly how does the cost of the eigendecomposition change, and why does it matter?",
+      "opts": [
+        {
+          "md": "It doubles, so large graphs remain feasible",
+          "expl": "The cost is cubic, not linear. Adding vertices adds both rows and columns to the matrix, and the work grows with both."
+        },
+        {
+          "md": "It roughly octuples, because the cost scales as the cube of the vertex count — so the largest graphs are out of reach",
+          "correct": true,
+          "expl": "Correct: $2^{3} = 8$. A million-vertex graph would need on the order of $10^{18}$ operations for the decomposition alone, which is why the field needed a construction that never forms $U$."
+        },
+        {
+          "md": "It is unchanged, because you only add vertices rather than edges",
+          "expl": "The decomposition is of an $N\\times N$ matrix, and $N$ grew. Adding vertices enlarges the matrix whether or not edges were added; the eigenvalues themselves also change."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** both problems — the cubic eigendecomposition and the graph-specific filter — come from needing $U$. If the filter is turned into a polynomial in $L$, the $U$'s cancel algebraically and neither problem remains. The next card performs that substitution."
+}

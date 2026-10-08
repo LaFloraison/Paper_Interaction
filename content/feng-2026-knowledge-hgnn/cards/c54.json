@@ -1,0 +1,121 @@
+{
+  "id": "54",
+  "kind": "intro",
+  "chapter": "intro",
+  "section": "4.5 The citations",
+  "kicker": "4.5 · The introduction",
+  "title": "What every citation is doing",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A citation performs one of a small number of jobs: it **defines** a concept, it **supplies** a method the paper builds on or compares against, it **provides** data or an experimental protocol, it **narrates** related work, or it **supports** a factual claim. Identifying which job a given citation is doing is the first step in checking it, because each job is verified differently — a method citation can be read, a supporting citation must actually support the sentence it is attached to.",
+      "plain": "Every reference in a paper is doing a job. Work out which job, and you know how to check it."
+    },
+    {
+      "t": "p",
+      "md": "**The five jobs, with this paper's examples.** The reference list is a small map of the field, and reading it this way turns the bibliography from a formality into evidence."
+    },
+    {
+      "t": "table",
+      "head": ["Job", "This paper's examples", "How to check it"],
+      "rows": [
+        ["**Supplies the method**", "[1] Feng et al., *Hypergraph Neural Networks* (AAAI 2019) — the convolution this paper inherits and critiques; [2] Zhou et al. (NeurIPS 2006) — the hypergraph Laplacian at the root of the line", "Read the formula. The paper writes out its own version, so a direct comparison is possible"],
+        ["**Narrates related work**", "[10] HyperGCN, [11] dynamic hypergraph networks, [17] UniGNN, [18] AllSet, [16] HpLapGCN — the family of hypergraph networks", "The claim is that they share one paradigm. One counterexample weakens it, so this is the sentence to test against the cited work"],
+        ["**Names the phenomena**", "[14] Topping et al., *Understanding over-squashing … via curvature* (ICLR 2022) for over-squashing; [13] for over-smoothing in hypergraphs", "Well matched: [14] is a paper specifically about over-squashing, so the term is borrowed from its proper source rather than invented"],
+        ["**Defines the nearest competitors**", "[20] DeepTLF, [21] BGNN — methods that combine boosted trees with neural networks", "These are the papers the contribution is defined against. Chapter 6's baseline table should include them"],
+        ["**Provides the data**", "[28] Cora, [29] Github, [30] Amazon-P and Amazon-C", "Verifiable: the datasets' standard usage and splits are fixed by these sources, so they settle what \"the Cora split\" means"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "One citation in this paper is notable for who wrote it. Reference [1] is **Y. F. Feng et al., \"Hypergraph neural networks\", AAAI 2019** — and the first author of *this* paper is Yifan Feng. The paper therefore builds on, and argues against the completeness of, a line that its own first author started. That is worth registering for two reasons: it makes the critique of the paradigm partly self-criticism, which is a good sign for its honesty, and it means the comparison against [1] is as favourable a setting as that comparison could have — the authors know their own baseline intimately."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "One citation does not obviously do its job. The introduction writes that existing methods have \"notable limitations in their ability to extract knowledge **[9]**\" — and reference [9] is *\"Hypergraph limits: A regularity approach\"*, a paper on the asymptotic structure of dense hypergraph sequences. It is a pure-mathematics result. A reader who follows the citation looking for evidence about knowledge extraction will not find it there. **This is not proof of a problem — the citation may be to a definition being leaned on — but it is exactly the kind of thing that following a citation is for.**"
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — classify one sentence's citations.** Take the related-work sentence: \"Feng et al. [1] first proposed the spectral-based hypergraph convolution method, which adopts the hypergraph Laplacian to smooth the messages via hyperedges. Yadati et al. [10] design a mediator-based hypergraph Laplacian matrix generation strategy…\""
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "[1] is doing two jobs at once: it supplies the method (spectral hypergraph convolution) and it is the target of the paper's critique (the smoothing paradigm).",
+          "why": "A citation that does two jobs is not a fault, but it means the reader must keep them separate — disagreeing with the critique does not mean the method is wrong, and vice versa."
+        },
+        {
+          "md": "[10] is narrating: it is another member of the same family, described in one clause so the family looks populated.",
+          "why": "Narration citations are the ones most often counted rather than read. Their function is to establish that the paper knows the area, and their number says nothing about the strength of the argument."
+        },
+        {
+          "md": "Neither citation is being asked to support a factual claim — they are naming methods. So there is nothing to verify beyond the one-line descriptions being accurate.",
+          "why": "This is the practical payoff: notice that most citations in a related-work paragraph are narration and need only be accurate, while the few attached to a *claim* are the ones that must actually support it. Reading the bibliography with that distinction makes the check tractable."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**The habit in one line:** when a citation sits at the end of a factual claim, follow it. When it sits at the end of a method name, you only need to check that the name is right. Papers have far fewer claim-supporting citations than they have references, which is why following the former is a realistic thing to do."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which kind of citation is worth following up, and why?",
+      "opts": [
+        {
+          "md": "The first citation of each paragraph, because it establishes the topic",
+          "expl": "Position in the paragraph says nothing about the job being done. A paragraph can open with narration."
+        },
+        {
+          "md": "A citation attached to a factual claim, because it is being asked to support that claim",
+          "correct": true,
+          "expl": "Correct. A method citation needs only to name the right method; a claim-supporting citation has to make the sentence true. The second is a claim about the world that can be checked, and it is where mismatches appear."
+        },
+        {
+          "md": "Citations to the paper's own authors, because they indicate self-promotion",
+          "expl": "Self-citation is normal and often unavoidable — here it is close to mandatory, since the paper extends its first author's own method. The informative thing is what role the self-citation plays, not that it exists."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "How many of the paper's numbered references are cited in the introduction's opening paragraph about applications, counting the cluster given as [3]–[8] plus [1]?",
+      "answer": 7,
+      "tol": 0.01,
+      "hint": "The paragraph opens with [1] and then cites a run of application papers.",
+      "sol": "Seven: [1] plus [3], [4], [5], [6], [7], [8]. This is a *narration* cluster — six references establishing that hypergraph methods are used in brain imaging, recommendation, social networks and vision. Counting them is instructive: six citations carry one sentence's worth of content, which is the normal density for an introduction's relevance paragraph and says nothing about the paper's argument.",
+      "unit": "references"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The paper's first author also wrote the method it builds on. What does that imply for how you read the comparison against that method?",
+      "opts": [
+        {
+          "md": "The comparison is suspect because the authors are marking their own work",
+          "expl": "The opposite inference is at least as plausible. Criticising your own prior method is a costlier rhetorical move than criticising a stranger's, since it concedes a limitation of your earlier contribution."
+        },
+        {
+          "md": "The baseline is likely to be implemented and tuned competently, which strengthens rather than weakens the comparison",
+          "correct": true,
+          "expl": "Correct. A common failure in comparisons is a weakly tuned baseline, especially a competitor's. Knowing the baseline's authors intimately reduces that risk. The caveat worth carrying is different: it is a comparison among *related* methods, so it does not tell you how the approach fares against families the authors had no hand in — which is why the tabular baselines like GBDT matter in this paper's tables."
+        },
+        {
+          "md": "It means the two methods must be mathematically equivalent",
+          "expl": "Nothing follows about equivalence. The paper's Equation (1) is the inherited layer used unchanged, while Equation (3) and beyond are new — sharing a component is not sharing a method."
+        }
+      ]
+    }
+  ],
+  "close": "**Chapter complete.** You have now seen where the argument comes from, what it claims, how it is framed, and who is being cited. **Next:** the method itself — chapter 5 begins with the two-step framework and then takes the ten numbered equations one at a time, in order."
+}

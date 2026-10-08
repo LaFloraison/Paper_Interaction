@@ -1,0 +1,7 @@
+{
+  "key": "ranks-significance",
+  "name": "Average ranks and significance",
+  "title": "Average ranks and significance: comparing methods across datasets",
+  "blurb": "The paper's headline comparison is a single average rank per method, computed over ten datasets. This section builds that number from zero: why raw scores from different datasets cannot be averaged, how a rank is computed and how tied scores are handled, and what the resulting number does and does not prove about a difference between two methods.",
+  "skip_hint": "If you can compute an average rank from a table of per-dataset scores, apply the tied-ranks convention, and explain why a count of wins is not a significance test, skip this section."
+}

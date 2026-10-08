@@ -1,0 +1,114 @@
+{
+  "kind": "extension",
+  "title": "The Laplacian, and why a graph has no convolution",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "For a graph with adjacency matrix $A$ and degree matrix $D = \\mathrm{diag}(d_1, \\dots, d_n)$ (degrees on the diagonal, zeros elsewhere), the Laplacian is $L = D - A$. Every row of $L$ sums to zero, because each row has $d_i$ on the diagonal and one $-1$ for each of the $d_i$ neighbours, which is why $L\\mathbf{1} = \\mathbf{0}$ for the all-ones vector.",
+      "plain": "Take the degree matrix and subtract the adjacency matrix. What you get measures, for every vertex, how different it is from its neighbours — and it is the closest thing a graph has to a derivative."
+    },
+    {
+      "t": "p",
+      "md": "**Why anyone wants it.** On a line or a grid, the second derivative is $f(i+1) - 2f(i) + f(i-1)$: a vertex minus the average of its neighbours, rescaled. The Laplacian is the graph-shaped version of exactly that expression, and its special vectors are the graph's Fourier modes. Everything in the spectral branch of graph learning starts here."
+    },
+    {
+      "t": "p",
+      "md": "**And why a graph cannot simply be convolved.** A convolution slides a weighted window over a signal: $y_i = \\sum_k w_k\\, x_{i+k}$. That formula needs two things. First, a way to *shift* — an operation that sends index $i$ to index $i{+}1$, which needs a notion of translation. Second, a way to *name* the neighbours in order — so that $w_1$ means \"the neighbour one step to the right\" and the same $w_1$ always attaches to the same position. A graph has neither: its vertices have no coordinates to translate along, and no canonical ordering of a vertex's neighbours, so \"the first neighbour\" is not a thing."
+    },
+    {
+      "t": "callout",
+      "md": "This is the whole reason graph neural networks look the way they do. Every architecture is a different attempt to supply what convolution was getting for free: a substitute for shifting (the Laplacian's eigenvectors, or a message-passing rule) and a substitute for ordering (symmetric aggregation, such as a sum or an average, which does not care about order). The next extension section builds that ladder from GCN to this paper's own layer."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — build the Laplacian and check the identity.** Take the four-person graph one last time: degrees $1, 3, 1, 1$, so"
+    },
+    {
+      "t": "formula",
+      "tex": "L = D - A = \\begin{pmatrix} 1 & -1 & 0 & 0 \\\\ -1 & 3 & -1 & -1 \\\\ 0 & -1 & 1 & 0 \\\\ 0 & -1 & 0 & 1 \\end{pmatrix}",
+      "note": "The diagonal holds the degrees; each off-diagonal $-1$ marks an adjacency. Check the row sums: $1-1=0$, then $-1+3-1-1=0$, then $-1+1=0$, then $-1+1=0$.",
+      "gloss": [
+        { "sym": "D", "md": "the degree matrix — degrees down the diagonal, zeros elsewhere" },
+        { "sym": "L", "md": "the Laplacian, $D - A$; its rows always sum to zero" },
+        { "sym": "L\\mathbf{1} = \\mathbf{0}", "md": "multiplying $L$ by the all-ones vector gives the zero vector — the row-sum fact stated as linear algebra" }
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Apply $L$ to a signal $x = (10, 20, 30, 40)$ on the four vertices. Row 1 gives $1 \\cdot 10 - 1 \\cdot 20 = -10$.",
+          "why": "Vertex 1's value minus its single neighbour's value. A large negative number means this vertex sits well below its neighbourhood."
+        },
+        {
+          "md": "Row 2 gives $-10 + 3 \\cdot 20 - 30 - 40 = -20$. Row 3 gives $20 - 30 = -10$; row 4 gives $20 - 40 = -20$.",
+          "why": "The hub is compared with all three of its neighbours at once — this is where degree, and the need to normalise it, enters."
+        },
+        {
+          "md": "The result, $(-10, -20, -10, -20)$, is the signal's graph-derivative: how far each vertex is from its neighbourhood.",
+          "why": "Repeatedly subtracting this difference is exactly what \"smoothing\" means, and it is the operation the paper's Equation (1) performs — with two normalising factors added to stop hub vertices from swamping the result."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "One consequence is worth noticing early, because Chapter 6 measures it: apply this smoothing many times and every vertex converges towards the same value. On this graph the signal $(10,20,30,40)$ moves towards the graph average on each round, and after enough rounds all four entries agree. **The information has been smoothed away rather than propagated** — that is over-smoothing, and the paper's Table VIII is devoted to it."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which two things does sliding-window convolution get for free on a grid that a graph does not provide?",
+      "opts": [
+        {
+          "md": "A notion of translation, and a canonical ordering of a vertex's neighbours",
+          "correct": true,
+          "expl": "Correct. Without translation there is no $i{+}k$ to slide to; without a canonical order there is no way to say which weight $w_k$ attaches to which neighbour. Every graph network is a workaround for one or both."
+        },
+        {
+          "md": "A notion of distance, and a maximum vertex degree",
+          "expl": "Graphs do have distances (shortest paths) and degrees — and neither is what convolution needs. The blocker is shifting and ordering."
+        },
+        {
+          "md": "A loss function, and a learning rate",
+          "expl": "Those are training choices, available to any differentiable model, graph or grid."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "For the four-person graph, what is the sum of row 2 of the Laplacian?",
+      "answer": 0,
+      "tol": 0.001,
+      "hint": "Do not compute anything new — every Laplacian row sums to the same value, and that value is a property of the definition.",
+      "sol": "Row 2 is $(-1, 3, -1, -1)$, summing to $-1 + 3 - 1 - 1 = 0$. Every row sums to zero because the diagonal carries the degree and the off-diagonal $-1$s count exactly the neighbours. This is why $L\\mathbf{1} = \\mathbf{0}$ — the constant signal is always in the kernel, which is the algebraic statement of \"a flat signal has zero gradient\".",
+      "unit": "row sum"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Applied repeatedly, what happens to a signal under this kind of neighbour-averaging?",
+      "opts": [
+        {
+          "md": "It grows without bound",
+          "expl": "Averaging cannot increase the range of the values. Each round moves every vertex towards its neighbours, so the extreme values pull inwards."
+        },
+        {
+          "md": "It converges to a constant across all vertices, erasing the differences",
+          "correct": true,
+          "expl": "Correct, and this is over-smoothing. It is the reason depth is a liability in graph networks — the paper's Table VIII shows an eight-layer baseline collapsing from 73.41 to 30.22 accuracy. Knowing this now makes that table a confirmation rather than a surprise."
+        },
+        {
+          "md": "Nothing changes after the first application",
+          "expl": "Each application averages again. One step reduces the differences; repeated steps reduce them to nothing."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the Laplacian's failure to be a convolution is what graph neural networks were invented to fix — and one of those networks is the paper's Equation (1). The next extension section builds that ladder."
+}

@@ -1,0 +1,137 @@
+{
+  "kind": "extension",
+  "title": "GCN: a degree-normalised sum, and two reasons it is the right one",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **graph convolutional network (GCN) layer**, as introduced by Kipf and Welling (2017), is the message-passing update in which the aggregation is a sum over the neighbours *of the self-loop-augmented graph*, each neighbour's contribution scaled by $1/\\sqrt{\\hat{d}_u \\hat{d}_v}$, and the result transformed by a learned matrix. In matrix form, with $\\hat{A} = A + I$ and $\\hat{D}$ the degree matrix of $\\hat{A}$,",
+      "plain": "Take each vertex's neighbours, and also the vertex itself. Add up their feature vectors, but give each one a weight of $1/\\sqrt{\\text{its own degree} \\times \\text{your degree}}$ so that being connected to a hub counts for less. Then multiply by a learned matrix and pass through a nonlinearity."
+    },
+    {
+      "t": "formula",
+      "tex": "H^{(l+1)} = \\sigma\\left( \\hat{D}^{-1/2}\\, \\hat{A}\\, \\hat{D}^{-1/2}\\, H^{(l)}\\, W^{(l)} \\right), \\qquad \\hat{A} = A + I",
+      "note": "The middle three factors $\\hat{D}^{-1/2}\\hat{A}\\hat{D}^{-1/2}$ are the entire novelty: a fixed, non-learned matrix that says how much a vertex listens to each of its neighbours. Everything learnable sits in $W^{(l)}$. The two $\\hat{D}^{-1/2}$ factors are what make the listening weights depend on degrees.",
+      "gloss": [
+        { "sym": "A", "md": "the adjacency matrix of the graph — 1 where two vertices are joined" },
+        { "sym": "I", "md": "the identity matrix. Adding it gives every vertex an edge to itself, the *self-loop*: the self-connection of card 2, written into the graph instead of into the formula." },
+        { "sym": "\\hat{A} = A + I", "md": "the augmented adjacency. Its row sums $\\hat{d}_v$ are the ordinary degrees plus one." },
+        { "sym": "\\hat{D}", "md": "the diagonal matrix of those augmented degrees — $\\hat{d}_v$ in position $(v,v)$, zeros elsewhere" },
+        { "sym": "\\hat{D}^{-1/2}", "md": "the diagonal matrix holding $1/\\sqrt{\\hat{d}_v}$. It is the degree normalisation, applied on both sides." },
+        { "sym": "H^{(l)}", "md": "the matrix of all vertices' current features, one row per vertex" },
+        { "sym": "W^{(l)}", "md": "the learned weight matrix for this layer — the only trained object in the formula" },
+        { "sym": "\\sigma", "md": "the nonlinearity, applied entry by entry" }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Reading one — the spectral argument.** Graph convolution is defined by analogy with the Fourier transform. On the graph, the role of frequencies is played by the eigenvectors of the Laplacian, and a filter is a function of the Laplacian's eigenvalues. The trouble is that a general such function costs a full eigendecomposition, which is too expensive for graphs of the sizes papers care about. The fix is to approximate the filter by a low-order polynomial in the Laplacian, whose terms can be evaluated by repeated multiplication with the adjacency structure and no eigendecomposition at all. Kipf and Welling's layer is what that approximation looks like when it is truncated at the first order and the largest eigenvalue is rescaled to $2$: the polynomial collapses to $\\hat{A}$, and the $\\hat{D}^{-1/2}$ factors appear as the renormalisation that keeps the numbers from growing as layers stack. Read this way, the odd-looking $1/\\sqrt{d}$ is not invented for the layer — it is inherited from a spectral construction that the layer has been engineered to approximate cheaply."
+    },
+    {
+      "t": "p",
+      "md": "**Reading two — a weighted average of neighbours.** Ignore eigenvalues entirely and look at what one row of the operator does. Row $v$ holds $1/\\sqrt{\\hat{d}_v \\hat{d}_u}$ in each neighbour's column. Applied to the feature matrix, it forms a weighted sum of the neighbours' features (plus $v$'s own, through the self-loop), where the weight on neighbour $u$ is inversely related to $u$'s degree: if $u$ is a hub with many connections, each of the vertices it talks to hears it faintly; if $u$ is sparsely connected, its contribution is heard more strongly. The vertex's own $\\hat{d}_v$ in the denominator is a second, global scaling: hubs sum over many terms, so each term is damped to keep the total in a comparable range. A useful sanity check on the alternative: with the *plain* random-walk normalisation $D^{-1}A$ (no square roots, no self-loops) each row sums to exactly $1$, so the operation is literally a weighted average. The symmetric normalisation used here does not make rows sum to $1$ — for this section's four-vertex graph the hub's row sums to about $1.31$ — because symmetry, not row-stochasticity, is the property that makes the operator behave well when it is applied repeatedly. That last sentence is the thread card 6 picks up."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "Why the self-loop is not optional: without it, a vertex's own feature is thrown away at every layer and a vertex's new state depends only on its neighbourhood. Adding $I$ before normalising is the smallest possible fix, and it changes the degrees that the normalisation then reflects — a detail worth checking, since $\\hat{d}$ is $d + 1$ and not $d$."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — the degrees and the augmented degrees.** Take the four-vertex graph used throughout the graph-theory section: edges $1\\!-\\!2$, $2\\!-\\!3$, $2\\!-\\!4$. Vertex 2 is the hub. Ordinary degrees are $d_1 = 1$, $d_2 = 3$, $d_3 = 1$, $d_4 = 1$. Adding the self-loop raises each by one: $\\hat{d} = (2, 4, 2, 2)$. The augmentation is not decoration — it changes every normalising factor. The hub, already the busiest vertex, becomes more damped still."
+    },
+    {
+      "t": "p",
+      "md": "**Example 2 — one full layer, by hand.** Give the vertices the scalar features $x = (2, 4, 6, 8)$, take $W$ to be the identity for the moment so the arithmetic is visible, and $\\sigma$ to be the ReLU. The normalised operator is"
+    },
+    {
+      "t": "formula",
+      "tex": "\\hat{D}^{-1/2}\\hat{A}\\hat{D}^{-1/2} = \\begin{pmatrix} 0.5 & 0.3536 & 0 & 0 \\\\ 0.3536 & 0.25 & 0.3536 & 0.3536 \\\\ 0 & 0.3536 & 0.5 & 0 \\\\ 0 & 0.3536 & 0 & 0.5 \\end{pmatrix}",
+      "note": "Check two entries against the formula. Position $(1,1)$: the self-loop gives $\\hat A_{11} = 1$, and $1/\\sqrt{\\hat d_1 \\hat d_1} = 1/\\sqrt{2 \\cdot 2} = 0.5$. Position $(1,2)$: $\\hat A_{12} = 1$ and $1/\\sqrt{\\hat d_1 \\hat d_2} = 1/\\sqrt{2 \\cdot 4} = 0.3536$. Every entry is one of these three numbers: $0.5$, $0.3536$, or $0.25$ for the hub's self-loop.",
+      "gloss": [
+        { "sym": "0.5", "md": "$1/\\sqrt{2\\cdot 2}$ — a leaf's connection to itself, or a leaf-to-leaf edge" },
+        { "sym": "0.3536", "md": "$1/\\sqrt{8} \\approx 0.3536$ — any edge between a degree-$2$ and a degree-$4$ augmented vertex, that is, leaf-to-hub" },
+        { "sym": "0.25", "md": "$1/\\sqrt{4\\cdot 4} = 1/4$ — the hub's connection to itself, damped hardest because the hub has the most augmented degree" }
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Vertex 1's new value: $0.5 \\times 2 + 0.3536 \\times 4 = 1 + 1.4142 = 2.4142$.",
+          "why": "Vertex 1 keeps a damped copy of itself ($0.5 \\times 2$) and hears vertex 2 faintly ($0.3536 \\times 4$). It has no other neighbour, so the sum is short."
+        },
+        {
+          "md": "Vertex 2's new value: $0.3536 \\times 2 + 0.25 \\times 4 + 0.3536 \\times 6 + 0.3536 \\times 8 = 0.7071 + 1.0 + 2.1213 + 2.8284 = 6.6568$.",
+          "why": "The hub has four terms. Notice the ordering of the coefficients: its self-contribution carries $0.25$ — the smallest weight in the matrix — precisely because its augmented degree of $4$ is the largest. The hub listens to itself least, not most."
+        },
+        {
+          "md": "Vertex 3's new value: $0.3536 \\times 4 + 0.5 \\times 6 = 1.4142 + 3 = 4.4142$. Vertex 4's: $0.3536 \\times 4 + 0.5 \\times 8 = 1.4142 + 4 = 5.4142$.",
+          "why": "Vertices 3 and 4 are symmetric to vertex 1 in the graph structure, and their formulas have the same shape — only the numbers differ, because their own features differ."
+        },
+        {
+          "md": "The layer's output is $(2.4142,\\ 6.6568,\\ 4.4142,\\ 5.4142)$. With $W$ the identity and the ReLU inactive on these positive values, that is the final new feature vector.",
+          "why": "Compare the spread. The input range was $2$ to $8$, a spread of $6$. The output range is $2.4142$ to $6.6568$, a spread of about $4.24$. Neighbour-averaging has pulled the values towards each other — the first visible symptom of the smoothing that card 6 examines."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**What this example does not show.** $W$ was set to the identity, so no feature-mixing was demonstrated; a real layer's $W$ has shape (input features) $\\times$ (output features) and mixes dimensions. The graph also has only four vertices, so the degree normalisation did little work — its effect grows with how unequal the degrees are. And one layer does not reveal the multi-layer behaviour that card 6 is about."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In the GCN operator $\\hat{D}^{-1/2}\\hat{A}\\hat{D}^{-1/2}$, what is the role of the two $\\hat{D}^{-1/2}$ factors?",
+      "opts": [
+        {
+          "md": "They are learned, and the network trains them along with $W$",
+          "expl": "They are fixed by the graph's degrees and never trained. That is the defining feature of this operator — the *listening pattern* is a property of the graph, and only $W$ is learned."
+        },
+        {
+          "md": "They scale each neighbour's contribution down by roughly the square root of the relevant degrees, so that high-degree vertices do not dominate",
+          "correct": true,
+          "expl": "Correct. A neighbour $u$ contributes with a factor $1/\\sqrt{\\hat d_v \\hat d_u}$, so a hub's voice is quietened and a leaf's is not. Without the normalisation, a vertex adjacent to a 982-member hub would receive a contribution hundreds of times larger than from a sparse neighbour, and its feature would be swamped."
+        },
+        {
+          "md": "They make every row of the operator sum to 1, so it is an average",
+          "expl": "That is what the *random-walk* normalisation $D^{-1}A$ does. The symmetric normalisation used here does not give row sums of 1 — for the four-vertex example the hub's row sums to about $1.31$. Symmetry, not averaging, is what this pair of factors is chosen for."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "For the four-vertex hub graph with augmented degrees $\\hat d = (2, 4, 2, 2)$ and features $x = (2, 4, 6, 8)$, what is vertex 1's output after one GCN layer with $W$ the identity and a ReLU?",
+      "answer": 2.414,
+      "tol": 0.02,
+      "hint": "The vertex whose only neighbour is the hub also has a self-loop. Use the symmetric-normalisation coefficient for each of those two connections.",
+      "sol": "Vertex 1's row has two non-zero entries: its self-loop, with coefficient $1/\\sqrt{2 \\cdot 2} = 0.5$, and its edge to vertex 2, with coefficient $1/\\sqrt{2 \\cdot 4} = 0.3536$. So the output is $0.5 \\times 2 + 0.3536 \\times 4 = 1 + 1.4142 = 2.4142 \\approx 2.414$. The ReLU is inactive because the value is positive.",
+      "unit": "new feature"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A colleague replaces the symmetric normalisation with the plain adjacency matrix (no self-loops, no degree scaling). What is the most direct consequence?",
+      "opts": [
+        {
+          "md": "The layer becomes nonlinear",
+          "expl": "Adjacency is a linear operator; so is any of its normalisations. Whether the layer is nonlinear depends on $\\sigma$, which has not changed."
+        },
+        {
+          "md": "A vertex's output becomes the raw sum of its neighbours' features, so vertices in dense regions get much larger values and the vertex's own feature is dropped",
+          "correct": true,
+          "expl": "Correct on both counts. With no self-loop, $v$'s own state is discarded every layer. With no degree scaling, a vertex next to a high-degree hub accumulates an unnormalised sum that grows with degree, so values from dense and sparse regions live on different scales — which is exactly the pathology the $\\hat D^{-1/2}$ factors and the $+I$ were introduced to remove."
+        },
+        {
+          "md": "The layer can no longer handle undirected graphs",
+          "expl": "Adjacency is symmetric for undirected graphs, so nothing about direction breaks. The problems that arise are scale and the loss of self-information."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** GCN fixes each neighbour's weight from the graph's degrees alone. Card 4 lets the model *learn* those weights instead — which buys flexibility and costs parameters, compute, and interpretability."
+}

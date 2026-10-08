@@ -1,0 +1,123 @@
+{
+  "id": "40",
+  "kind": "abstract",
+  "chapter": "abstract",
+  "section": "3.1 Reading an abstract",
+  "kicker": "3.1 · The abstract",
+  "title": "The abstract, sentence by sentence",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "An abstract is a self-contained summary that must do four things in a fixed order: name the problem, name the approach, name the evidence, and state the result. It is the only part of a paper that is guaranteed to be read, so it is written to be quoted — which makes it the part most worth reading slowly and suspiciously.",
+      "plain": "An abstract is the whole paper compressed into one paragraph, written by the authors to be quoted. Read it as a set of promises that the rest of the paper has to keep."
+    },
+    {
+      "t": "p",
+      "md": "**Why read it this way.** Most readers skim an abstract for the punchline. But every clause in an abstract corresponds to something the paper must deliver later — a method section that implements it, a table that measures it, a claim it has to defend. Reading the abstract as a **list of promises** converts it from advertising into a checklist, and turning that checklist into questions is what the rest of this site does."
+    },
+    {
+      "t": "p",
+      "md": "This paper's abstract runs in five movements, and each one has a job."
+    },
+    {
+      "t": "table",
+      "head": ["Movement", "What it says", "What it commits the paper to"],
+      "rows": [
+        ["1. Field and object", "Hypergraph neural networks model complex relationships; used in brain networks, recommendation, computer vision", "A Related Work section that actually covers those applications"],
+        ["2. The problem", "Conventional HGNNs \"struggle with effective knowledge extraction and discriminative feature representation\"", "Arguments, not just assertions — the introduction has to show *why* the paradigm is limiting"],
+        ["3. The approach", "Two encoders plus a multi-dimensional fusion strategy", "Three method modules, each named, each with its own mathematics"],
+        ["4. The two variants", "Rule-Driven HGNN and Dual-Driven HGNN", "An experiment that isolates the difference between them — an ablation"],
+        ["5. The evidence and result", "Ten datasets, ablation studies, a 7.3% gain on Cora and a 2.5% average improvement", "Ten datasets in the setup tables; six results tables; and numbers that survive recomputation"]
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "Notice the order. The authors put the *limits of the previous paradigm* before their own method, and they put the *quantified result* last. Both are conventional and both are informative: a paper that leads with its method has usually not yet told you what problem it solves."
+    },
+    {
+      "t": "p",
+      "md": "**One phrase to flag now.** Movement 3 promises that fusion \"bridges semantic and dimensional gaps\". Those are two different problems — semantic (the two kinds of knowledge mean different things) and dimensional (they may be different lengths) — and chapter 5 shows the paper solves them with one operation rather than two. Whether calling that \"bridging\" is enough is a judgement you will be able to make once you have read Equation (9)."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — turn movement 2 into a question.** The abstract says conventional HGNNs \"often struggle with effective knowledge extraction\". That is an accusation about other people's methods. What exactly is the alleged failure, and on what evidence?"
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Open the introduction, which is where the accusation must be defended. It names two specific failures, not one.",
+          "why": "An abstract that says \"struggle\" while the body names two mechanisms is compression, not deception — but you cannot tell which until you look. This is why the abstract alone never tells you what a paper actually argues."
+        },
+        {
+          "md": "Failure one: **over-smoothing.** Existing HGNNs \"adopt a similar paradigm where high-order structural information guides the smoothing of vertex features\", which repeatedly averages features until distinct vertices become indistinguishable.",
+          "why": "This is a *mechanism*, and it is checkable: if the claim is right, a deeper standard HGNN should score worse than a shallower one. Table VIII tests exactly that."
+        },
+        {
+          "md": "Failure two: **feature compression**, which the introduction explicitly equates with over-squashing — \"information from a rapidly expanding set of neighbors must be aggregated into fixed-size representations\", distorting signals.",
+          "why": "Also a mechanism, and also checkable in principle. Note that the paper introduces its own term (\"feature compression\") for an existing phenomenon (over-squashing), which is worth noticing: new names for known things make a contribution sound more novel than it is. Here the paper is honest about the equivalence — it says \"a form of over-squashing\" in the same sentence."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "You have just done the thing this chapter is for: taken one clause of an abstract and located the specific claim it stands for, along with the experiment that would confirm or refute it. Applied to all five movements, it produces a reading plan for the entire paper."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why is it useful to read an abstract as a list of promises?",
+      "opts": [
+        {
+          "md": "Because abstracts are usually exaggerated",
+          "expl": "Some are, but assuming exaggeration in advance is as distorting as accepting everything. The point is that each clause is *checkable*, not that it is false."
+        },
+        {
+          "md": "Because every clause corresponds to something the paper must deliver later, so the abstract becomes a checklist for reading the rest",
+          "correct": true,
+          "expl": "Correct. A method clause promises a method section; an evidence clause promises tables; a result clause promises numbers that can be recomputed. The abstract tells you where to look and what to check."
+        },
+        {
+          "md": "Because the abstract is the only part that is peer-reviewed",
+          "expl": "The whole paper is reviewed. The abstract is the most *read* part, which is why it is written for quotation — a different property from being the most vetted."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "This paper's abstract reports an average improvement across all datasets. What number does it give, in percent?",
+      "answer": 2.5,
+      "tol": 0.01,
+      "hint": "It is stated in the final movement, alongside the result on one specific dataset.",
+      "sol": "2.5% average improvement across all datasets, alongside a 7.3% gain on Cora. Keep both numbers in hand — card 42 shows that the experiments section reports *different* headline gains (5.86 and 2.28), and reconciling the two sets is the exercise.",
+      "unit": "percent"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "The abstract introduces the term \"feature compression\" for a phenomenon the introduction equates with over-squashing. What is the appropriate reading?",
+      "opts": [
+        {
+          "md": "The authors have discovered a new phenomenon",
+          "expl": "The paper itself says it is \"a form of over-squashing\", so no new phenomenon is claimed. A new label is not a new finding."
+        },
+        {
+          "md": "A new label for a known phenomenon — worth noticing, but not by itself a problem, since the paper states the equivalence openly",
+          "correct": true,
+          "expl": "Correct. Renaming is a common and legitimate rhetorical move; it becomes a problem only when the equivalence is hidden, because then a reader may credit the paper with more novelty than it has. Here it is disclosed in the same sentence, so the honest response is to note it and move on — while applying the same scrutiny elsewhere."
+        },
+        {
+          "md": "The term means the paper's method compresses features",
+          "expl": "It names a failure of the *previous* paradigm, which the paper's method is supposed to avoid. Confusing a diagnosed disease with the proposed cure inverts the whole argument."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the three method claims the abstract makes, taken one at a time — what each encoder promises, and what would count as evidence that it delivered."
+}

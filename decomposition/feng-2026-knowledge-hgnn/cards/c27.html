@@ -1,0 +1,56 @@
+<!-- ============ c27 精讲 · TDR-Encoder ============ -->
+<section class="card" data-c="27" data-title-zh="精讲 · TDR-Encoder（查规则的学究）" data-title-en="Deep-dive · TDR-Encoder (the rule-reading scholar)">
+  <div class="card-inner">
+    <div class="card-kicker k-math"><span class="len">Method · Task-Driven Rule Encoder</span><span class="lz">方法篇 · 任务驱动规则编码器</span></div>
+    <h2><span class="lz">TDR-Encoder：把树的"提问点"收成规则账</span><span class="len">TDR-Encoder: turning a tree's questions into a rule ledger</span></h2>
+    <div class="phase ph-what"><span class="lz">是什么</span><span class="len">WHAT</span></div>
+    <p class="lz">备料车间的第二条流水线，是查规则的学究。他手里有一队已经训练好的树（第 12、13 卡的"接力纠错树队"：每棵树都在补前一棵的漏）。但学究<b>不拿树去预测</b>——他只要每棵树在分叉处问过的那些问题。</p>
+    <p class="len">The prep floor's second line is the rule-reading scholar. In his hands sits a team of trained trees (cards 12–13's "relay of error-correcting trees": each patching the previous one's leaks). Yet the scholar <b>never predicts with them</b> — he only wants the questions asked at each branching point.</p>
+    <p class="lz"><b><span class="hl">TDR-Encoder 做的是：把树队里每一个"提问点"收成一条规则；每条规则配两条记录——① 内容（问的是什么，如"x₂ ≥ 2 吗"）；② 位置（在第几层问的）。</span></b>论文给这两条记录各起了一个代号：内容映射叫 μ<sub>c</sub>，位置映射叫 μ<sub>p</sub>（正式公式在第 29、30 卡，本卡只需认得这两个代号）。</p>
+    <p class="len"><b><span class="hl">The TDR-Encoder collects every question node in the tree team into a rule; each rule carries two records — (1) content (what is asked, e.g. "is x₂ ≥ 2") and (2) position (which layer asked it).</span></b> The paper codenames the two records: μ<sub>c</sub> for content mapping, μ<sub>p</sub> for position mapping (equations at cards 29–30; here you only need the codenames).</p>
+    <p class="lz">为什么不要树的预测？因为预测是"当时那个任务"的答案——换个任务立刻作废；而提问点本身是<b>特征与任务之间的规律</b>，规律比答案长寿（第 11 卡的老道理）。所以学究的账本里只抄问题、不抄结论。</p>
+    <p class="len">Why skip the tree's predictions? Predictions are the answers to "that old task" — void the moment the task changes; the questions themselves are <b>patterns linking features to the task</b>, and patterns outlive answers (card 11's old lesson). Hence the ledger copies questions only, never conclusions.</p>
+    <p class="lz">账本最终长什么样？对每个顶点、每条规则，会算出一个数——它由"<b>内容对不对</b>"和"<b>位置权重</b>"两部分相乘得来。这个"相乘"是下一组卡的主角；本卡先把"账本里有哪些条目"数清楚。</p>
+    <p class="len">What does the finished ledger look like? For every vertex and every rule, one number is computed — the product of "<b>is the content satisfied</b>" and "<b>the position weight</b>". That product stars in the coming cards; this card first counts the ledger's entries.</p>
+    <div class="callout warn">
+      <b><span class="lz">常见误解：</span><span class="len">Common misconception:</span></b>
+      <span class="lz">别以为 TDR 是"换一棵更好的树来做预测"——树在本文里从头到尾只当<b>规则仓库</b>用，预测结果一律丢掉。真正干活的是规则账，不是树。</span>
+      <span class="len">Do not think the TDR swaps in a "better tree to predict with" — the trees here serve as a <b>rule warehouse</b> only; predictions are all discarded. The ledger works; the trees just store.</span>
+    </div>
+    <div class="phase ph-ex"><span class="lz">例子</span><span class="len">EXAMPLE</span></div>
+    <p class="lz"><b>例 1（从树队收规则，数条目）：</b>设树队只有两棵树（论文图 2 画的那两棵）：T₁ 有两个提问点：根问"x₂ ≥ 2？"，下层问"x₁ ≥ 1？"；T₂ 有三个："x₃ ≥ 5？"、"x₁ ≥ 2？"、"x₂ ≥ 1？"。学究逐棵抄录，账本共 <b>2 + 3 = 5</b> 条规则。叶子上的 A / B / C 标签一律不抄。</p>
+    <p class="len"><b>Example 1 (collect rules, count entries):</b> suppose the team holds just the two trees drawn in the paper's Fig. 2: T₁ asks two questions — root "x₂ ≥ 2?" and lower "x₁ ≥ 1?"; T₂ asks three — "x₃ ≥ 5?", "x₁ ≥ 2?", "x₂ ≥ 1?". The scholar copies tree by tree: <b>2 + 3 = 5</b> rules. Leaf labels A / B / C are never copied.</p>
+    <p class="lz"><b>例 2（两个顶点，两份不同的清单）：</b>把"内容对不对"先记成 对/不对（第 29 卡会把"对"记作 0、"不对"记作 1）。顶点甲的数值 x = (1, 3, 4)：x₂ ≥ 2？3 ≥ 2 <b>对</b>；x₁ ≥ 1？1 ≥ 1 <b>对</b>；x₃ ≥ 5？4 ≥ 5 <b>不对</b>；x₁ ≥ 2？1 ≥ 2 <b>不对</b>；x₂ ≥ 1？3 ≥ 1 <b>对</b>——清单 = 对、对、不对、不对、对。顶点乙 x = (3, 3, 1)：对、对、不对、<b>对</b>、对。同一批 5 条规则，两个顶点各得一份自己的对错清单——账本按人开页。</p>
+    <p class="len"><b>Example 2 (two vertices, two different lists):</b> record content as satisfied/not (card 29 writes "satisfied" as 0, "not" as 1). Vertex A's values x = (1, 3, 4): x₂ ≥ 2? 3 ≥ 2 <b>yes</b>; x₁ ≥ 1? 1 ≥ 1 <b>yes</b>; x₃ ≥ 5? 4 ≥ 5 <b>no</b>; x₁ ≥ 2? 1 ≥ 2 <b>no</b>; x₂ ≥ 1? 3 ≥ 1 <b>yes</b> — list = yes, yes, no, no, yes. Vertex B x = (3, 3, 1): yes, yes, no, <b>yes</b>, yes. Same five rules, each vertex gets its own satisfied/missed list — the ledger keeps a page per person.</p>
+    <div class="phase ph-quiz"><span class="lz">习题</span><span class="len">EXERCISES</span></div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">UNDERSTAND</span><span class="lz">TDR 抄进账本的是什么？</span><span class="len">What does the TDR copy into the ledger?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="叶子结论是“旧任务的答案”，论文明确丢掉——抄它等于把树当预测器用。"><span class="lz">每棵树的叶子结论</span><span class="len">Each tree's leaf conclusions</span></button>
+        <button class="opt" data-correct="1" data-expl="对！每个提问点收一条规则，并配两条记录：内容（问什么）与位置（第几层问的）。"><span class="lz">每个提问点：内容（问什么）+ 位置（第几层）</span><span class="len">Every question node: content (what) + position (which layer)</span></button>
+        <button class="opt" data-expl="树的数量是被“数”出来的（K 棵），不是抄的内容——账本的条目是提问点。"><span class="lz">每棵树的编号</span><span class="len">Each tree's serial number</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz quiz-num" data-answer="17" data-tol="0.01" data-hint="逐棵数“提问点”的个数（别数叶子），再把几棵树的个数加总。" data-sol="6 + 4 + 7 = 17 条。账本条目数 = 各棵树的提问点数之和——这就是后面规则账的位数。">
+      <p class="quiz-q"><span class="ex-tag">APPLY</span><span class="lz">数值题：树队有三棵树，提问点分别是 6、4、7 个。账本共收多少条规则？</span><span class="len">Numeric: the team has three trees with 6, 4 and 7 question nodes. How many rules enter the ledger?</span></p>
+      <div class="numrow"><input class="numin" inputmode="decimal" placeholder="?"><button class="numbtn"><span class="len">Check</span><span class="lz">检查</span></button></div>
+      <div class="expl"></div>
+    </div>
+    <div class="quiz">
+      <p class="quiz-q"><span class="ex-tag">TRANSFER</span><span class="lz">迁移：为什么除了"内容"，还要记"位置"？</span><span class="len">Transfer: besides "content", why record "position"?</span></p>
+      <div class="opts">
+        <button class="opt" data-expl="位置不是装饰——接力纠错里，先问的问题摘走最大的误差，与目标关系最紧；论文特意给浅层的规则更大权重（第 30 卡）。"><span class="lz">为了记录树的结构编号</span><span class="len">To record the tree's structural numbering</span></button>
+        <button class="opt" data-correct="1" data-expl="对！纠错接力里先问的问题摘最大的果子（第 13 卡），所以越靠根（层数越小）的规则越要紧——“位置”就是拿来给规则分轻重的。"><span class="lz">位置决定分量：越靠根的问得越早、与目标关系越紧</span><span class="len">Position sets importance: shallower questions came first and tie tighter to the target</span></button>
+        <button class="opt" data-expl="位置与运行速度无关——它是给规则的“重要性刻度”，不是性能参数。"><span class="lz">为了加快计算速度</span><span class="len">To speed up computation</span></button>
+      </div>
+      <div class="expl"></div>
+    </div>
+    <div class="callout">
+      <b><span class="lz">本文如何用它：</span><span class="len">How the paper uses it:</span></b>
+      <span class="lz">下一卡：论文图 2——把"收集规则 + 记内容 + 记位置"三件事画成一张流水线图，我们逐格走一遍。</span>
+      <span class="len">Next card: the paper's Fig. 2 — collection, content, position drawn as one pipeline; we walk every cell.</span>
+    </div>
+    <div class="foot-space"></div>
+  </div>
+</section>

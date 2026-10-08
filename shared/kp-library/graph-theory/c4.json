@@ -1,0 +1,115 @@
+{
+  "kind": "extension",
+  "title": "The two sums: row sums and column sums are the two degrees",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "In the incidence matrix $H$, the sum of row $v$ equals the degree of vertex $v$ (how many hyperedges contain it), and the sum of column $e$ equals the size of hyperedge $e$ (how many vertices it contains), also called the edge degree. Summing the whole matrix either way gives the same number: the total count of memberships.",
+      "plain": "Add up a row and you learn how many groups that thing belongs to. Add up a column and you learn how many things are in that group. Add up everything and the two ways of adding agree."
+    },
+    {
+      "t": "p",
+      "md": "**Why this matters more than it looks.** The two sums are the two degree columns of Chapter 6's Table I, and the identity between them is the arithmetic that page 8616's table is quietly asserting. Being able to derive the two columns from one matrix, and to check them against each other, is the difference between reading that table and being at its mercy."
+    },
+    {
+      "t": "p",
+      "md": "For a plain graph there is a shortcut: every column has exactly two 1s, so the column sum is always 2 and carries no information. That is why Table I prints the value 2 for all four graph datasets without exception — **it is not a measurement, it is what \"graph\" means in this notation.**"
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Example 1 — both sums on the four-person graph.** Using the incidence matrix from card 3:"
+    },
+    {
+      "t": "table",
+      "head": ["", "e₁", "e₂", "e₃", "row sum = vertex degree"],
+      "rows": [
+        ["vertex 1", "1", "0", "0", "**1**"],
+        ["vertex 2", "1", "1", "1", "**3**"],
+        ["vertex 3", "0", "1", "0", "**1**"],
+        ["vertex 4", "0", "0", "1", "**1**"],
+        ["column sum = edge degree", "**2**", "**2**", "**2**", "total = 6"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "Row sums give degrees $1, 3, 1, 1$. Column sums give edge degrees $2, 2, 2$. Both add to 6 — the total number of memberships, counted by vertex and by edge respectively."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Move to a hypergraph: DBLP-Conf has $|V| = 4{,}057$ authors and $|E| = 20$ hyperedges, with the table printing an average edge degree of **982.2**.",
+          "why": "This is the paper's own Table I, so the arithmetic here is checkable against page 8616 rather than against my word."
+        },
+        {
+          "md": "Column sums first: $20 \\times 982.2 = 19{,}644$ total memberships.",
+          "why": "Multiplying an average edge degree by the number of edges reconstructs the total of all column sums — the same move as multiplying an average row by the number of rows."
+        },
+        {
+          "md": "Now go the other way: $19{,}644 \\div 4{,}057 = 4.84$, which rounds to the **4.8** printed in the average-vertex-degree column.",
+          "why": "The two columns agree, which is the check to run on any such table. And notice what the identity is telling you: 4.84 < 982.2 means each author sits in about five conferences while each conference gathers about a thousand authors — the two numbers measure opposite ends of the same matrix."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "This identity holds **only when both columns count the same thing**. It fails wherever a table mixes conventions — and Chapter 6 shows that Table I does exactly that: Github obeys the two-endpoints convention, Amazon-P obeys the one-endpoint convention, and Cora obeys neither. The identity is not a decoration; it is the instrument that detects those inconsistencies."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does the sum of one *row* of an incidence matrix tell you?",
+      "opts": [
+        {
+          "md": "How many vertices are in one hyperedge",
+          "expl": "That is the column sum — the edge degree. Row and column are the two directions of the same question."
+        },
+        {
+          "md": "How many hyperedges contain that vertex",
+          "correct": true,
+          "expl": "Correct: the vertex degree. Each 1 in the row marks one hyperedge that claims this vertex, so adding them counts the claims."
+        },
+        {
+          "md": "The total number of memberships in the whole hypergraph",
+          "expl": "That is what you get after summing *every* row — or, equivalently, every column. A single row is local to one vertex."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A hypergraph has 300 vertices, 12 hyperedges, and an average edge degree of 8. What is the average vertex degree?",
+      "answer": 0.32,
+      "tol": 0.01,
+      "hint": "Total memberships first (average edge degree × number of hyperedges), then spread them over the vertices.",
+      "sol": "Total memberships $= 12 \\times 8 = 96$. Spread over 300 vertices: $96 \\div 300 = 0.32$. Answering 8 is the trap — that is the edge degree, the other direction of the same matrix.",
+      "unit": "degree"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Table I prints an average edge degree of exactly 2 for every graph dataset. Why is that not a coincidence?",
+      "opts": [
+        {
+          "md": "Because those datasets happen to contain only pairwise citations and purchases",
+          "expl": "That describes the data, but the value would be 2 for *any* dataset treated as a plain graph — including one built from groups, after conversion."
+        },
+        {
+          "md": "Because a plain graph is defined as the case where every column of the incidence matrix has exactly two 1s",
+          "correct": true,
+          "expl": "Correct. The 2 is structural, not empirical. Once you see that, the four graph rows stop looking like measurements and start looking like the definition they are — and the contrast with CA-Cora's 4.5, DBLP's 982.2 and Amazon-P's 31.1 becomes meaningful."
+        },
+        {
+          "md": "Because the table rounds to whole numbers",
+          "expl": "The same column carries 4.5, 4.8, 31.1 and 982.2 elsewhere. It is not being rounded."
+        }
+      ]
+    }
+  ],
+  "close": "**Where this is going:** the paper's Equation (3) sums exactly the row of $H$ you have just computed, then passes the result through one smoothing function. Having done the sum by hand, you will be able to read that equation as bookkeeping rather than as algebra."
+}
