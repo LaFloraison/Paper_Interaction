@@ -3,6 +3,7 @@
   "kind": "include",
   "library": "over-smoothing",
   "chapter": "pre",
-  "section": "2.4 The graph-network half",
-  "kicker": "Extension · Over-smoothing and over-squashing"
+  "section": "Relations and structure",
+  "kicker": "Extension · Over-smoothing and over-squashing",
+  "kp": "kp-over-smoothing"
 }

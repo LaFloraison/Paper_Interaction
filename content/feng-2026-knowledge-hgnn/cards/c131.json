@@ -1,0 +1,113 @@
+{
+  "id": "131",
+  "kind": "reference",
+  "chapter": "references",
+  "section": "R2 · Reference [1] · HGNN",
+  "kicker": "Reference [1]",
+  "title": "Reference [1]: HGNN — the backbone, and the thing to beat",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Reference [1]** is *Y. F. Feng, H. You, Z. Zhang, R. Ji and Y. Gao, \"Hypergraph neural networks\", in Proceedings of the AAAI Conference on Artificial Intelligence, 2019, pp. 3558–3565.* It is the work that introduced the hypergraph convolution this paper's Equation (1) reproduces, and it plays two roles here simultaneously: it is the **definition source** for the propagation operator, and it is the **opponent** the paper must beat, since HGNN appears as a baseline in every results table.",
+      "plain": "HGNN is the model this paper is built on top of. Its convolution is this paper's Equation (1), unchanged. It is also the baseline whose column the paper has to beat in order to show its own contribution does anything."
+    },
+    {
+      "t": "p",
+      "md": "**Why a single reference occupying two roles is the most informative citation in the paper.** Most papers separate their foundations from their rivals: the foundations are cited as the thing being extended and the rivals are cited as the thing being beaten. Here they are the same work. That makes the paper's central comparison unusually clean — the difference between DD-HGNN and HGNN is the knowledge-embedding stage and nothing else, so the gap between them, $2.119$ points on Table V's column means, is attributable to the paper's contribution without any argument about experimental conditions."
+    },
+    {
+      "t": "p",
+      "md": "**What the paper takes from it and what it adds.** Taken: the propagation operator $X \\leftarrow D_v^{-1/2} H D_e^{-1} H^{\\mathsf T} D_v^{-1/2} X \\Theta$, the degree normalisations that make it well behaved, and the general architecture of alternating vertex-to-edge and edge-to-vertex aggregation. Added: nothing inside the layer — the paper is explicit that the hypergraph network stage is left as it was — but two encoders and a fusion layer in front of it, changing what the network's input matrix contains."
+    },
+    {
+      "t": "p",
+      "md": "**A design consequence worth noticing.** Because the paper's contribution is entirely in the input, its results depend on the claim that the *unchanged* backbone is a fair and strong baseline. If HGNN were a weak model, beating it would establish little. The paper's defence is elsewhere in its own tables: Table IX shows that the **smallest single gain** across all six backbones and three settings belongs to HGNN, at $+1.09$ on the transductive row — consistent with HGNN already containing the most structural information of the six. (By largest gain in each backbone, HGNN is second of six, at $+6.29$; the smallest *backbone best* belongs to GCN at $+2.46$.)"
+    },
+    {
+      "t": "callout",
+      "md": "**Where to find the inline treatment of this reference in this site:** card 61 takes Equation (1) apart symbol by symbol, and card 61's extension trail in Chapter 2 covers the spectral and spatial derivations that HGNN's convolution comes from. The lineage is: graph convolution on pairwise edges, then HGNN extending it to sets, then this paper leaving it alone and changing the input."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — read the two roles off one results table.** Table V's HGNN column is both a control condition and a competitor, and the two readings give different numbers from the same cells."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "As the control: HGNN's column mean is $85.529$. The proposed models are what you get by adding a knowledge-embedding stage to exactly that model. So $85.529$ is the \"before\" figure for the paper's intervention.",
+          "why": "This is the number that makes the paper's claim measurable. Everything else in the table — MLP at $80.254$, GBDT at $81.992$, GCN at $84.805$ — is a comparison against a *different* approach, and so bears on a different question."
+        },
+        {
+          "md": "As the competitor: HGNN has the best average rank of the five baselines at $3.3$, ahead of GCN's $3.9$, and it is the best method in the table on four of the ten datasets.",
+          "why": "Both readings are needed. If HGNN were both the control and a pushover, the control would be worthless — the same table has to show that the baseline is strong. An average rank of $3.3$ out of seven, on a table where the two proposed models take $1.7$ and $1.5$, is a baseline that is genuinely in the running."
+        },
+        {
+          "md": "Now check the paper's own attribution of the gap. In each dataset row, the difference between the better proposed model and HGNN is what the knowledge-embedding stage bought.",
+          "why": "Note the irregularity the results tables introduce here. In Table V the comparison is a fixed pair of columns. In Table VI's delta columns, the reference model switches between RD and DD from row to row, and in Table IX likewise — so \"the gap to HGNN\" is not one quantity across the paper, even though HGNN's column is fixed. That is the mixed-reference problem, and Table V is the clean version of the comparison because its columns do not move."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**One fact about this reference that a reader should register.** Its author list begins with Y. F. Feng, and this paper's first author is Yifan Feng. The baseline this paper is measured against is therefore its own first author's earlier model, and the convolution it uses unchanged was introduced there. This is ordinary practice in the field and it changes nothing about the arithmetic — HGNN is a published model that anyone can run, and Table IX even shows it being replaced by five others. What it does change is where to look: if you want to know whether Equation (1) is the right layer, reference [1] is the document that argued for it, and the argument is not reproduced here."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does reference [1] play both the definition and the opponent role in this paper?",
+      "opts": [
+        {
+          "md": "Because the paper reuses HGNN's convolution unchanged and prepends its own encoders, so the same object is both the component being used and the baseline being beaten",
+          "correct": true,
+          "expl": "Correct. Nothing inside HGNN's layer changes — the paper inherits it verbatim and adds a stage in front — so the layer that supplies the propagation and the layer that must be beaten are one and the same. That is what makes the comparison unusually clean: the gap between HGNN and the proposed models measures the contribution with no confound from a changed architecture."
+        },
+        {
+          "md": "Because the paper re-implements HGNN and reports its own numbers",
+          "expl": "Re-implementation is common and does not create the dual role. What creates it is that the object introduced by [1] is both the component being used and the method being compared against.",
+          "correct": false
+        },
+        {
+          "md": "Because HGNN is the strongest baseline in the paper, so it serves as both",
+          "expl": "Strength is relevant to the opponent role and not to the definition role — a weak baseline would still be the definition source. The dual role comes from the architecture, not from the ranking."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Using Table V's column means — RD-HGNN $87.602$ and HGNN $85.529$ — what is RD-HGNN's gain over the HGNN baseline, in points, to three decimals?",
+      "answer": 2.073,
+      "tol": 0.06,
+      "hint": "Both are column means over the same ten datasets, so subtract directly. Note this is the RD variant, not the DD one the prose discusses.",
+      "sol": "$87.602 - 85.529 = 2.073$ points. This is the same comparison the prose quotes for the other variant: DD against HGNN gives $87.648 - 85.529 = 2.119$. The two proposed models sit within $0.046$ of each other on the ten-dataset mean, so the paper's central comparison is stable across the choice between them — which is worth knowing, because that choice is otherwise a free parameter of the story.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Your method's contribution is a new input representation for an existing model, and that model is also your main baseline. What should your paper tell a reader about the baseline to make the comparison credible?",
+      "opts": [
+        {
+          "md": "That the baseline's results were taken from its original publication",
+          "expl": "Using published numbers is convenient and usually invalid: the original paper's splits, tuning and protocol may differ from yours, so the comparison then measures the protocol difference as much as the method. The baseline has to be run in your setting."
+        },
+        {
+          "md": "That the baseline was run in your exact setting and tuned with the same effort you gave your own method",
+          "correct": true,
+          "expl": "Correct. When the contribution is an *input* rather than an architecture, the comparison is unusually sensitive to baseline tuning, because the only thing standing between the two models is what is fed in. A reader will want to know that the baseline received the same search budget — which in this paper's case is partly documented, since Table IV lists per-dataset hyperparameters for both. Note the residual gap: the paper does not report comparable tuning budgets, only comparable tables."
+        },
+        {
+          "md": "That the baseline is a published and widely used model",
+          "expl": "Widely used is a reason the baseline is a fair choice of opponent, not a reason to trust the comparison. The same model tuned for a day and for a week are different baselines."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** reference [10], HyperGCN — the rival route to hypergraph learning, and the source of two of the paper's datasets."
+}

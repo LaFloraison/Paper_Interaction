@@ -1,0 +1,149 @@
+{
+  "id": "132",
+  "kind": "reference",
+  "chapter": "references",
+  "section": "R3 · Reference [10] · HyperGCN",
+  "kicker": "Reference [10]",
+  "title": "Reference [10]: HyperGCN — the other way to do it, and the source of two datasets",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Reference [10]** is *N. Yadati, M. Nimishakavi, P. Yadav, V. Nitin, A. Louis and P. Talukdar, \"HyperGCN: A new method for training graph convolutional networks on hypergraphs\", in Advances in Neural Information Processing Systems, 2019, art. no. 135.* The paper cites it for two distinct things: as the second of two systematic approaches to hypergraph neural networks (it \"design[s] a mediator-based hypergraph Laplacian matrix generation strategy to utilize the graph convolution on hypergraphs\"), and as the source of two of its datasets, CA-Cora and CC-Cora.",
+      "plain": "HyperGCN's idea is to stop trying to convolve on a hypergraph directly and instead turn each hyperedge into ordinary edges through an added 'mediator' vertex, so that a standard graph convolution can be used. That is a different answer to the same problem HGNN answers, and it is also where two of this paper's ten datasets come from."
+    },
+    {
+      "t": "p",
+      "md": "**Why this is the interesting rival: the two routes are genuinely different, not variations.** HGNN keeps the hypergraph intact and defines a propagation operator directly on it, using the incidence matrix and two degree normalisations. HyperGCN reduces the problem instead — it constructs a graph from the hypergraph and then uses machinery that already exists for graphs. One route changes the operator, the other changes the object."
+    },
+    {
+      "t": "p",
+      "md": "**What each route costs.** Keeping the hypergraph intact preserves the arity of every relation: a hyperedge over twelve authors stays one object that gathers twelve vertices, and the normalisation can account for the fact that this relation is large. Reducing to a graph loses that — the expansion is many-to-one, and no sequence of pairwise edges records whether twelve of them came from one group or from twelve separate pairs. In exchange, reduction opens the door to the entire graph learning toolchain: any graph convolution, any sampling scheme, any message-passing library."
+    },
+    {
+      "t": "p",
+      "md": "**Note what this paper does with the choice: it does not make it.** The paper builds on HGNN's intact-hypergraph route for its main models, and then, in Table X, it goes further in the reduction direction than HyperGCN does — replacing the hypergraph backbone with a plain graph network entirely. That table's purpose is to show the knowledge embedding still helps there. So HyperGCN's approach is cited as the alternative and not tested against; the paper's argument with the reduction route is settled elsewhere, by showing the embedding is indifferent to it."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the datasets this reference supplies, and why they matter more than the citation suggests.**"
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Table I lists CA-Cora and CC-Cora, both with $2{,}708$ vertices and $7$ classes, and Table II gives all three Cora variants the identical split $1{,}625 / 677 / 406$. The same publications, three different relation structures: pairwise citations for Cora, co-authorship hyperedges for CA-Cora, co-citation hyperedges for CC-Cora.",
+          "why": "This is an unusually well-designed triple, whether or not it was intended as one. A reader can hold the vertices, features and split fixed and vary only how relations are drawn, which isolates the effect of the relation structure — the thing hypergraph methods claim is their reason to exist."
+        },
+        {
+          "md": "Check the arity columns, which is where the three differ most. Table I gives Cora $7{,}440$ pairwise edges; CA-Cora $970$ hyperedges with an average edge degree of $4.5$; CC-Cora $1{,}072$ hyperedges.",
+          "why": "The contrast is the point. $7{,}440$ pairwise edges versus $970$ relations is the compression that hypergraph representation achieves, and the average edge degree of $4.5$ says each of those $970$ relations gathers four or five papers on average. Everything HGNN's operator does differently follows from $4.5$ versus $2$."
+        },
+        {
+          "md": "Now run the invariance test from card 100 across the three: MLP and GBDT are feature-only, so on the two hypergraph variants they should agree — and they do, at $68.55$ and $71.69$ on both, to two decimals.",
+          "why": "This is the check that makes the triple informative rather than merely convenient: the two hyperedge constructions really are over the same vertices with the same features, and the identical feature-only scores prove it. The same check raises a question for the plain-graph Cora entry, which is ledger entry 14."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**A general lesson from the way this citation is used.** A reference can supply data as well as ideas, and the data citation is often the more consequential of the two — because it decides what the paper's results are *about*. Here the dataset attribution is a single bracketed number in the middle of a paragraph, and it is what allows every claim about \"hypergraph structure\" to be evaluated. **When you read a paper's dataset sentence, the citations in it are load-bearing regardless of how casually they are set.**"
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — what the two routes predict, and whether the paper's results distinguish them.**"
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "If preserving hyperedge arity matters, the intact route should beat the reduction **once the knowledge embedding is held fixed** — that is the only fair version of the test, since the two routes must carry the same input for the backbone to be the only difference. Table X gives it: RD-HGNN (intact hypergraph) against RD-GNN (the same rule knowledge on a plain graph), on the same six datasets and the same protocol.",
+          "why": "The intact route wins on five of the six: CA-Cora ($79.36$ against $77.64$), DBLP-Conf ($94.68$ against $89.98$), CC-Cora ($74.30$ against $74.05$), Tencent ($95.65$ against $93.47$) and Heloc ($72.44$ against $71.74$). On ModelNet40 the reduced variant is ahead, $98.09$ against $97.99$ — which is the one dataset where the constructed hyperedges are $k$-nearest-neighbour groups over point-cloud features rather than observed relations."
+        },
+        {
+          "md": "Measure the size of that win on one dataset, holding the knowledge embedding fixed: CA-Cora, RD-GNN at $77.64$ against RD-HGNN at $79.36$.",
+          "why": "A difference of $1.72$ points attributable to the backbone alone, with the input representation held constant. That is the cleanest available estimate of what the intact-hypergraph route buys on this data — and it is a modest number, which is worth stating: the routes differ in what they can represent, and on Cora-sized publication networks the difference is under two points."
+        },
+        {
+          "md": "Ask whether the paper would have been better off including HyperGCN itself as a seventh baseline.",
+          "why": "It would have made the reduction route's cost directly measurable instead of being inferred by proxy. The paper includes GCN — the endpoint of the reduction — and then builds its own reduced variants on top, which brackets the question from both sides. Adding HyperGCN would have given the middle. **Inferring a competitor's performance from a proxy is a defensible economy and never as strong as measuring it.**"
+        }
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is the essential difference between HGNN's approach to hypergraphs and HyperGCN's?",
+      "opts": [
+        {
+          "md": "HGNN defines a propagation operator directly on the hypergraph; HyperGCN reduces the hypergraph to a graph first and then convolves",
+          "correct": true,
+          "expl": "Correct, and the paper states the second half precisely: HyperGCN \"design[s] a mediator-based hypergraph Laplacian matrix generation strategy to utilize the graph convolution on hypergraphs\". One changes the operator, the other changes the object. That is why the two are presented as the systematic alternatives rather than as successive improvements on one another."
+        },
+        {
+          "md": "HGNN is spectral and HyperGCN is spatial",
+          "expl": "The spectral and spatial views are two derivations of the same propagation, covered in Chapter 2's extension trail — not a division between these two methods. Both routes can be described either way."
+        },
+        {
+          "md": "HGNN handles weighted relations and HyperGCN does not",
+          "expl": "Weighting is a separate axis. Equation (1) carries a weight matrix for hyperedges, and the reduction route can weight the edges it constructs just as easily."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does breaking a hyperedge into pairwise edges lose information that no amount of downstream modelling can recover?",
+      "opts": [
+        {
+          "md": "Because the expansion produces more edges, which slows computation",
+          "expl": "Cost is affected and it is a separate matter. The loss in question is about what the resulting graph *means*, and it would remain even if computation were free."
+        },
+        {
+          "md": "Because the expansion is many-to-one: many different hyperedge configurations produce the same pairwise graph, so the graph does not determine which relations were single groups",
+          "correct": true,
+          "expl": "Correct. If three vertices were together in one hyperedge, the expansion gives three pairwise edges — and three separate pairwise relations give exactly the same three edges. The graph cannot tell the two situations apart, so any method working on it is blind to the difference. That is the representational cost of the reduction, and it is why the paper's DD variant, which carries an explicit count of hyperedge memberships, has something the reduction route structurally cannot."
+        },
+        {
+          "md": "Because the resulting graph is no longer weighted",
+          "expl": "Weights can be assigned during the expansion, and standard constructions do assign them. The loss is topological — which groups existed — not about missing weights."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "On CC-Cora, RD-GNN scores $74.05$ and RD-HGNN scores $74.30$. What is the difference, in points, to two decimals — and which route is higher?",
+      "answer": 0.25,
+      "tol": 0.03,
+      "hint": "Both models carry the same rule knowledge, so the difference isolates the backbone. Give the magnitude.",
+      "sol": "$74.30 - 74.05 = 0.25$ points in favour of RD-HGNN, the intact-hypergraph route. Set that beside the same comparison on CA-Cora, where the gap is $79.36 - 77.64 = 1.72$, and the honest conclusion is that **what preserving hyperedge arity buys varies by an order of magnitude across datasets built from the very same publications.** CC-Cora's hyperedges are co-citation groups, CA-Cora's are co-authorship groups, and the two differ in how large those groups are — which is the quantity that should matter if the route's advantage comes from representing arity.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You have a hypergraph dataset and an existing pairwise-graph pipeline you trust. On the evidence of this paper, what is the sensible way to decide whether to adopt the intact-hypergraph route?",
+      "opts": [
+        {
+          "md": "Adopt it, since the intact route wins on five of six datasets in Table X",
+          "expl": "The direction is right and the margin is the relevant question: the win is $1.72$ points on CA-Cora with the embedding held fixed, and on ModelNet40 the reduced variant is ahead. Adopting a new pipeline for a margin that size — without checking your own dataset — is a decision made on someone else's data."
+        },
+        {
+          "md": "Measure the arity of your own relations first: if most hyperedges hold only two or three vertices, the reduction has little to lose",
+          "correct": true,
+          "expl": "Correct, and this is the quantity Table I already reports in a column. The information the reduction destroys is precisely the fact that a group was a group, and that information is only worth something when groups are larger than pairs. CA-Cora's average edge degree of $4.5$ is a real hypergraph; a dataset whose relations average $2.05$ is a graph wearing a hypergraph's notation, and on it the two routes should come out close — which is what ModelNet40, whose hyperedges are built from $k$-nearest-neighbour groups over point-cloud features, appears to show."
+        },
+        {
+          "md": "Try HyperGCN, since it is designed for exactly this decision",
+          "expl": "HyperGCN is a reasonable third option and it is not what the paper tests. Note the sequence: the arity check takes one look at a column you already have, whereas trying HyperGCN requires running a new model. Measure first, then choose a route."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** reference [24], GCN — the graph convolution both hypergraph routes are descended from."
+}

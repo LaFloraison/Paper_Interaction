@@ -1,0 +1,108 @@
+{
+  "id": "133",
+  "kind": "reference",
+  "chapter": "references",
+  "section": "R4 · Reference [24] · GCN",
+  "kicker": "Reference [24]",
+  "title": "Reference [24]: GCN — the convolution everything here is descended from",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Reference [24]** is *T. N. Kipf and M. Welling, \"Semi-supervised classification with graph convolutional networks\", in Proceedings of the International Conference on Learning Representations, 2017, pp. 2645–2656.* It introduced the graph convolution layer that became the default building block of graph learning, in which each vertex's new features are a degree-normalised average of its own and its neighbours' features, followed by a learned linear map. The paper cites it both as a **definition source** — the pairwise case that HGNN generalises to hyperedges — and as an **opponent**, appearing as a baseline in Tables V, VI and X.",
+      "plain": "GCN is the layer that made graph deep learning practical. HGNN is what you get when you ask GCN's averaging question about groups of any size instead of pairs. So GCN sits two steps below this paper: HGNN generalises it, and this paper builds on HGNN."
+    },
+    {
+      "t": "p",
+      "md": "**The one design decision in GCN that explains the whole lineage.** GCN's layer looks like the obvious thing — average your neighbours, then transform — and the reason it took a paper to establish is that the obvious thing turns out to be a first-order approximation of a spectral filter, derived by truncating a Chebyshev expansion of the graph Laplacian. The approximation is what makes the layer local and cheap, and the derivation is what tells you which normalisation to use. Every method in this paper's tables inherits that normalisation: the $D_v^{-1/2}$ and $D_e^{-1}$ factors in Equation (1) are the hypergraph version of the pair of degree factors GCN uses."
+    },
+    {
+      "t": "p",
+      "md": "**Its limitation is the reason this paper exists, and it is not the limitation people usually name.** GCN is not restricted in depth or in what it can express about vertices; it is restricted in what a relation can be. Every edge joins two vertices, so a group must be represented as the set of pairs inside it — and card 132 showed why that expansion is many-to-one and therefore lossy. HGNN's contribution was to write the operator for a relation of any size; this paper's contribution is to change what the operator receives as input, while leaving the operator as HGNN wrote it."
+    },
+    {
+      "t": "p",
+      "md": "**Where GCN appears in the experiments, and what the two appearances measure.** In a hypergraph dataset it must first flatten the hypergraph, so its score measures the cost of the pairwise approximation — card 132's subject. In the four plain-graph datasets in Tables V and VI there is nothing to flatten, so the comparison is direct. The two appearances answer different questions with one column, which is exactly the kind of thing a reader should notice before averaging anything."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — read GCN's column in two places and get two different meanings.**"
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Table V, Cora: GCN scores $83.63$, HGNN $81.81$. On this dataset the pairwise model wins by $1.82$ points.",
+          "why": "Cora is a citation network whose relations are literally pairwise, so this is the case where the hypergraph machinery has nothing to represent that GCN cannot. If HGNN had won here, it would have been a sign that the extra machinery was buying something other than arity."
+        },
+        {
+          "md": "Table V, CA-Cora: GCN scores $75.23$, HGNN $75.67$. Here HGNN wins, by $0.44$ points.",
+          "why": "Same $2{,}708$ vertices, same split, same features — but now the relations are co-authorship groups averaging $4.5$ papers. HGNN's advantage is $0.44$ points, which is small and in the expected direction. **The size of the small win is itself informative: it says that on this data, representing arity directly is worth well under a point.** Anyone expecting a hypergraph method to be dramatically better on co-authorship data should recalibrate from this pair."
+        },
+        {
+          "md": "Table V, Heloc: GCN scores $68.19$, HGNN $71.61$. HGNN wins by $3.42$ points, its largest margin over GCN anywhere in the table.",
+          "why": "Heloc is tabular financial data turned into a hypergraph by $k$-nearest-neighbour construction, so the groups are large and were made by a procedure rather than observed. The largest margin appearing on the dataset where the relations are most artificial is worth a moment's thought: it suggests the margin responds to how the hyperedges were built, not only to whether arity matters in the underlying domain. That is a hypothesis, not a finding — the paper reports no $k$-sweep, which is open question 4."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**GCN's average rank is $3.9$ against HGNN's $3.3$ — closer than the architecture difference would suggest.** Two methods separated by a representational capability, on ten datasets, average ranks one position apart. If you take one thing from this reference card, take the calibration it provides: **on these benchmarks, the ability to represent groups of arbitrary size is worth a fraction of a rank position on average**, and the paper's $2.119$-point gain over HGNN is a comparable order of magnitude to the gap between HGNN and a method that cannot represent hyperedges at all. That is not a criticism of the paper; it is what the numbers say, and it is the sort of thing a reader can only see by reading the baseline columns rather than the bold ones."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is GCN's relationship to HGNN and to this paper?",
+      "opts": [
+        {
+          "md": "GCN is a special case of HGNN restricted to pairwise relations, and HGNN is the stage this paper prepends its encoders to",
+          "correct": true,
+          "expl": "Correct. Set every hyperedge's size to two and HGNN's operator reduces to GCN's averaging. So GCN sits two levels down: it is the pairwise special case, HGNN generalises it to sets, and this paper keeps HGNN's generalisation and changes what the network is fed. That is why GCN's column appears in the tables both as a competitor and as a floor."
+        },
+        {
+          "md": "GCN is a later, improved version of HGNN",
+          "expl": "The reverse of the lineage. GCN appeared in 2017 and HGNN in 2019; more importantly, HGNN's operator generalises GCN's rather than succeeding it."
+        },
+        {
+          "md": "They are unrelated methods that happen to perform similarly",
+          "expl": "They share a derivation and a normalisation scheme — the degree factors in Equation (1) are the hypergraph form of GCN's. Their performance being close on Cora is a consequence of the relation structure, not of independence."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "On the DBLP-Conf dataset, GCN scores $90.57$ and HGNN scores $93.79$. What is HGNN's advantage in points, to two decimals?",
+      "answer": 3.22,
+      "tol": 0.03,
+      "hint": "Subtract the smaller from the larger. This dataset's relations are far larger than a pair, which is the point of the comparison.",
+      "sol": "$93.79 - 90.57 = 3.22$ points. DBLP-Conf's relations are author groups averaging hundreds of members, far larger than CA-Cora's $4.5$ — so if keeping the hypergraph intact pays off by representing group size, the gap should be larger here than on CA-Cora, where it is $0.44$. It is, by a factor of seven. That is a suggestive pattern rather than a demonstrated one: the two datasets differ in other ways as well, and the paper runs no analysis isolating arity.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You are choosing between a pairwise graph pipeline and a hypergraph pipeline for a co-authorship network, and you have measured that your relations average four authors each. What does this paper's evidence suggest?",
+      "opts": [
+        {
+          "md": "Use the hypergraph pipeline; the arity is real and will pay",
+          "expl": "Reimplementation is common and it does not change how strongly the hypergraph machinery is exercised. The measurement gap here is $3.9 - 3.3 = 0.6$ of an average-rank position — the two methods place about half a place apart on average across ten datasets — which is real and still modest for two architectures separated by a representational capability."
+        },
+        {
+          "md": "Expect a small but real gain — comparable to CA-Cora's $0.44$ points at similar arity — and validate it on your own data before committing to the more complex pipeline",
+          "correct": true,
+          "expl": "Correct. The evidence gives both a direction and an order of magnitude, which is more than most architectural decisions get. The reason to validate anyway is that the margin appears to depend on how the hyperedges were constructed and not only on their size — Heloc's $3.42$-point margin over GCN is on the dataset whose relations are the most artificially built — and construction is something you control. **A published margin tells you what a decision is worth on someone else's data; the same decision on yours needs a number from yours.**"
+        },
+        {
+          "md": "The evidence does not apply, since the paper's datasets are citation and purchase networks rather than co-authorship",
+          "expl": "CA-Cora is exactly a co-authorship hypergraph over the Cora publications — the paper's own dataset list says vertices \"that are co-authored (CA) by an author... are connected via a hyperedge\". The setting is closer than this objection assumes."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** reference [22], Friedman's gradient boosting — the source of the tree ensemble whose questions become the rule ledger."
+}

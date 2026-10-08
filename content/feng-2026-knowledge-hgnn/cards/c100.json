@@ -1,0 +1,325 @@
+{
+  "id": "100",
+  "kind": "table",
+  "chapter": "experiments",
+  "section": "6.12 Table X · knowledge embedding on plain GNNs",
+  "kicker": "6.12 · Table X",
+  "title": "Table X: the knowledge embedding on an ordinary graph network",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Table X takes the framework one substitution further than Table IX. The hypergraph network in the second stage is replaced by a **plain graph network** — one that operates on pairwise edges only — giving two new variants, RD-GNN and DD-GNN, which differ from RD-HGNN and DD-HGNN only in that stage. Eight methods are compared across six hypergraph datasets under the transductive setting: MLP and GBDT (feature-only), GCN and HGNN (structure-only), RD-GNN and DD-GNN (knowledge embedding plus a graph backbone), and RD-HGNN and DD-HGNN (knowledge embedding plus a hypergraph backbone). The footer row $\\Delta_{GCN}$ reports the better of RD-GNN and DD-GNN minus GCN.",
+      "plain": "Swap the hypergraph engine for five other hypergraph engines, one at a time. Table IX did that. This table throws the hypergraph away entirely and keeps an ordinary graph. If the knowledge embedding still helps, then what it contributes does not depend on hyperedges being present. Terms and datasets first, since everything below uses them. A **hyperedge** is a link joining any number of vertices at once rather than exactly two, and a hypergraph is a dataset whose relations are hyperedges (card 12). **Knowledge embedding** means the extra feature columns prepended to each vertex's raw features: one number counting its hyperedge memberships, plus a block of 0/1 answers to questions from a pre-trained tree ensemble. **HGNN** is the hypergraph network whose propagation is the paper's Equation (1); **GCN** is the same averaging restricted to pairwise edges; **RD-GNN** and **DD-GNN** are the paper's two models with the hypergraph backbone replaced by a plain graph one, taking the rule stream alone and both streams respectively. Three of the six datasets recur throughout the paper and are easy to confuse: **Cora** is a citation network of $2{,}708$ publications with pairwise citation edges; **CA-Cora** and **CC-Cora** are the *same* $2{,}708$ publications with the same features and the same split, but with their relations redrawn as hyperedges — co-authorship for CA-Cora, co-citation for CC-Cora. **DBLP-Conf** is an author network, **Tencent** comes from social-community data, **ModelNet40** is 3D point clouds turned into a table, and **Heloc** is tabular credit data."
+    },
+    {
+      "t": "p",
+      "md": "**Read the layout before the numbers, because it changed.** Tables V through IX put datasets in rows and methods in columns. Table X is transposed: datasets are the columns, methods are the rows. A reader who carries the previous habit into this table will read one dataset's eight methods as one method's eight datasets. Nothing warns you; the header cells are the only signal, and they are just dataset names."
+    },
+    {
+      "t": "p",
+      "md": "**The four generations, and why the row order matters.** The rows are ordered MLP, GCN, GBDT, HGNN, RD-GNN, DD-GNN, RD-HGNN, DD-HGNN — not alphabetically and not by score, but by what each model can see. MLP and GBDT read features and nothing else; GCN and HGNN read structure and nothing else; the last four read both, with the GNN pair using an ordinary graph backbone and the HGNN pair a hypergraph one. Read as a sequence it is an argument: each pair adds one capability, and the accuracies should rise in that order. **Where they do not, the table is telling you something about the dataset.**"
+    },
+    {
+      "t": "figure",
+      "src": "tab10.png",
+      "alt": "Table X of the paper: eight methods across six hypergraph datasets, with a final row giving the delta to GCN",
+      "cap": "Original Table X (Feng et al., TPAMI 2026). Datasets are columns and methods are rows — the transpose of the layout used in Tables V through IX."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — one column, read as a ladder.** Take CA-Cora, the first column."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Generation",
+        "Method",
+        "CA-Cora"
+      ],
+      "rows": [
+        [
+          "Feature only",
+          "MLP",
+          "$68.55$"
+        ],
+        [
+          "Feature only",
+          "GBDT",
+          "$71.69$"
+        ],
+        [
+          "Structure only",
+          "GCN",
+          "$75.23$"
+        ],
+        [
+          "Structure only",
+          "HGNN",
+          "$75.67$"
+        ],
+        [
+          "Both, graph backbone",
+          "RD-GNN",
+          "$77.64$"
+        ],
+        [
+          "Both, graph backbone",
+          "DD-GNN",
+          "$77.49$"
+        ],
+        [
+          "Both, hypergraph backbone",
+          "RD-HGNN",
+          "$79.36$"
+        ],
+        [
+          "**Both, hypergraph backbone**",
+          "**DD-HGNN**",
+          "**$79.75$**"
+        ]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The six columns this footer depends on**, transcribed so that every delta below can be checked in place rather than taken on trust. The footer row of Table X reports $\\Delta_{GCN}$ as the better of RD-GNN and DD-GNN minus GCN."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Dataset",
+        "GCN (origin)",
+        "RD-GNN",
+        "DD-GNN",
+        "$\\Delta_{GCN}$"
+      ],
+      "rows": [
+        [
+          "CA-Cora",
+          "$75.23$",
+          "$77.64$",
+          "$77.49$",
+          "$+2.41$"
+        ],
+        [
+          "DBLP-Conf",
+          "$90.57$",
+          "$89.98$",
+          "$94.58$",
+          "$+4.01$"
+        ],
+        [
+          "CC-Cora",
+          "$73.21$",
+          "$74.05$",
+          "$74.74$",
+          "$+1.53$"
+        ],
+        [
+          "Tencent",
+          "$93.54$",
+          "$93.47$",
+          "$94.53$",
+          "$+0.99$"
+        ],
+        [
+          "ModelNet40",
+          "$97.78$",
+          "$98.09$",
+          "$98.02$",
+          "$+0.31$"
+        ],
+        [
+          "Heloc",
+          "$68.19$",
+          "$71.74$",
+          "$71.71$",
+          "$+3.55$"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Measure the first step: from feature-only to structure-only. GBDT at $71.69$ to GCN at $75.23$ is $+3.54$; HGNN reaches $75.67$.",
+          "why": "This is the step that justifies using a graph at all, and the table includes it for exactly that reason. The paper's baselines are not padding: MLP and GBDT establish the price of ignoring structure, and the $3.54$-point gap is what structure is worth on this dataset."
+        },
+        {
+          "md": "Second step: adding knowledge embedding on a plain graph backbone. RD-GNN at $77.64$ against GCN at $75.23$ is $+2.41$ — and the footer row prints exactly $+2.41$ for this column, so the delta convention is confirmed here as well.",
+          "why": "Hold on to what this comparison isolates. RD-GNN and GCN differ *only* in whether the knowledge embedding is prepended: same backbone, same data, same protocol. So the $2.41$ is attributable to the embedding rather than to the architecture's ability to use hyperedges — which is the whole point of running a plain-graph variant."
+        },
+        {
+          "md": "Third step: from a graph backbone to a hypergraph one. RD-GNN at $77.64$ against RD-HGNN at $79.36$ is $+1.72$, with the same comparison available for DD at $77.49$ against $79.75$, a gain of $+2.26$.",
+          "why": "So the ladder has three genuine rungs on CA-Cora, each worth between $1.7$ and $3.5$ points: structure is worth more than features-to-structure, knowledge embedding adds more on top, and the hypergraph backbone adds more again. Note the ordering of the last two rungs is close enough that it should not be over-read on a single dataset — which is why the paper reports six."
+        },
+        {
+          "md": "Now check the footer row's exact definition against all six columns: $+2.41$, $+4.01$, $+1.53$, $+0.99$, $+0.31$, $+3.55$.",
+          "why": "Each is the higher of the two GNN variants minus GCN. Verify two by hand: DBLP-Conf, higher of $89.98$ and $94.58$ is $94.58$, minus GCN's $90.57$ gives $4.01$ ✓; Heloc, higher of $71.74$ and $71.71$ is $71.74$, minus GCN's $68.19$ gives $3.55$ ✓. All six are positive, and note that on ModelNet40 the higher variant is RD-GNN rather than DD-GNN, so the reference switches here too — the same convention found in Tables VI and IX."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — the smallest gain, and why the smallest gain is the informative one.**"
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**ModelNet40 gives the framework a gain of $+0.31$ — and the reason is visible in the same column.** Its GCN baseline scores $97.78$. Table X does not report a ceiling explicitly, but a dataset on which an ordinary graph network already reaches $97.78$ has almost no room above it: a method cannot show a large improvement on a task that is close to solved. Read this way, the $+0.31$ is not a weak result — it is a **ceiling effect**, and its cause is checkable from the two baselines printed in the same table rather than taken on trust. The contrast with the largest gain makes the arithmetic concrete: DBLP-Conf's $+4.01$ sits on a GCN baseline of $90.57$, which is $100 - 90.57 = 9.43$ points short of perfect, while ModelNet40's baseline leaves only $100 - 97.78 = 2.22$. That is $7.21$ points more headroom, and the gains differ by $3.70$ points. **Across a table of gains, the largest gain and the best method are different things, and the size of a gain is bounded by how much room the baseline left.**"
+    },
+    {
+      "t": "p",
+      "md": "**Walk 3 — a free consistency check that the table passes twice and fails once.** MLP and GBDT read features and nothing else. Their accuracy therefore cannot be affected by how the relations are drawn — every hyperedge could be redrawn at random and both numbers would be unchanged, as long as the vertex set, the features and the split stayed the same. CA-Cora and CC-Cora are two different hypergraph constructions over the same 2,708 publications, which makes them a natural test."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Feature-only method",
+        "Cora",
+        "CA-Cora",
+        "CC-Cora"
+      ],
+      "rows": [
+        [
+          "MLP",
+          "$69.04$",
+          "$68.55$",
+          "$68.55$"
+        ],
+        [
+          "GBDT",
+          "$74.30$",
+          "$71.69$",
+          "$71.69$"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "CA-Cora against CC-Cora: MLP gives $68.55$ in both, GBDT gives $71.69$ in both. Two completely different hyperedge constructions, two identical results per method.",
+          "why": "This is the invariance behaving as it should, and it is worth noticing *because* it is the expected result. Between two datasets that share a vertex set and differ only in their relation structure, a relation-blind method must agree exactly. An exact agreement to two decimals across two constructions is therefore evidence that the two columns really were produced by the same pipeline on the same vertices."
+        },
+        {
+          "md": "Now Cora, the plain-graph version of the same 2,708 publications, whose split Table II reports as $1{,}625 / 677 / 406$ — the same three numbers as CA-Cora and CC-Cora. MLP gives $69.04$ rather than $68.55$, and GBDT gives $74.30$ rather than $71.69$.",
+          "why": "For a feature-only method these should be the same experiment three times. They are not: MLP differs by $0.49$ points and GBDT by $2.61$. Something differs between the graph version of Cora and the hypergraph versions, and it is not the relation structure, because neither method can see it. The candidates are the feature matrix (the graph benchmark's bag-of-words representation may not be the one used for the hypergraph variants) and the split indices (three tables' worth of Cora rows could have been drawn with different seeds despite printing identical sizes)."
+        },
+        {
+          "md": "Note carefully what this does and does not establish.",
+          "why": "It does **not** establish that any reported number is wrong — a different feature matrix is a perfectly ordinary reason for MLP to score differently, and the paper never claims the three Cora variants share features. What it establishes is that **the three Cora entries are not interchangeable**, so any sentence of the form \"on Cora the method gains X points\" has to say which Cora. The paper's abstract does exactly this and does not say which one, which is the source of the $7.3\\%$-versus-$6.83$ ambiguity noted in the critique chapter."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**What the invariance test is worth as a habit.** Any results table that contains a method which provably cannot see part of its own input has a free internal check built into it: on datasets that differ only in that part, its numbers must agree exactly. Here the check passes for the hypergraph pair and raises a question for the graph entry. The same reasoning applies to any baseline that ignores a feature block, any ablation whose control should be unaffected, and any two columns the authors claim were produced by the same procedure. **It costs one comparison and can catch a column that was copied from the wrong experiment — which is the single most common way a results table goes wrong.**"
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does Table X establish that Table IX does not?",
+      "opts": [
+        {
+          "md": "That the knowledge embedding improves more backbones than Table IX tested",
+          "expl": "It tests six datasets rather than six backbones; both tables report the same framework and neither is a superset of the other in that sense. The difference between them is what gets substituted."
+        },
+        {
+          "md": "That the benefit survives even when the hypergraph structure is replaced by ordinary pairwise edges — so the gain comes from the knowledge rather than from a hypergraph-specific mechanism",
+          "correct": true,
+          "expl": "Correct, and the isolation is clean: RD-GNN and GCN share a backbone and a dataset, and differ only in whether the knowledge embedding is prepended. Table IX showed the embedding is not tied to one hypergraph model; Table X shows it is not tied to hypergraphs at all."
+        },
+        {
+          "md": "That plain GNNs are competitive with hypergraph networks on these datasets",
+          "expl": "The comparison is available in the columns and it usually goes the other way — on CA-Cora, RD-HGNN's $79.36$ beats RD-GNN's $77.64$. The graph variants are there to isolate the source of the gain, not to claim parity."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "In the DBLP-Conf column, what is $\\Delta_{GCN}$ — the better of RD-GNN and DD-GNN, minus GCN? Give two decimals.",
+      "answer": 4.01,
+      "tol": 0.03,
+      "hint": "GCN on DBLP-Conf is $90.57$. Compare the two graph-backbone variants and use the larger one, then subtract.",
+      "sol": "RD-GNN scores $89.98$ and DD-GNN $94.58$, so the larger is DD-GNN: $94.58 - 90.57 = 4.01$, matching the printed footer. Note that on this column the RD variant is *below* GCN, which is a reminder that the footer takes a maximum: the framework's guarantee is that one of its two variants beats the baseline, not that both do.",
+      "unit": "points"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "In the CC-Cora column, what is $\\Delta_{GCN}$ — the better of RD-GNN and DD-GNN, minus GCN? Give two decimals.",
+      "answer": 1.53,
+      "tol": 0.03,
+      "hint": "GCN on CC-Cora is $73.21$. Compare the two graph-backbone variants and use the larger one, then subtract.",
+      "sol": "$74.74 - 73.21 = 1.53$, matching the printed footer. Note that here the reference variant is DD-GNN, whereas on DBLP-Conf it was DD-GNN too but on CA-Cora the higher variant is RD-GNN — the footer takes a maximum, so the reference switches from column to column, exactly as Table VI's delta columns switch from row to row.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Tables V through IX of this paper put datasets in rows and methods in columns. Table X is transposed. What is the practical risk of that change for a reader?",
+      "opts": [
+        {
+          "md": "That the numbers become incomparable across tables",
+          "expl": "Transposition changes layout, not content; the same accuracy means the same thing in either arrangement. The risk is to the reader's reading, not to the data."
+        },
+        {
+          "md": "That a reader carrying the previous habit will read one dataset's eight methods as one method's eight datasets",
+          "correct": true,
+          "expl": "Correct, and the only signal against it is the header row, which is just dataset names. The habit is real: after four tables where the vertical axis means \"which dataset\", the eye reads a column as a method. The mitigation is the same one that works for table footers and delta columns — read the header cell of the row and column you are about to compare, out loud if necessary, before trusting the number where they meet."
+        },
+        {
+          "md": "That the bold entries change meaning",
+          "expl": "Bold marks an extremum, and in a transposed table the extremum is taken down a column rather than across a row. That is a genuine change — and it is a secondary one, easily settled by looking at which entry is bold."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "apply",
+      "q": "MLP scores $69.04$ on Cora (Table V) and $68.55$ on CA-Cora (Table X). Both datasets have 2,708 vertices and the same class count, and MLP ignores all relations. What is the correct conclusion?",
+      "opts": [
+        {
+          "md": "One of the two numbers is a misprint",
+          "expl": "Possible, and not the most likely explanation — a different input feature matrix produces exactly this pattern and is entirely legitimate. Concluding misprint from a difference of $0.49$ would be a stronger claim than the evidence supports, and it would not tell you which number to distrust if it were true."
+        },
+        {
+          "md": "The three Cora variants are not interchangeable: they differ in something a feature-only method can see, most likely the feature matrix or the split indices, and the paper does not say which",
+          "correct": true,
+          "expl": "Correct, and note the discipline in the wording: a question rather than a verdict. The check establishes a fact — the invariance that should hold does not — and narrows the cause to the inputs a feature-only method can see. Both candidate causes are ordinary and neither implies an error. What follows is a reporting requirement rather than a correction: a claim about \"Cora\" has to name which Cora."
+        },
+        {
+          "md": "Nothing — CA-Cora and Cora are different datasets, so the values need not agree",
+          "expl": "They are different datasets, which is why the coincidence of vertex count, class count and three split sizes is the interesting part. That triple coincidence plus a relation-blind method is what makes identical numbers the prediction; using \"different datasets\" to wave it away discards the only informative thing in the comparison."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You are designing the results table for your own paper, and one of your baselines provably ignores an input your method uses. What should the table do to take advantage of that?",
+      "opts": [
+        {
+          "md": "Omit the baseline, since it cannot use the input",
+          "expl": "Omitting it removes the comparison that establishes what the input is worth — which is the table's most useful function. And a baseline that cannot use an input is not a flaw; it is the controlled condition."
+        },
+        {
+          "md": "Include it on several datasets that differ externally in that input, and state that its numbers should coincide there — making the agreement itself a check readers can run",
+          "correct": true,
+          "expl": "Correct, and it converts an accident into a design. Two datasets that share a vertex set and features and differ only in relation structure are a natural controlled pair, and the invariance gives readers a check that costs them one comparison and would catch a column copied from the wrong experiment. Tables that make themselves verifiable are read more confidently, and the reason is not stylistic — a reader who has verified one thing is far more likely to believe the rest."
+        },
+        {
+          "md": "Report only the difference between the baseline and the method",
+          "expl": "Reporting differences alone hides the levels, which is precisely the error that makes Table IX's gain column so easy to misread — the largest gain went to the weakest backbone. Levels and differences are both needed; a gain column with no level column invites a reader to rank models by gains."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the experiment chapter is complete — thirteen exhibits. What remains is the paper's own conclusion, then this site's critique chapter, where the numbers recomputed in these cards are collected into a single ledger."
+}

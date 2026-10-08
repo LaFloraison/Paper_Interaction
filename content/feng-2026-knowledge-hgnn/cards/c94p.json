@@ -1,0 +1,269 @@
+{
+  "id": "94p",
+  "kind": "practice",
+  "for": "94",
+  "chapter": "experiments",
+  "section": "6.6 Table V · practice",
+  "kicker": "6.6 · Practice",
+  "title": "Practice: recompute a results table instead of reading it",
+  "what": [
+    {
+      "t": "p",
+      "md": "This set drills one skill: taking a table of results and producing the summary statistics yourself. Card 94 worked through Table V's two headline quantities. Here you do the same operations on columns and rows that card did not touch, because the point is the *procedure*, not those two numbers."
+    },
+    {
+      "t": "p",
+      "md": "Five tools, all of them used below. Abbreviations first: **MLP** is a multilayer perceptron — the simplest feed-forward network — and **GBDT** is a gradient-boosted decision tree ensemble; both read only the vertex features. **GCN** and **HGNN** are the structure-only baselines: a graph convolutional network, and the hypergraph neural network whose propagation is the paper's Equation (1). **TLF** is DeepTLF, which feeds a tree ensemble into a network. **RD-HGNN** and **DD-HGNN** are the paper's two models, differing only in whether the rule stream alone (RD) or the rule and structural streams together (DD) are fused into the network's input. A **hyperedge** is a link joining any number of vertices at once. If any of the five tools below is not solid, go back to card 94 before starting."
+    },
+    {
+      "t": "list",
+      "ordered": true,
+      "items": [
+        "**A column mean** is the sum of a method's ten cells divided by ten. It answers \"how good is this method on average\" but mixes datasets of different difficulty, so it is only interpretable alongside the column it came from.",
+        "**A rank** is a method's position among the seven on one dataset, best first. Ties need a convention: assigning the best of the tied positions reproduces the paper's printed row; averaging the tied positions does not.",
+        "**An average rank** is the mean of a method's ten ranks. It is scale-free — it compares placements rather than gaps.",
+        "**A gain** quoted in prose is a difference of means, and both means have to be computed before the gain can be checked.",
+        "**A gap inside the noise** is a gap smaller than the spreads it is computed from. Every Table V cell carries a standard deviation, and a difference much smaller than those standard deviations is not evidence of a difference in performance."
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**The three columns of Table V these exercises use**, transcribed so that every item below can be worked from this card alone. The corresponding columns for MLP, GCN, HGNN and TLF are in card 94. The printed average-rank row is: MLP $5.8$, GCN $3.9$, GBDT $5.1$, HGNN $3.3$, TLF $6.1$, RD-HGNN $1.7$, DD-HGNN $1.5$."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Dataset",
+        "GBDT",
+        "RD-HGNN",
+        "DD-HGNN"
+      ],
+      "rows": [
+        [
+          "Cora",
+          "$74.30$",
+          "$88.64$",
+          "$87.22$"
+        ],
+        [
+          "GitHub",
+          "$85.69$",
+          "$86.20$",
+          "$86.00$"
+        ],
+        [
+          "Amazon-P",
+          "$91.58$",
+          "$94.73$",
+          "$94.63$"
+        ],
+        [
+          "Amazon-C",
+          "$85.58$",
+          "$92.03$",
+          "$91.57$"
+        ],
+        [
+          "CA-Cora",
+          "$71.54$",
+          "$79.36$",
+          "$79.75$"
+        ],
+        [
+          "DBLP-Conf",
+          "$79.77$",
+          "$94.68$",
+          "$94.84$"
+        ],
+        [
+          "CC-Cora",
+          "$71.69$",
+          "$74.30$",
+          "$76.06$"
+        ],
+        [
+          "Tencent",
+          "$92.85$",
+          "$95.65$",
+          "$95.83$"
+        ],
+        [
+          "ModelNet40",
+          "$95.31$",
+          "$97.99$",
+          "$98.01$"
+        ],
+        [
+          "Heloc",
+          "$71.61$",
+          "$72.44$",
+          "$72.57$"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "One warning that applies to every item. **A table cell is a rounded number.** Table V prints two decimals, so each cell carries up to $\\pm 0.005$ of hidden error. Summing ten of them bounds the *sum's* error at $\\pm 0.05$; dividing by ten bounds the *mean's* error at $\\pm 0.005$; and a difference of two means is therefore good to about $\\pm 0.01$. So a discrepancy of a few hundredths can be rounding, and anything at the scale of $0.2$ cannot. The tolerances below are set accordingly — the point of recomputing is to catch errors of $0.2$ and larger, not to reproduce the fifth decimal."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**One fully worked prototype, so the shape of every item is clear.** Take the TLF column, the baseline the paper describes as closest to its own rule encoder. Its ten cells are $65.11$, $85.28$, $91.04$, $85.39$, $56.23$, $76.32$, $56.26$, $92.85$, $96.58$ and $72.14$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Sum the column, keeping the accumulator visible at each step: $65.11 + 85.28 = 150.39$; $+ 91.04 = 241.43$; $+ 85.39 = 326.82$; $+ 56.23 = 383.05$; $+ 76.32 = 459.37$; $+ 56.26 = 515.63$; $+ 92.85 = 608.48$; $+ 96.58 = 705.06$; $+ 72.14 = 777.20$.",
+          "why": "Writing the running total is not decoration. A single mis-copied cell is invisible in the final number but shows up as an odd jump in the running total — and re-adding a column is faster than re-reading it."
+        },
+        {
+          "md": "Divide: $777.20 / 10 = 77.720$.",
+          "why": "That is TLF's mean accuracy. Note what it does *not* tell you: TLF has the lowest mean of the seven methods."
+        },
+        {
+          "md": "Cross-check against the rank: TLF's average rank is 6.1, the worst of the seven. Mean and rank agree here in direction.",
+          "why": "When the two statistics agree, one check has confirmed the other — useful, because they can disagree. Card 94 showed RD and DD disagreeing: their means differ by 0.046 while their ranks differ by 0.2. Whenever you compute a mean, glance at the rank row; a large disagreement is a signal that either the ranks use a different tie convention or the means are being read off different columns."
+        },
+        {
+          "md": "Now the mean on its own terms: TLF scores 56.23 on CA-Cora and 96.58 on ModelNet40 — a 40-point spread. The mean of 77.72 sits in the middle of a range that wide.",
+          "why": "This is the standing caveat about column means in a multi-dataset table. They are a convenience, not a measurement, and they are reported by the paper only as the raw material for its quoted gains. A mean over ten datasets of different sizes, class counts and difficulty levels is a summary of a summary."
+        }
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why can two methods have nearly identical mean accuracies but clearly different average ranks?",
+      "opts": [
+        {
+          "md": "Because the rank row uses a different set of datasets",
+          "expl": "It uses the same ten datasets and the same cells. A different dataset set would make the comparison meaningless, and the paper's rank row would then be incompatible with its own accuracy rows."
+        },
+        {
+          "md": "Because a rank records only the order of the scores, discarding the size of each gap",
+          "correct": true,
+          "expl": "Correct. DD's mean exceeds RD's by $0.046$ while DD's rank is better by $0.20$ — and both can be true at once, because a 0.01 win and a 5-point win are both simply \"one place ahead\". Rank and mean answer different questions: \"how large are the gaps\" versus \"how often and how decisively do you place well\"."
+        },
+        {
+          "md": "Because the mean is computed over five seeds and the rank over the mean",
+          "expl": "Seeds affect each cell's value, not the relationship between the two summary statistics. Whatever the cells are, the mean and the rank are different functions of them."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "What is the mean of the RD-HGNN column of Table V? Give three decimals.",
+      "answer": 87.602,
+      "tol": 0.06,
+      "hint": "Add RD-HGNN's ten cells and divide by ten. Compare the result with DD's 87.648 once you have it — the two differ in the third decimal.",
+      "sol": "RD's ten cells sum to $876.02$, so the mean is $87.602$. DD's mean is $87.648$, so the two proposed models are separated by $0.046$ of a point — far inside the standard deviations printed beside every cell, which run from about $0.2$ to about $4.1$.",
+      "unit": "accuracy"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "What is the mean of Table V's GBDT column? Give three decimals.",
+      "answer": 81.992,
+      "tol": 0.06,
+      "hint": "GBDT is the feature-only baseline the paper's rule encoder is built on. Ten cells, divide by ten.",
+      "sol": "The GBDT cells sum to $819.92$, giving a mean of $81.992$. Against DD's $87.648$ the gap is $5.656$ — which is the quantity the paper's text quotes as $5.86$, so the two numbers in that sentence come from the same comparison computed two different ways.",
+      "unit": "accuracy"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "How many does RD-HGNN's ten ranks sum to before dividing by ten?",
+      "answer": 17,
+      "tol": 0.5,
+      "hint": "Rank each of the ten datasets separately, then add RD's ten positions. The answer is an integer, and it is smaller than 20.",
+      "sol": "RD's ranks across the ten datasets sum to $17$, giving $17/10 = 1.7$ — the printed value. DD's sum to $15$, giving $1.5$. Because neither RD nor DD is ever tied with another method on any dataset, these two sums are unaffected by the tie convention, which is what makes the printed $1.7$ and $1.5$ the only values their own results can support.",
+      "unit": "rank points"
+    },
+    {
+      "t": "choice",
+      "level": "apply",
+      "q": "Table V prints DD-HGNN's standard deviation on Cora as $\\pm 1.30$. The paper's text says DD beats GBDT by an average of $5.86$ points. Which statement about that $5.86$ is defensible on the evidence in the table?",
+      "opts": [
+        {
+          "md": "It is a reliable effect, since 5.86 exceeds 1.30",
+          "expl": "This compares a difference of *means* against a single cell's standard deviation, which is not the right comparison — and more importantly, $5.86$ is not what the printed cells give. Recomputed from the table the gap is $5.656$, and the question of whether it is significant is separate from whether it is correctly computed."
+        },
+        {
+          "md": "The gap is real but the quoted value is not reproducible from the printed cells, which give $5.656$",
+          "correct": true,
+          "expl": "Correct on both counts, and the order matters: establish what the number *is* before asking whether it *matters*. The recomputed $5.656$ is large relative to the per-cell spreads, so the qualitative claim survives; the specific value does not reproduce, so the sentence is not a reliable source for the value."
+        },
+        {
+          "md": "Nothing can be concluded because the cells are rounded",
+          "expl": "Rounding bounds the error at about $\\pm 0.01$ on a difference of two ten-cell means — a cell is printed to two decimals, ten of them can move a sum by $\\pm 0.05$, and dividing by ten brings that back to $\\pm 0.005$ per mean. The $0.2$ discrepancy here is twenty times that bound, so rounding cannot be its cause; it needs a structural explanation such as a differently aggregated column."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why is the average-rank row more useful than the mean-accuracy row for ranking methods across datasets of different difficulty?",
+      "opts": [
+        {
+          "md": "Because ranks are computed from means, so they carry more information",
+          "expl": "They are computed from the per-dataset cells, not from the means, and they carry *less* information — that is the trade being made. Ranks are preferred for comparability, not for information content."
+        },
+        {
+          "md": "Because a rank is comparable across datasets while a raw accuracy is not — 95% on a 2-class task and 72% on a 40-class task are not the same achievement",
+          "correct": true,
+          "expl": "Correct. ModelNet40 is a 40-class problem and Github a 2-class one; averaging their accuracies gives a number that neither task recognises. Ranks convert every dataset to the same unit — position — at the price of discarding how large the winning margin was."
+        },
+        {
+          "md": "Because ranks ignore the standard deviations, which are unreliable",
+          "expl": "Ranks ignore standard deviations, but that is a cost rather than a benefit: it means a rank row cannot tell you whether one method's advantage is inside the noise. The standard deviations are the paper's own five-seed spreads and are the one piece of uncertainty information the table does carry."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A colleague reports that their method has the best average rank across twelve benchmarks, and provides a table of accuracies but no rank row. What is the first thing you should do with the table?",
+      "opts": [
+        {
+          "md": "Check whether the average rank reproduces from the accuracies under a stated tie convention",
+          "correct": true,
+          "expl": "Correct. Average rank is a derived quantity, and derived quantities are exactly where a results table most often goes wrong — either through a tie convention that changes the answer, or through the row being carried over from a different table. Here the recomputation takes ten minutes and settles it. The transferable rule: **when a paper's headline number is derived from numbers it also prints, derive it yourself.**"
+        },
+        {
+          "md": "Ask for the rank row to be added to the table",
+          "expl": "Useful, but downstream of the check you can already perform. If the rank reproduces, the row adds nothing you did not have; if it does not, you have found something more valuable than a formatting request."
+        },
+        {
+          "md": "Compare the mean accuracies instead, since those are primary data",
+          "expl": "The means are primary, but averaging across twelve benchmarks of different difficulty is exactly the operation the rank row exists to avoid. Substituting the mean silently changes the question from \"where did it place\" to \"what did it score\", and on mixed-difficulty benchmarks those have different answers."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You are writing up your own results table and want it to survive a reader recomputing it. Which practice does the most for that?",
+      "opts": [
+        {
+          "md": "Report more decimal places so rounding cannot hide an error",
+          "expl": "Precision helps at the margin and costs readability. More importantly it does not address the failure modes actually seen here, which are a derived row quoting different numbers from the ones it derives from, and a delta column switching its reference model row by row. Neither is a rounding problem."
+        },
+        {
+          "md": "Label every derived quantity with the computation that produces it, and state any tie or aggregation convention explicitly",
+          "correct": true,
+          "expl": "Correct. Every inconsistency found in this paper's tables is either a derived value that does not follow from its inputs, or a convention that was applied but never stated. Naming the convention — best-of-ties, best-of-two-models, mean over which rows — costs one sentence per table and removes the entire class. It also makes your table self-auditing: a reader who can reproduce the footer row will trust the rest of it."
+        },
+        {
+          "md": "Put the most important numbers in bold",
+          "expl": "Bolding directs attention; it does not make a table checkable. It also has a cost visible in this paper's own tables: bold entries are marked per row in some tables and per column in others, so the bold is itself one more convention the reader has to infer."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the same treatment for Table VI, where the extra complication is that each dataset occupies three rows and the delta columns turn out to track the better of two models."
+}

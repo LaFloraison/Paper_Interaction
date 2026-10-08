@@ -8,11 +8,25 @@
     "venue": "IEEE TPAMI, vol. 48, no. 7, 2026, pp. 8613–8625",
     "site": "sites/feng-2026-knowledge-hgnn.html",
     "decomposed": "2026-10-08",
-    "cards": 140,
+    "cards": 169,
     "kps": 6,
     "spec": "v5",
     "status": "complete",
-    "keywords": ["hypergraph", "graph neural network", "GNN", "HGNN", "gradient boosting", "GBDT", "decision tree", "knowledge embedding", "rule extraction", "node classification", "incidence matrix", "over-smoothing", "over-squashing"],
+    "keywords": [
+      "hypergraph",
+      "graph neural network",
+      "GNN",
+      "HGNN",
+      "gradient boosting",
+      "GBDT",
+      "decision tree",
+      "knowledge embedding",
+      "rule extraction",
+      "node classification",
+      "incidence matrix",
+      "over-smoothing",
+      "over-squashing"
+    ],
     "oneline": "Conventional hypergraph networks only smooth features along relations. This paper computes two kinds of knowledge first — a structural ledger from hyperedge counts, a rule ledger from a boosted tree ensemble — fuses them, and only then runs the network."
   },
   {
@@ -28,7 +42,19 @@
     "kps": 13,
     "spec": "v4",
     "status": "complete",
-    "keywords": ["Stackelberg game", "security game", "game theory", "decision-focused learning", "quantal response", "SUQR", "counterfactual", "predict-then-optimize", "mixed strategy", "loss function", "cross-entropy"],
+    "keywords": [
+      "Stackelberg game",
+      "security game",
+      "game theory",
+      "decision-focused learning",
+      "quantal response",
+      "SUQR",
+      "counterfactual",
+      "predict-then-optimize",
+      "mixed strategy",
+      "loss function",
+      "cross-entropy"
+    ],
     "oneline": "Instead of predicting adversary behaviour accurately and hoping the decision follows, this paper trains the predictor on the decision it feeds — differentiating through the defender's optimisation so that the loss is the security outcome itself."
   }
 ]

@@ -3,6 +3,6 @@
   "kind": "include",
   "library": "decision-tree-family",
   "chapter": "pre",
-  "section": "2.2 Learning from features",
+  "section": "Learning from features",
   "kicker": "Extension · Decision trees"
 }

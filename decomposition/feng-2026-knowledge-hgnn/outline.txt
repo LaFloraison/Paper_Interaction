@@ -1,0 +1,168 @@
+0      Start here     Cover                              Knowledge-Embedded Hypergraph Neural Networks
+2      Title          1.1 Hypergraph                     Hypergraph: one edge can hold a whole group
+3      Title          1.2 Knowledge-Embedded             &quot;Knowledge-Embedded&quot;: writing knowledge down as numbers
+4      Title          1.3 Neural Networks                Neural networks: scoring machines that tune themselves
+5      Title          1.4 The title assembled            The title put back together: a three-stage pipeline
+6      Title          1.5 The venue                      What kind of paper this is — and why the venue explains its shape
+9a     Pre-knowledge  2.1 Foundations                    Matrix multiplication: summing over a shared index
+9b     Pre-knowledge  2.1 Foundations                    Transpose: swapping rows and columns
+9c     Pre-knowledge  2.1 Foundations                    The Hadamard product: multiply entry by entry
+9d     Pre-knowledge  2.1 Foundations                    Concatenation: placing two vectors side by side
+9e     Pre-knowledge  2.1 Foundations                    Normalising by degree: why the square root
+9f     Pre-knowledge  2.1 Foundations                    Skip check: can you leave this section?
+10a    Pre-knowledge  2.1 Foundations                    Why a graph, and why a matrix
+10b    Pre-knowledge  2.1 Foundations                    Degree: how connected is this vertex?
+10c    Pre-knowledge  2.1 Foundations                    The incidence matrix: a hypergraph written as a table
+10d    Pre-knowledge  2.1 Foundations                    The two sums: row sums and column sums are the two degrees
+10e    Pre-knowledge  2.1 Foundations                    The Laplacian, and why a graph has no convolution
+10f    Pre-knowledge  2.1 Foundations                    Skip check: can you leave this section?
+11a    Pre-knowledge  2.1 Foundations                    The arity of a relation: why pairs are sometimes not enough
+11b    Pre-knowledge  2.1 Foundations                    The family of relational structures, and which choice each one makes
+11c    Pre-knowledge  2.1 Foundations                    Two equivalent definitions of a hypergraph
+11d    Pre-knowledge  2.1 Foundations                    Where hyperedges come from (1): when the data already has groups
+11e    Pre-knowledge  2.1 Foundations                    Where hyperedges come from (2): inventing them from the data
+11f    Pre-knowledge  2.1 Foundations                    Converting back: three ways to turn a hypergraph into a graph
+11g    Pre-knowledge  2.1 Foundations                    The hypergraph is a modelling decision, not a property of the dataset
+11h    Pre-knowledge  2.1 Foundations                    Skip check: can you leave this section?
+12     Pre-knowledge  2.2 In this paper                  Hypergraphs in this paper: the object every equation runs on
+13a    Pre-knowledge  2.2 Learning from features         What a decision tree is
+13b    Pre-knowledge  2.2 Learning from features         How a tree chooses which question to ask
+13c    Pre-knowledge  2.2 Learning from features         ID3: information gain on a worked dataset
+13d    Pre-knowledge  2.2 Learning from features         C4.5: gain ratio, thresholds and pruning
+13e    Pre-knowledge  2.2 Learning from features         CART: Gini impurity, binary splits, and regression
+13f    Pre-knowledge  2.2 Learning from features         Pruning: why the tree has to be cut back
+13g    Pre-knowledge  2.2 Learning from features         When decision trees fail
+13h    Pre-knowledge  2.2 Learning from features         Skip check: can you leave this section?
+14     Pre-knowledge  2.2 In this paper                  Decision trees in this paper: read as a list of questions, never as a predictor
+15a    Pre-knowledge  2.3 Learning from features         Why combine models at all
+15b    Pre-knowledge  2.3 Learning from features         Bagging and random forests: diversity by resampling
+15c    Pre-knowledge  2.3 Learning from features         Boosting: diversity by correction
+15d    Pre-knowledge  2.3 Learning from features         Gradient boosting: fitting the negative gradient
+15e    Pre-knowledge  2.3 Learning from features         The modern implementations: XGBoost, LightGBM, CatBoost
+15f    Pre-knowledge  2.3 Learning from features         When not to use trees, and the skip check
+16     Pre-knowledge  2.3 In this paper                  Gradient boosting in this paper: a question generator, and the cost of that choice
+17a    Pre-knowledge  2.1 Foundations                    From a line to a curve: why one nonlinearity changes everything
+17b    Pre-knowledge  2.1 Foundations                    The neuron and the layer: a matrix multiply, a bias, and a bend
+17c    Pre-knowledge  2.1 Foundations                    Activation functions: the bend, and why ReLU won
+17d    Pre-knowledge  2.1 Foundations                    Loss functions: turning a task into a number to minimise
+17e    Pre-knowledge  2.1 Foundations                    Gradient descent: walking downhill on the loss
+17f    Pre-knowledge  2.1 Foundations                    Backpropagation: the chain rule, run backwards
+17g    Pre-knowledge  2.1 Foundations                    Overfitting, regularisation, and the skip check
+18a    Pre-knowledge  2.1 Foundations                    The supervised setup: labelled examples, a hypothesis class, and the gap between fitting and generalising
+18b    Pre-knowledge  2.1 Foundations                    The three-way split: training, validation, test — and how tuning on the test set manufactures a result
+18c    Pre-knowledge  2.1 Foundations                    Cross-validation: estimating generalisation when data is scarce
+18d    Pre-knowledge  2.1 Foundations                    Parameters and hyperparameters: what the model learns versus what you decide
+18e    Pre-knowledge  2.1 Foundations                    The reporting contract — and a skip check for this section
+19a    Pre-knowledge  2.1 Foundations                    A graph has no grid, so a layer cannot read its neighbours in order
+19b    Pre-knowledge  2.1 Foundations                    Message passing: the recipe almost every graph network instantiates
+19c    Pre-knowledge  2.1 Foundations                    GCN: a degree-normalised sum, and two reasons it is the right one
+19d    Pre-knowledge  2.1 Foundations                    GAT: letting a vertex learn how much to listen to each neighbour
+19e    Pre-knowledge  2.1 Foundations                    GraphSAGE and GIN: learning on unseen vertices, and which aggregation is sharpest
+19f    Pre-knowledge  2.1 Foundations                    Depth, and why stacking layers hurts
+19g    Pre-knowledge  2.1 Foundations                    The hypergraph turn, and can you leave this section?
+20a    Pre-knowledge  2.4 The graph-network half         The recipe: message passing in four moves
+20b    Pre-knowledge  2.4 The graph-network half         Why the aggregation must ignore order
+20c    Pre-knowledge  2.4 The graph-network half         Over-smoothing, and the skip check
+21a    Pre-knowledge  2.4 The graph-network half         The Laplacian&#x27;s eigenvectors are the graph&#x27;s Fourier basis
+21b    Pre-knowledge  2.4 The graph-network half         Spectral convolution, and its two problems
+21c    Pre-knowledge  2.4 The graph-network half         Chebyshev truncation, and the step to GCN
+21d    Pre-knowledge  2.4 The graph-network half         Which road the paper&#x27;s layer belongs to — and can you leave this section?
+22a    Pre-knowledge  2.4 The graph-network half         What a hypergraph network layer does
+22b    Pre-knowledge  2.4 The graph-network half         HGNN: the layer everyone else starts from
+22c    Pre-knowledge  2.4 The graph-network half         HyperGCN and DHGNN: change the graph, not the layer
+22d    Pre-knowledge  2.4 The graph-network half         UniGNN, AllSet and HGNN+: unifying, formalising, generalising
+22e    Pre-knowledge  2.4 The graph-network half         The shared limitation, and can you leave this section?
+23a    Pre-knowledge  2.4 The graph-network half         Symmetry: when two descriptions name the same object
+23b    Pre-knowledge  2.4 The graph-network half         Permutation invariance on graphs and hypergraphs
+23c    Pre-knowledge  2.4 The graph-network half         How invariance is achieved — and the skip check
+24a    Pre-knowledge  2.4 The graph-network half         Over-smoothing: why depth turns every vertex into the same vector
+24b    Pre-knowledge  2.4 The graph-network half         Over-squashing: too much through too narrow a channel
+24c    Pre-knowledge  2.4 The graph-network half         Skip check: the two failures, and how the paper answers them
+26a    Pre-knowledge  2.4 The graph-network half         The logistic sigmoid
+26b    Pre-knowledge  2.4 The graph-network half         A number in (0, 1) is a gate
+26c    Pre-knowledge  2.4 The graph-network half         What this implies for the taught paper&#x27;s fusion — and the skip check
+27a    Pre-knowledge  2.4 The graph-network half         The problem: two descriptions of the same object
+27b    Pre-knowledge  2.4 The graph-network half         Concatenation and weighted sums: what each loses
+27c    Pre-knowledge  2.4 The graph-network half         Gating, and the broadcast trick
+27d    Pre-knowledge  2.4 The graph-network half         What the taught paper does — and the skip check
+28a    Pre-knowledge  2.5 How results are read           What an evaluation protocol is
+28b    Pre-knowledge  2.5 How results are read           Transductive learning: the scored vertices are already there
+28c    Pre-knowledge  2.5 How results are read           Inductive learning: the scored vertices do not exist yet
+28d    Pre-knowledge  2.5 How results are read           Mixing the two regimes: what a &quot;production&quot; protocol averages
+28e    Pre-knowledge  2.5 How results are read           Why the same model scores differently — and a skip check for this section
+30a    Pre-knowledge  2.5 How results are read           Accuracy, and the baseline it must beat
+30b    Pre-knowledge  2.5 How results are read           Confusion, precision, recall and F1
+30c    Pre-knowledge  2.5 How results are read           Which metric to report, and the skip check
+31a    Pre-knowledge  2.5 How results are read           What an ablation is for
+31b    Pre-knowledge  2.5 How results are read           What makes an ablation valid
+31c    Pre-knowledge  2.5 How results are read           Reading an ablation table, and the skip check
+32a    Pre-knowledge  2.5 How results are read           Why average ranks, not average scores
+32b    Pre-knowledge  2.5 How results are read           The arithmetic of an average rank, and the ties
+32c    Pre-knowledge  2.5 How results are read           Skip check: what an average rank hides
+33a    Pre-knowledge  2.5 How results are read           What it means to reproduce a result
+33b    Pre-knowledge  2.5 How results are read           What a method section owes the reader
+33c    Pre-knowledge  2.5 How results are read           Why one run is not a result
+33d    Pre-knowledge  2.5 How results are read           Reading a hyperparameter table as a description of the model
+33e    Pre-knowledge  2.5 How results are read           Skip check: hyperparameters and reproduction
+40     Abstract       3.1 Reading an abstract            The abstract, sentence by sentence
+41     Abstract       3.2 The method claims              The three claims the abstract makes about the method
+42     Abstract       3.3 The numbers                    The numbers in the abstract, and the ones that disagree with them
+43     Abstract       3.4 What is missing                What the abstract does not say
+50     Introduction   4.1 The narrative                  The story the introduction tells
+51     Introduction   4.2 The three failure modes        The three failures of the smoothing paradigm
+52     Introduction   4.3 The contributions              The four contributions, and what they actually are
+53     Introduction   4.4 How the case is made           How the authors make their case: five rhetorical moves
+54     Introduction   4.5 The citations                  What every citation is doing
+60     Method         5.1 The framework                  The two-step framework: embed knowledge, then smooth
+61     Method         5.2 Equation (1)                   Equation (1): the hypergraph convolution, taken apart
+62     Method         5.3 Equation (2)                   Equation (2): how gradient boosting builds a model one small step at a time
+63     Method         5.4 Figure 1                       Figure 1: the whole framework on one page
+64     Method         5.5 The HOI-Encoder                The High-Order Incidence Encoder: turning structure into one number per vertex
+65     Method         5.6 Equation (3)                   Equation (3): the structural embedding, and what its range implies
+66     Method         5.7 The invariance proof           The column-permutation proof: what two lines actually establish
+67     Method         5.8 Figure 2                       Figure 2: how a tree&#x27;s questions become a vector
+68     Method         5.9 The TDR-Encoder                The Task-Driven Rule Encoder: harvesting a tree ensemble as a questionnaire
+69     Method         5.10 Equations (4) and (5)         Equations (4) and (5): the rule content mapping
+70     Method         5.11 Equation (6)                  Equation (6): the rule position mapping, and how gentle it turns out to be
+71     Method         5.12 Equation (7)                  Equation (7): one tree&#x27;s contribution, as a failure profile
+72     Method         5.13 Equation (8)                  Equation (8): assembling every tree into one row
+73     Method         5.14 Equation (9)                  Equation (9): the fusion, and exactly what the Hadamard product buys
+74     Method         5.15 Equation (10)                 Equation (10): the two models, and a confound worth noticing
+75     Method         5.16 Which model to choose         RD or DD: the paper&#x27;s prediction, and how to test it
+76     Method         5.17 The nearest predecessor       The line against BGNN: what is taken from the trees
+77     Method         5.18 Laboratory 1                  Laboratory: run the smoothing layer yourself
+78     Method         5.19 Laboratory 2                  Laboratory: turn a tree ensemble into a vector
+85     Experiments    6.0 The experimental design        What the experiments actually are
+86     Experiments    6.1 The baselines                  The five baselines, one at a time — and what beating each one actually proves
+90     Experiments    6.2 Datasets                       Table I: the ten exam papers
+90p    Experiments    6.2 Datasets                       Practice: read a dataset table without being fooled
+91     Experiments    6.3 Table II · the transductive split Table II: the transductive split, and why three of its rows do not add up
+92     Experiments    6.4 Table III · the production split Table III: the production split, and the one row that disagrees with Table II
+93     Experiments    6.5 Table IV · hyperparameters     Table IV: the hyperparameters, and the model size they imply
+94     Experiments    6.6 Table V · main results         Table V: the main results, recomputed cell by cell
+94p    Experiments    6.6 Table V · practice             Practice: recompute a results table instead of reading it
+95     Experiments    6.7 Table VI · production results  Table VI: the production setting, and what the delta columns are actually measuring
+95p    Experiments    6.7 Table VI · practice            Practice: three rows per dataset, two reference models, one footer that misleads
+96     Experiments    6.8 Figure 3 · hyperparameter and noise ablations Figure 3: two knobs and a bucket of noise
+97     Experiments    6.9 Table VII · number of decision trees Table VII: how many trees, and what happens on either side of the answer
+98     Experiments    6.10 Table VIII · number of layers Table VIII: the bill for depth, and a standard deviation of exactly zero
+99     Experiments    6.11 Table IX · swapping the hypergraph backbone Table IX: six backbones, eighteen gains, all of them positive
+100    Experiments    6.12 Table X · knowledge embedding on plain GNNs Table X: the knowledge embedding on an ordinary graph network
+110    Conclusion     7.1 The paper&#x27;s own conclusion What the paper says it did — the conclusion, clause by clause
+111    Conclusion     7.2 What the conclusion leaves out The paragraph that is not there: limitations, cost, and the counterexample
+112    Conclusion     7.3 Critique 1 · the audit ledger  The audit: fourteen places where the paper&#x27;s numbers do not balance
+113    Conclusion     7.4 Critique 2 · the open questions Six questions the paper leaves open — and how to turn each into an experiment
+120    Wrap-up        W1 · Knowledge map                 The map: how the paper&#x27;s pieces fit, and where this site put them
+121    Wrap-up        W2 · Number index                  The number index: every quantity this site recomputed, and where it came from
+122    Wrap-up        W3 · Final test                    Final test: fourteen questions across the whole paper
+130    References     R1 · How to read a bibliography    How to read a bibliography: every citation is doing a job
+131    References     R2 · Reference [1] · HGNN          Reference [1]: HGNN — the backbone, and the thing to beat
+132    References     R3 · Reference [10] · HyperGCN     Reference [10]: HyperGCN — the other way to do it, and the source of two datasets
+133    References     R4 · Reference [24] · GCN          Reference [24]: GCN — the convolution everything here is descended from
+134    References     R5 · Reference [22] · GBDT         Reference [22]: Friedman&#x27;s gradient boosting — where the rules come from
+135    References     R6 · Reference [20] · DeepTLF      Reference [20]: DeepTLF — the nearest rival, and the weakest column
+136    References     R7 · Reference [21] · BGNN         Reference [21]: BGNN — the nearest predecessor, argued against and never measured
+137    References     R8 · Dataset sources [28]–[35]     Where the ten datasets came from — and what a dataset&#x27;s provenance tells you
+138    References     R9 · Reference [34] · LightHGNN    Reference [34]: LightHGNN — the protocol, and the backbone that gains most
+139    References     R10 · The lineage                  The lineage: what this paper came from, and where it opens
+140    References     R11 · The full reference table     The full reference table: all thirty-six works, and the job each one does

@@ -3,7 +3,7 @@
   "kind": "kp-b",
   "kp": "kp-gbdt",
   "chapter": "pre",
-  "section": "2.3 In this paper",
+  "section": "Learning from features",
   "kicker": "Pre-knowledge · in this paper",
   "title": "Gradient boosting in this paper: a question generator, and the cost of that choice",
   "what": [
@@ -18,12 +18,32 @@
     },
     {
       "t": "table",
-      "head": ["Property of the ensemble", "Where it shows up in the paper", "What depends on it"],
+      "head": [
+        "Property of the ensemble",
+        "Where it shows up in the paper",
+        "What depends on it"
+      ],
       "rows": [
-        ["Number of trees $K$", "Table IV reports a tree count per dataset", "The length of the rule embedding, since every tree contributes its own block"],
-        ["Depth of each tree", "Table IV reports a depth per dataset", "The range of the depth weights $\\mu_p$, and hence how sharply importance decays"],
-        ["Questions per tree", "Not reported directly", "The embedding length — $C_r$ is the total inner-node count, which the paper never states"],
-        ["The pre-training task", "Described only as \"predefined\"", "**Everything** — the questions are the only channel by which task information enters the model, and the task is not named"]
+        [
+          "Number of trees $K$",
+          "Table IV reports a tree count per dataset",
+          "The length of the rule embedding, since every tree contributes its own block"
+        ],
+        [
+          "Depth of each tree",
+          "Table IV reports a depth per dataset",
+          "The range of the depth weights $\\mu_p$, and hence how sharply importance decays"
+        ],
+        [
+          "Questions per tree",
+          "Not reported directly",
+          "The embedding length — $C_r$ is the total inner-node count, which the paper never states"
+        ],
+        [
+          "The pre-training task",
+          "Described only as \"predefined\"",
+          "**Everything** — the questions are the only channel by which task information enters the model, and the task is not named"
+        ]
       ]
     },
     {

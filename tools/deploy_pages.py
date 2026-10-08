@@ -49,8 +49,22 @@ def mirror_files():
     (MIRROR / "sites").mkdir(parents=True)
     shutil.copy2(ROOT / "index.html", MIRROR / "index.html")
     n = 0
+    # 论文对照栏现在是文本（~60KB），默认随镜像走；--no-paper 可剥掉
+    strip = "--no-paper" in sys.argv
     for f in sorted((ROOT / "sites").glob("*.html")):
-        shutil.copy2(f, MIRROR / "sites" / f.name)
+        dest = MIRROR / "sites" / f.name
+        if strip:
+            html = f.read_text(encoding="utf-8")
+            i = html.find("<!--PI-PAGES-START-->")
+            j = html.find("<!--PI-PAGES-END-->")
+            if i >= 0 and j > i:
+                html = html[:i] + html[j + len("<!--PI-PAGES-END-->"):]
+                dest.write_text(html, encoding="utf-8")
+                print("  %s：已剥掉论文对照栏" % f.name)
+            else:
+                shutil.copy2(f, dest)
+        else:
+            shutil.copy2(f, dest)
         n += 1
     size = sum(f.stat().st_size for f in MIRROR.rglob("*") if f.is_file())
     print("镜像到 reader/%s/ ：index.html + %d 个站点，共 %.1f MB"
@@ -59,6 +73,7 @@ def mirror_files():
 
 
 def patch_projects():
+    """插入或更新 PROJECTS 里的本项目条目；已存在则整段替换，并清理重复项。"""
     p = HUB / "index.html"
     s = p.read_text(encoding="utf-8")
     start = s.find("var PROJECTS = [")
@@ -66,16 +81,23 @@ def patch_projects():
     if start < 0 or end < 0:
         print("在用户站 index.html 里找不到 PROJECTS 数组")
         return False
-    block = s[start:end]
-    if "id:'paper-interaction'" in block:
-        # 已存在：整段替换
-        i = block.find("  {\n    id:'paper-interaction'")
-        j = block.find("\n  },", i)
-        if i >= 0 and j >= 0:
-            s = s[:start + i] + ENTRY + s[start + j + 4:]
-            p.write_text(s, encoding="utf-8")
-            print("PROJECTS 条已更新")
-            return True
+    pat = re.compile(r"\{\s*\n\s*id:'paper-interaction'")
+    spans = []
+    for m in pat.finditer(s[start:end]):
+        a = start + m.start()
+        b = s.find("\n  }", a)
+        if b < 0:
+            continue
+        spans.append((a, b + len("\n  }")))
+    if spans:
+        for a, b in reversed(spans[1:]):
+            tail = s[b:]
+            s = s[:a] + (tail[1:] if tail.startswith(",") else tail)
+        a, b = spans[0]
+        s = s[:a] + ENTRY + s[b:]
+        p.write_text(s, encoding="utf-8")
+        print("PROJECTS 条已更新（清理重复 %d 处）" % max(0, len(spans) - 1))
+        return True
     s = s[:end] + ",\n" + ENTRY + s[end:]
     p.write_text(s, encoding="utf-8")
     print("PROJECTS 条已插入")

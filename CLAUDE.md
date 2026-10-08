@@ -102,7 +102,11 @@
 6. 本机无 Node.js——工具全 Python；读 PDF 用 PyMuPDF
 7. 音乐/星河背景不做
 
-视觉规范（brilliant.org 风格）：浅色 #f7f8fa 底白卡、圆角 14px、细边框 #e5e8ee、accent 蓝 #1a6bff、绿 #16a34a、红 #dc2626；顶部细进度条 + 标题栏（右上角仅 ✚ 插卡，无语言切换）；max-width 860px；底部 Back/Continue；导航按 章 → 节 → 卡 三级。
+视觉规范（brilliant.org 风格）：浅色 #f7f8fa 底白卡、圆角 14px、细边框 #e5e8ee、accent 蓝 #1a6bff、绿 #16a34a、红 #dc2626；顶部细进度条 + 标题栏（右上角 ✚ Add card 与 ▥ Paper，无语言切换）；max-width 860px；底部 Back/Continue。
+
+**导航**：按 章 → 节 → 卡 三级，章与节可折叠；**节号在章内重编**（由构建器推导，不手写）。
+
+**原论文对照**（v5.1）：分栏时卡片靠左不居中；右栏一次一段（衬线、白底），锚点段落高亮，表/图卡带原图；双向跳转，映射写在 `content/{slug}/pdf-map.json`；论文文本块内嵌在 `<!--PI-PAGES-START-->…<!--PI-PAGES-END-->` 之间，`deploy_pages.py --no-paper` 可剥（默认随镜像走）。细则见 `shared/site-spec-v5.md` 的 v5.1 增补。
 
 ## 八、知识点登记表与知识点库
 

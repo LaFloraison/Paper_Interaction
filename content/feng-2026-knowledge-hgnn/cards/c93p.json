@@ -1,0 +1,124 @@
+{
+  "id": "93p",
+  "kind": "experiment",
+  "chapter": "experiments",
+  "section": "6.5b Implemental details",
+  "kicker": "6.5b · Implementation",
+  "title": "The implementation paragraph: self-loops, normalisation, and what the paper does not report",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Section V-A5, \"Implemental Details\", records three pre-training decisions and one evaluation protocol. Before training, vertex features are **normalised** so that dimensions of different scale do not dominate. For hypergraph data, **self-loop hyperedges** are added — a hyperedge containing each vertex and nothing else — to guarantee connectivity so that even isolated vertices participate in message passing. Each configuration is run **five times with different random seeds**, and results are reported as a mean with a standard deviation. The experiments run on a machine with $40$ Intel Xeon E5-2640 v4 CPUs at $2.40$ GHz and one NVIDIA RTX 3090 GPU.",
+      "plain": "Four small decisions that the tables depend on: scale the features, give every vertex a private hyperedge so nobody is isolated, run everything five times, and here is the hardware. All four matter, and one of them has a mathematical consequence that reaches back into Equation (1)."
+    },
+    {
+      "t": "p",
+      "md": "**Why a self-loop hyperedge is not a cosmetic detail.** Equation (1) updates a vertex by a degree-weighted average over the vertices it shares hyperedges with. A vertex in no hyperedge has an empty neighbourhood, so the averaging is over nothing and its features propagate nowhere — and, more seriously for training, no gradient flows back through it. Adding a hyperedge containing only that vertex fixes both problems. Its effect on the operator is not neutral either: the vertex's degree $d_v$ increases, its own entries in the incidence matrix gain a column, and the propagation therefore acquires a term in which **the vertex's own features appear in its own update**."
+    },
+    {
+      "t": "p",
+      "md": "**That term is the hypergraph version of the self-loop GCN adds**, and it is worth naming what it does and does not buy. It buys a residual path: a vertex's own information is mixed back in at every layer rather than being overwritten. It does not buy immunity to over-smoothing — Table VIII's plain HGNN still loses $43.19$ points between two and eight layers *with* self-loops in place. The reason is that a self-term contributes one vertex's own features to one average, while the neighbours' contributions are themselves averages of averages; after enough layers everything being averaged has already converged to a common vector, including the vertex's own term."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**And the gap this paragraph leaves.** The same section that reports its CPU model to the gigahertz reports no training time, no inference time, no memory usage, and no figure for the width of the rule ledger that card 93 computes a bound for. Those are the four quantities a reader needs to decide whether the method will run on their data, and every one of them is an output of runs that already happened. It is the clearest case in the paper of a *reporting* gap rather than a knowledge gap — see question 3 of card 113."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — trace the self-loop into Equation (1).** The operator is $X \\leftarrow D_v^{-1/2} H D_e^{-1} H^{\\mathsf T} D_v^{-1/2} X \\Theta$, where $H$ is the incidence matrix ($H(v,e) = 1$ if vertex $v$ is in hyperedge $e$), $D_v$ holds each vertex's hyperedge count and $D_e$ each hyperedge's size."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Take a vertex $v$ of degree $3$ — it sits in three hyperedges. Adding the self-loop makes it degree $4$, so its normalisation factor changes from $1/\\sqrt{3}$ to $1/\\sqrt{4} = 1/2$.",
+          "why": "The vertex is now damped more than before. Every vertex gains exactly one to its degree, so on a dataset where vertices have small degree the change is proportionally large; on DBLP-Conf, where the printed average vertex degree is $4.8$, it is a substantial relative increase."
+        },
+        {
+          "md": "Its own feature vector now reaches its own update twice: once through the ordinary hyperedges it shares, and once through the self-loop hyperedge, which has size $1$ so $D_e^{-1}$ contributes a factor of $1$ rather than $1/|e|$.",
+          "why": "That second path is the residual. Note the size factor: a $1$-member hyperedge is not divided by anything, whereas a $900$-member hyperedge divides every member's contribution by $900$. Self-loops are the *strongest* path in the operator, per member, even though they carry the least information."
+        },
+        {
+          "md": "Ask what happens at eight layers with this in place. Table VIII's plain HGNN still falls from $73.41$ to $30.22$.",
+          "why": "The self-term is recomputed from the *current* features each layer, not from the original ones. If those features have been averaged toward a common value, the self-term carries a value that has already collapsed. **A residual term preserves a vertex's present state, not its original state** — which is why self-loops help connectivity and gradients without preventing the smoothing the paper's own table measures."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**What feature normalisation is for, in one line, and why it is easy to overlook.** The datasets here mix feature columns of very different scales — a bag-of-words count and a degree statistic are not on the same footing — and a network's first layer is a weighted sum, so an unscaled column of large magnitude dominates it before training has begun. Normalising removes that. The reason to state it explicitly is that it is a *preprocessing* choice, and preprocessing choices are the ones most likely to be missing from a reproduction attempt while being the most likely to change a result."
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — read the five-seed protocol for what it does and does not license.** Every accuracy in this paper is a mean over five runs with its spread alongside, which is better practice than most of the tables a reader encounters. Three things follow, and the third is the one people get wrong."
+    },
+    {
+      "t": "list",
+      "ordered": true,
+      "items": [
+        "**The spread is visible**, so a reader can see when a gap is smaller than the run-to-run variation. Table IX's HNHN and AllSetTransformer differ by $0.02$ on their best gains against spreads of several points — a difference the table shows to be meaningless rather than leaving the reader to guess.",
+        "**The standard deviations are diagnostics, not decoration.** Table VIII's eight-layer HGNN cell reads $\\pm 0.00$, and card 98 reads that zero as evidence of a collapsed representation — a reading available only because the spread is printed.",
+        "**Five seeds is not a significance test.** A mean over five runs with a spread is a description of the runs; it makes no claim about whether the difference between two methods would survive a different sample of seeds. The paper reports no test of that kind anywhere, including on its headline claims, which is residual-ignorance item 4 in the critique."
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does the paper add a hyperedge containing only each vertex on its own?",
+      "opts": [
+        {
+          "md": "To increase the amount of training data",
+           "expl": "A self-loop adds no vertices and no labels — the dataset is unchanged in size. What changes is the graph the model propagates over, and therefore which vertices receive gradient."},
+        {
+          "md": "To guarantee that even isolated vertices take part in message passing, so their features are updated and gradients reach them",
+          "correct": true,
+          "expl": "Correct. A vertex in no hyperedge has an empty neighbourhood: the average is over nothing, its features never update, and no gradient flows back through it. The self-loop gives every vertex at least one relation. The paper states this as the reason — \"this guarantees that even isolated nodes can participate in message passing, thereby enabling stable gradient propagation during training\"."},
+        {
+          "md": "To prevent over-smoothing by preserving each vertex's original features",
+          "expl": "It preserves each vertex's *current* features, recomputed at every layer, not its original ones. Table VIII shows the plain HGNN still losing $43.19$ points between two and eight layers with self-loops in place — so this cannot be their purpose, and it is not what they achieve."}]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "A vertex sits in $5$ hyperedges before self-loops are added. What is its degree-normalisation factor $1/\\sqrt{d_v}$ afterwards? Give three decimals.",
+      "answer": 0.408,
+      "tol": 0.005,
+      "hint": "Adding a self-loop raises the vertex's hyperedge count by exactly one. Take the square root of the new count and invert it.",
+      "sol": "After the self-loop the degree is 6, so the factor is 1/√6 = 0.4082..., against 1/√5 = 0.4472 before. The vertex is damped by about 9% more than it was. Note that the change is proportional rather than uniform: a vertex of degree 1 goes to 1/√2, a 29% reduction, while a vertex of degree 20 goes to 1/√21, a 5% reduction. So the self-loop perturbs low-degree vertices most, which is exactly the population it exists to rescue.",
+      "unit": "dimensionless"
+    },
+    {
+      "t": "choice",
+      "level": "apply",
+      "q": "Which of these quantities can a reader NOT obtain from the paper's implementation paragraph and tables together?",
+      "opts": [
+        {"md": "The number of runs behind each reported accuracy",
+         "expl": "Reported: five runs with different seeds, stated in Section V-A5. It is also visible in the tables, which carry a standard deviation beside every cell."},
+        {"md": "The machine the experiments ran on",
+         "expl": "Reported in full: $40$ Xeon E5-2640 v4 CPUs at $2.40$ GHz and one RTX 3090. This is the most precise hardware description in the paper and the least useful thing in it, which is the asymmetry the next card in this section is about."},
+        {"md": "The width of the rule ledger per vertex, and what the method costs to run",
+         "correct": true,
+         "expl": "Correct, and it is the gap that matters most for anyone considering adoption. Card 93 can bound the ledger's width from Table IV — $C_r \\le (\\text{trees}) \\times (2^{d} - 1)$, which for GitHub's $190$ trees at depth $7$ reaches into the thousands — but the realised figure per dataset is printed nowhere, and neither is any timing or memory figure. A reader can therefore estimate a worst case and cannot check it."}]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You are reproducing a graph-learning paper that reports five seeds and a standard deviation on every number. What does that protocol make possible, and what does it still leave open?",
+      "opts": [
+        {"md": "It makes the comparison significant, and leaves nothing open",
+         "expl": "Five runs with a spread is a description of those five runs. It is not a test of whether a difference would survive a different sample of seeds, and it says nothing about whether the benchmark's datasets are representative — two separate questions that a seed count does not touch."},
+        {"md": "It lets a reader see when a reported gap is smaller than the run-to-run variation, but it does not test whether any difference is significant",
+         "correct": true,
+         "expl": "Correct, and the distinction is the one most often blurred. The first capability is genuinely valuable and cheap: it turns a table into something a reader can audit, and it is what let card 98 read a collapsed representation out of one cell. The second requires a stated hypothesis, a test, and a correction for the number of comparisons being made — none of which appears in this paper, or in most papers, and none of which a wider spread substitutes for. **A standard deviation tells you about the noise; a hypothesis test tells you whether the signal clears it.**"},
+        {"md": "It removes the need for a held-out test set",
+         "expl": "Seeds and splits address different problems. Repeating a run with different seeds shows the variability from initialisation and sampling order; only a held-out set shows how the model behaves on data it was not selected on. The paper's production setting exists for the second reason, and no number of seeds replaces it."}]
+    }
+  ],
+  "close": "**Next:** Table V — the first results table, and the average-rank row that has to be recomputed rather than quoted."
+}

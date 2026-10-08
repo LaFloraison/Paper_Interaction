@@ -3,7 +3,7 @@
   "kind": "kp-b",
   "kp": "kp-hypergraph",
   "chapter": "pre",
-  "section": "2.2 In this paper",
+  "section": "Foundations",
   "kicker": "Pre-knowledge · in this paper",
   "title": "Hypergraphs in this paper: the object every equation runs on",
   "what": [
@@ -18,12 +18,32 @@
     },
     {
       "t": "table",
-      "head": ["Decision", "This paper's answer", "Consequence"],
+      "head": [
+        "Decision",
+        "This paper's answer",
+        "Consequence"
+      ],
       "rows": [
-        ["Keep or expand?", "**Keep.** No clique or star expansion anywhere.", "Relations of arity 982 stay intact — Equation (1) is written on the incidence matrix, not on a graph"],
-        ["Normalise?", "**Yes**, on both the vertex and the hyperedge side", "One 982-member hyperedge cannot swamp its 982 members' every result"],
-        ["Native or constructed?", "**Both.** Six datasets arrive as hypergraphs; four are built from plain graphs", "The four graph rows of Table I are not construction-free"],
-        ["What counts as a group? (constructed case)", "**$k$-nearest neighbours in feature space**, $k$ chosen by judgement", "Every hyperedge of those datasets is an artefact of one untested parameter — see Chapter 7"]
+        [
+          "Keep or expand?",
+          "**Keep.** No clique or star expansion anywhere.",
+          "Relations of arity 982 stay intact — Equation (1) is written on the incidence matrix, not on a graph"
+        ],
+        [
+          "Normalise?",
+          "**Yes**, on both the vertex and the hyperedge side",
+          "One 982-member hyperedge cannot swamp its 982 members' every result"
+        ],
+        [
+          "Native or constructed?",
+          "**Both.** Six datasets arrive as hypergraphs; four are built from plain graphs",
+          "The four graph rows of Table I are not construction-free"
+        ],
+        [
+          "What counts as a group? (constructed case)",
+          "**$k$-nearest neighbours in feature space**, $k$ chosen by judgement",
+          "Every hyperedge of those datasets is an artefact of one untested parameter — see Chapter 7"
+        ]
       ]
     },
     {

@@ -1,0 +1,274 @@
+{
+  "id": "122",
+  "kind": "check",
+  "chapter": "wrap",
+  "section": "W3 · Final test",
+  "kicker": "Wrap-up · Final test",
+  "title": "Final test: fourteen questions across the whole paper",
+  "what": [
+    {
+      "t": "p",
+      "md": "This is the closing test, and it is deliberately mixed: definitions from the opening chapters, arithmetic from the middle ones, and judgement questions from the critique. Nothing here needs a table open, and nothing depends on a card you have not seen. The items are not ordered by chapter, because the point is to check that the pieces still work when they are not arranged in the order that taught them."
+    },
+    {
+      "t": "p",
+      "md": "**What a good score looks like.** Fourteen items, with the numeric ones toleranced. A reader who can do the definitions and the conventions and misses one read-off is in good shape. A reader who can do the arithmetic but not the judgement items has learned this paper and not yet learned to read papers — the last five items are the ones to come back to, because they are the ones that transfer to the next paper you open."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**One worked item, so the shape is clear.** Suppose the question is: in Table VIII, by how much does the plain HGNN lose between 4 and 8 layers?"
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Locate the column: HGNN, not RD-HGNN and not DD-HGNN. Its values are $73.41$, $51.10$, $43.19$, $30.22$ at 2, 4, 6 and 8 layers.",
+          "why": "Most errors in a test of this kind are column errors rather than arithmetic errors. Naming the column before touching a number costs two seconds and removes that class."
+        },
+        {
+          "md": "Take the two values the question asks about: $51.10$ at four layers and $30.22$ at eight.",
+          "why": "The question says between 4 and 8, not between 2 and 8. Reading the wrong endpoints is the second most common error, and it is why every item below is explicit about which cells it means."
+        },
+        {
+          "md": "Subtract: $51.10 - 30.22 = 20.88$ points.",
+          "why": "Positive, and it is a loss, so it would be written as a fall of $20.88$ points. Note that the full sweep costs $43.19$, so more than half of the damage happens after four layers — the same shape as the rise-and-fall in Table VII, and the reason depth is the paper's central problem."
+        }
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What distinguishes a hyperedge from an ordinary edge?",
+      "opts": [
+        {
+          "md": "It can join any number of vertices at once, rather than exactly two",
+          "correct": true,
+          "expl": "Correct. That single change is the paper's entire motivation: co-authorship, a purchase basket, a set of papers at one conference are all single relations over a crowd, and representing them as many pairwise edges loses the fact that the crowd was one group. The incidence matrix $H$ records this directly — $H(v,e) = 1$ if vertex $v$ is in hyperedge $e$ — and the degree matrices $D_v$ and $D_e$ that Equation (1) needs fall out of it."
+        },
+        {
+          "md": "It carries a weight and an ordinary edge does not",
+          "expl": "Weighting is a separate feature. Ordinary graphs are routinely weighted, and the paper's Equation (1) carries a weight matrix $W$ for hyperedges — which is about weighting, not about arity."
+        },
+        {
+          "md": "It can be directed, while an ordinary edge cannot",
+          "expl": "Direction is orthogonal to arity. A hyperedge in this paper is an unordered set of vertices, and the paper's hypergraphs carry no orientation at all."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does one layer of Equation (1) do to a vertex's features?",
+      "opts": [
+        {
+          "md": "It replaces them with a degree-weighted average of the features of the vertices it shares hyperedges with, then applies a learned transform",
+          "correct": true,
+          "expl": "Correct, and note there is no residual connection — the vertex's own previous features are not added back. That is what makes depth costly: every layer is a replacement rather than an increment, so information discarded at layer $k$ cannot be recovered at layer $k+1$. Table VIII's $43.19$-point loss for a plain HGNN over six extra layers is the price of that design."
+        },
+        {
+          "md": "It adds a learned function of the neighbours' features to the vertex's own",
+          "expl": "That describes a residual or skip-connection architecture — a standard fix for exactly this problem, and not what Equation (1) does. The absence of a skip connection is why the paper needs unsmoothed knowledge streams instead."
+        },
+        {
+          "md": "It aggregates over hyperedges first and vertices second, giving a different result from vertex-first aggregation",
+          "expl": "The two orders both appear in the operator, in the product $H D_e^{-1} H^{\\mathsf T}$, but they compose into one symmetric propagation rather than offering a choice. The order matters for the normalisation constants, not for the final result."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does the HOI-Encoder produce for a vertex, and why is it a scalar?",
+      "opts": [
+        {
+          "md": "A vector of its hyperedge memberships, one entry per hyperedge",
+          "expl": "That would be an indicator vector as long as the edge count, which is sparse and high-dimensional. The paper deliberately collapses it: the encoder counts memberships and passes the count through a transformation."
+        },
+        {
+          "md": "A single number derived from how many hyperedges the vertex participates in, because the encoder is built to be invariant to which vertices share a hyperedge and to their order",
+          "correct": true,
+          "expl": "Correct. Equation (3) reduces the vertex's incidence pattern to a count, transformed by a learnable scaler and bias. The count is what survives when you require **permutation invariance** — the encoder's output must not change if the vertices inside a hyperedge are relabelled or reordered, and a pure function of counts is the simplest way to guarantee that. Card 66 traces the two-line argument."
+        },
+        {
+          "md": "A vector the same width as the rule ledger, so the two can be concatenated",
+          "expl": "The two streams are deliberately different widths — that is the *dimensional* gap the fusion layer exists to close. The structural stream is one wide and the rule stream can be thousands wide; making them equal would remove the problem the paper is solving."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In the rule encoder, what is recorded for each internal node of each pre-trained tree, and what is the position mapping for?",
+      "opts": [
+        {
+          "md": "Whether the vertex satisfied that node's split condition, as a 0 or a 1; the position mapping weights that bit by how near the root the node sits",
+          "correct": true,
+          "expl": "Correct. Equation (4) records the content — one bit per question — and Equation (6) supplies the weight $\\mu_p(o) = \\alpha / (d(o) + \\beta)$, decreasing in depth so that a question asked near the root counts for more. Equation (7) multiplies the two together, and Equation (8) stacks the results of every tree into one row per vertex."
+        },
+        {
+          "md": "The leaf the vertex reached; the position mapping orders the leaves by index",
+          "expl": "Recording only the leaf is what BGNN does with the ensemble — a small number of discrete outcomes per vertex. The paper's distinction is that it records the *questions* along the path, which is a much longer and more specific description, and its position mapping is over internal nodes, which leaves are not."
+        },
+        {
+          "md": "The predicted value at that node; the position mapping normalises it to a unit scale",
+          "expl": "Each tree's prediction is a leaf value, not a node quantity, and normalisation is not what the mapping does. $\\mu_p$ sets a depth-dependent weight and is not a normaliser — its scale factor $\\alpha$ is absorbed downstream, which is why the $\\alpha$ sweep in Figure 3 is flat."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is the difference between RD-HGNN and DD-HGNN?",
+      "opts": [
+        {
+          "md": "RD uses only the rule stream; DD uses both the rule and structural streams",
+          "correct": true,
+          "expl": "Correct. Both fuse knowledge into the features before the same hypergraph network runs. RD takes the rule ledger alone, DD takes the rule ledger and the structural encoding together. The consequences are consistent across the paper: DD wins on hypergraph datasets, RD on graph datasets, DD is flatter across ensemble sizes in Table VII, and DD resists depth better in Table VIII."
+        },
+        {
+          "md": "RD is the rule encoder and DD is the fusion module",
+          "expl": "Both are complete models with an encoder stage, a fusion stage and a hypergraph stage. The encoders and the fusion module are components shared by both."
+        },
+        {
+          "md": "DD trains two networks and averages their predictions",
+          "expl": "There is one network in each model. \"Dual-driven\" refers to two streams of *knowledge* entering the same network, not to an ensemble of networks."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Under the production setting, what is true of an inductive test vertex during training?",
+      "opts": [
+        {
+          "md": "Its features are visible but its label is withheld",
+          "expl": "That is the transductive half of the test set. Confusing the two is the single most consequential misreading of this paper's experiments, because it changes the difficulty of the benchmark being reported."
+        },
+        {
+          "md": "It and the hyperedges that touch it are both absent; it is restored only at evaluation",
+          "correct": true,
+          "expl": "Correct, and the second half is the part readers miss. Its neighbours were aggregated over a graph with those hyperedges missing, so the model learned on a slightly different graph from the one it is scored on. This is why the inductive number is the one that resembles a genuinely new user arriving tomorrow."
+        },
+        {
+          "md": "It is absent from the graph but its label is still available for supervision",
+          "expl": "No label of a test vertex is ever used for supervision in either setting. What differs between the settings is whether the vertex and its links are present at all."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "In Table VIII, by how many percentage points does the plain HGNN fall between 4 layers and 8 layers? Give two decimals.",
+      "answer": 20.88,
+      "tol": 0.03,
+      "hint": "Use the HGNN column only, and only the 4-layer and 8-layer cells. The answer is about half of the full sweep's loss.",
+      "sol": "$51.10 - 30.22 = 20.88$ points. The full $2 \\to 8$ sweep costs $73.41 - 30.22 = 43.19$, so more than half of the damage occurs after the fourth layer — the same shape as the rise-and-fall in Table VII and the reason depth, not width, is the paper's motivating problem.",
+      "unit": "points"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "For Cora, the TDR-Encoder runs $60$ trees of maximum depth $4$. Using the bound $C_r \\le (\\text{trees}) \\times (2^{d} - 1)$, what is the maximum number of rule questions recorded for one vertex?",
+      "answer": 900,
+      "tol": 1,
+      "hint": "First work out how many internal nodes a full binary tree of depth 4 has, then multiply by the number of trees. Do not forget to count the root.",
+      "sol": "A full binary tree of depth $4$ has $2^{4} - 1 = 15$ internal nodes. So $C_r \\le 60 \\times 15 = 900$ questions per vertex. Because each rule contributes both a content value and a position value, the concatenated rule block is at most $2 \\times 900 = 1{,}800$ entries wide — against Cora's $1{,}433$ raw features. The knowledge embedding is therefore of the same order of magnitude as the data it is prepended to, which is the concrete form of the paper's own concern about the ledger's width.",
+      "unit": "questions"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Table II's DBLP-Conf row gives $2{,}434$ training, $1{,}014$ validation and $609$ testing vertices. What do these sum to?",
+      "answer": 4057,
+      "tol": 0.5,
+      "hint": "Add all three parts. The total equals the vertex count printed in the same row.",
+      "sol": "$2{,}434 + 1{,}014 = 3{,}448$, and $3{,}448 + 609 = 4{,}057$ — exactly the printed #V. Note that Table III's DBLP-Conf row splits that same test set as $365 + 243 = 608$, one short; this is the only row in the paper where two tables disagree about the same test set (ledger entry 12).",
+      "unit": "vertices"
+    },
+    {
+      "t": "choice",
+      "level": "apply",
+      "q": "A paper reports that its method gains 5.86 points over a baseline on average. You recompute from its results table and obtain 5.66. What is the most defensible next step?",
+      "opts": [
+        {
+          "md": "Report the paper's 5.86, since the authors computed it from unrounded values",
+          "expl": "This is a real possibility in general — Table IX shows exactly that pattern, where twelve of eighteen deltas differ from the recomputation by $0.01$ because the printed cells are rounded and the deltas were not. The way to tell the two cases apart is the size of the gap: rounding of two-decimal cells can move a mean difference by about $\\pm 0.05$, not by $0.20$."
+        },
+        {
+          "md": "Check whether the gap is larger than rounding could explain, and if so look for a different aggregation or a different reference model",
+          "correct": true,
+          "expl": "Correct. The first question is always whether the discrepancy is inside the rounding budget, which for ten two-decimal cells is a few hundredths. A $0.20$ gap is four times that, so it needs a structural explanation — a different set of rows, a different baseline, or a reference model that switches as it does in Tables VI and IX. Recomputation tells you *that* two numbers disagree; finding the mechanism is what tells you which to quote."
+        },
+        {
+          "md": "Conclude that the paper's number is an error and cite the recomputed one",
+          "expl": "Jumping to the verdict skips the diagnosis. On the numbers here the recomputation is more likely right, but the reason matters: if the cause is a different aggregation, then the paper's number and yours are measuring different things and neither is an error. Publishing the recomputation without the diagnosis invites the same mistake in reverse."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Your own paper's method beats a feature-only baseline by a wide margin but beats the backbone it is built on by a much smaller one. What does the pair of results establish, and what should the paper say?",
+      "opts": [
+        {
+          "md": "The method is strong; report the larger margin as the headline",
+          "expl": "The larger margin is the comparison that varies two things at once — the backbone and the contribution — so it cannot attribute the gain. Leading with it is the pattern this paper's abstract follows, and it is the reason the abstract's numbers are the ones that fail to reproduce."
+        },
+        {
+          "md": "The small margin over the backbone is the contribution's effect; report it as the headline and be explicit that the larger margin is the combined effect of backbone and contribution",
+          "correct": true,
+          "expl": "Correct. The backbone-only comparison holds everything else fixed, so it is the one that measures what the paper adds — here the analogue of DD against HGNN, worth $2.119$ points on Table V's column means. The larger comparison is legitimate and should appear; it just answers a different question. **Naming which comparison is which is what lets a reader attribute the gain, and it costs one clause.**"
+        },
+        {
+          "md": "Report only the smaller margin, since the larger one is not attributable",
+          "expl": "The combined comparison is worth reporting — it tells a reader what the whole system achieves against the strongest available alternative. The defect is not including it, but including it without saying what it measures."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You need a model that reasons over many hops, so depth is required. On this paper's evidence, what is the design principle that lets a message-passing model survive depth?",
+      "opts": [
+        {
+          "md": "Use a residual connection so each layer adds to rather than replaces the features",
+          "expl": "A standard and effective fix, and not the one this paper tests — Equation (1) has no skip connection and the paper does not add one. The principle available from Table VIII is different, and it generalises to architectures where residuals are impractical."
+        },
+        {
+          "md": "Give the model some information that never enters the averaging operator, so it cannot be smoothed away",
+          "correct": true,
+          "expl": "Correct. Each vertex's structural encoding is a count of hyperedge memberships, computed from the incidence matrix once and concatenated into the input; the rule ledger is likewise computed from the vertex's own features and never propagated. Neither is passed through a layer, so neither erodes with depth. Table VIII's losses fall in exactly the order of how many such streams each model carries: HGNN none at $43.19$, RD one at $34.00$, DD two at $26.53$. **The general form of the principle is: identify what your architecture destroys as it deepens, and give the model a route around it.**"
+        },
+        {
+          "md": "Increase the hidden dimension so more capacity survives the smoothing",
+          "expl": "Capacity and smoothing are separate effects, and this table separates them — DD has more parameters than HGNN at every depth and degrades far less, but the mechanism is the added input streams rather than the size. Widening a layer does not stop it from averaging."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A paper's conclusion claims broad superiority and contains no limitations paragraph. Its results table contains one dataset where the method is level with its baseline. What is the most useful reading of the whole paper?",
+      "opts": [
+        {
+          "md": "The claim is overstated, so the results should be distrusted",
+          "expl": "Too strong. Nine datasets of gains plus a mechanism the paper tests directly is a substantial result, and a 0.09-point near-tie does not refute it. Distrusting the results would also be a poor use of the exception, which is informative precisely because the rest of the evidence is solid."
+        },
+        {
+          "md": "The claim is bounded rather than false: the method wins where the paper's own account predicts it should, and the one exception is unexplained because the paper chose not to discuss it",
+          "correct": true,
+          "expl": "Correct, and the reasoning is the transferable part. An unmentioned exception tells you two things: the main result is real but not universal, and the paper's authors either did not notice or did not say. The second is the one to act on — it is a reason to read the tables rather than the prose, and a reason to expect that other bounded claims in the paper are also unbounded in its summary. **What you lose when a paper omits its limitations is not the argument; it is the map of where the argument stops.**"
+        },
+        {
+          "md": "The exception proves the paper's account of when the method wins is wrong",
+          "expl": "Closer, and it overlooks that the exception is a 0.09-point deficit — inside the seed spread, and on a row the paper prints as $+0.00$. A near-tie does not falsify the account; it shows the account has a boundary case the paper does not analyse. That is a research question rather than a refutation."
+        }
+      ]
+    }
+  ],
+  "close": "**End of the paper.** From here, two appendices remain: the reference table and the lineage diagram, which place this paper among the work it cites and the work that will cite it."
+}

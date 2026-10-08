@@ -2,8 +2,8 @@
   "id": "93",
   "kind": "table",
   "chapter": "experiments",
-  "section": "6.3 Table IV · hyperparameters",
-  "kicker": "6.3 · Table IV",
+  "section": "6.5 Table IV · hyperparameters",
+  "kicker": "6.5 · Table IV",
   "title": "Table IV: the hyperparameters, and the model size they imply",
   "what": [
     {
@@ -17,15 +17,71 @@
     },
     {
       "t": "table",
-      "head": ["Configuration", "Trees", "Max depth", "Inner nodes per tree", "$C_r$ upper bound", "Fused width $2C_r$"],
+      "head": [
+        "Configuration",
+        "Trees",
+        "Max depth",
+        "Inner nodes per tree",
+        "$C_r$ upper bound",
+        "Fused width $2C_r$"
+      ],
       "rows": [
-        ["Heloc, Tencent", "20", "3", "7", "140", "280"],
-        ["CC-Cora", "140", "3", "7", "980", "1,960"],
-        ["DBLP-Conf", "160", "3", "7", "1,120", "2,240"],
-        ["CA-Cora", "40", "5", "31", "1,240", "2,480"],
-        ["Amazon-P, ModelNet40", "190", "3", "7", "1,330", "2,660"],
-        ["Amazon-C", "190", "4", "15", "2,850", "5,700"],
-        ["**Github**", "**150**", "**7**", "**127**", "**19,050**", "**38,100**"]
+        [
+          "Heloc, Tencent",
+          "20",
+          "3",
+          "7",
+          "140",
+          "280"
+        ],
+        [
+          "CC-Cora",
+          "140",
+          "3",
+          "7",
+          "980",
+          "1,960"
+        ],
+        [
+          "DBLP-Conf",
+          "160",
+          "3",
+          "7",
+          "1,120",
+          "2,240"
+        ],
+        [
+          "CA-Cora",
+          "40",
+          "5",
+          "31",
+          "1,240",
+          "2,480"
+        ],
+        [
+          "Amazon-P, ModelNet40",
+          "190",
+          "3",
+          "7",
+          "1,330",
+          "2,660"
+        ],
+        [
+          "Amazon-C",
+          "190",
+          "4",
+          "15",
+          "2,850",
+          "5,700"
+        ],
+        [
+          "**Github**",
+          "**150**",
+          "**7**",
+          "**127**",
+          "**19,050**",
+          "**38,100**"
+        ]
       ]
     },
     {
@@ -33,10 +89,22 @@
       "tex": "C_r \\le K \\times (2^{d_{\\max}} - 1) \\qquad\\Longrightarrow\\qquad \\dim(Z) \\le 2K(2^{d_{\\max}} - 1)",
       "note": "Two of the table's six columns feed straight into this inequality. The bound is an upper limit because trees are often grown shallower than the maximum depth allowed; the paper does not report realised depths, so the true widths lie between this bound and roughly $K$ times the depth actually reached.",
       "gloss": [
-        { "sym": "K", "md": "the number of trees, the table's second column" },
-        { "sym": "d_{\\max}", "md": "the maximum depth, the table's fifth column" },
-        { "sym": "C_r", "md": "the rule embedding's width — the total number of questions across the ensemble" },
-        { "sym": "\\dim(Z)", "md": "the fused width, twice $C_r$ by Equation (9)" }
+        {
+          "sym": "K",
+          "md": "the number of trees, the table's second column"
+        },
+        {
+          "sym": "d_{\\max}",
+          "md": "the maximum depth, the table's fifth column"
+        },
+        {
+          "sym": "C_r",
+          "md": "the rule embedding's width — the total number of questions across the ensemble"
+        },
+        {
+          "sym": "\\dim(Z)",
+          "md": "the fused width, twice $C_r$ by Equation (9)"
+        }
       ]
     },
     {

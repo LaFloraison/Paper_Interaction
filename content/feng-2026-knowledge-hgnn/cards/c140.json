@@ -1,0 +1,263 @@
+{
+  "id": "140",
+  "kind": "narrative",
+  "chapter": "references",
+  "section": "R11 · The full reference table",
+  "kicker": "References · All 36",
+  "title": "The full reference table: all thirty-six works, and the job each one does",
+  "body": [
+    {
+      "t": "p",
+      "md": "One line each, in the paper's own numbering. The **role** column uses the four categories from card 130 — *definition* (the cited work introduced what the paper builds on), *opponent* (the paper is measured against or distinguished from it), *supply* (it provides data, a protocol or a component), and *priority* (it establishes that a line of work exists). Several works do two jobs at once, which is itself worth noticing; where that happens it is noted."
+    },
+    {
+      "t": "table",
+      "head": [
+        "[#]",
+        "Work",
+        "Year",
+        "Role in this paper"
+      ],
+      "rows": [
+        [
+          "[1]",
+          "Feng et al., Hypergraph neural networks (AAAI)",
+          "2019",
+          "**definition and opponent** — Equation (1) is this work's convolution, used unchanged; HGNN is also the baseline in every results table"
+        ],
+        [
+          "[2]",
+          "Zhou, Huang and Schölkopf, Learning with hypergraphs (NeurIPS)",
+          "2006",
+          "priority — the origin of spectral hypergraph learning"
+        ],
+        [
+          "[3]",
+          "Zu et al., High-order brain connectome biomarkers via hypergraph learning (MICCAI)",
+          "2016",
+          "priority — an application of hypergraph learning, in the abstract's motivation"
+        ],
+        [
+          "[4]",
+          "Xiao et al., Multi-hypergraph learning for fMRI connectivity (IEEE TMI)",
+          "2020",
+          "priority — another application, same role"
+        ],
+        [
+          "[5]",
+          "Xia, Huang and Zhang, Self-supervised hypergraph transformer for recommendation (KDD)",
+          "2022",
+          "priority — an application in recommender systems"
+        ],
+        [
+          "[6]",
+          "Li et al., Link prediction in social networks based on hypergraph (WWW)",
+          "2013",
+          "priority — an application in social networks"
+        ],
+        [
+          "[7]",
+          "Dai and Gao, Hypergraph Computation (Springer textbook)",
+          "2023",
+          "priority — a reference text for the field's foundations"
+        ],
+        [
+          "[8]",
+          "Gao et al., 3-D object retrieval and recognition with hypergraph analysis (IEEE TIP)",
+          "2012",
+          "priority — an application in computer vision"
+        ],
+        [
+          "[9]",
+          "Zhao, Hypergraph limits: a regularity approach",
+          "2015",
+          "priority — hypergraph theory, cited in the preliminaries"
+        ],
+        [
+          "[10]",
+          "Yadati et al., HyperGCN (NeurIPS)",
+          "2019",
+          "**opponent and supply** — the rival reduction route, and the source of the CA-Cora and CC-Cora datasets"
+        ],
+        [
+          "[11]",
+          "Jiang et al., Dynamic hypergraph neural networks (IJCAI)",
+          "2019",
+          "opponent — a hypergraph network that also updates the structure"
+        ],
+        [
+          "[12]",
+          "Gao et al., HGNN+: general hypergraph neural networks (IEEE TPAMI)",
+          "2023",
+          "opponent — an enhanced HGNN, tested as a backbone in Table IX"
+        ],
+        [
+          "[13]",
+          "Xia et al., Hypergraph contrastive collaborative filtering (SIGIR)",
+          "2022",
+          "priority — an application in recommender systems"
+        ],
+        [
+          "[14]",
+          "Topping et al., Understanding over-squashing via curvature (ICLR)",
+          "2022",
+          "definition — the depth and information-bottleneck problem this paper's Table VIII addresses"
+        ],
+        [
+          "[15]",
+          "Tian et al., Knowledge graph and knowledge reasoning: a systematic review",
+          "2022",
+          "priority — context for the paper's use of the word knowledge"
+        ],
+        [
+          "[16]",
+          "Fu et al., HpLapGCN (Neurocomputing)",
+          "2019",
+          "opponent — an early hypergraph convolution variant"
+        ],
+        [
+          "[17]",
+          "Huang and Yang, UniGNN: a unified framework for graph and hypergraph networks (IJCAI)",
+          "2021",
+          "opponent — a competing universality claim"
+        ],
+        [
+          "[18]",
+          "Chien et al., AllSet: a multiset learning framework for hypergraph NNs (ICLR)",
+          "2022",
+          "**opponent and definition** — tested as a backbone in Table IX, and the set-attention formalism behind it"
+        ],
+        [
+          "[19]",
+          "Li et al., Combining decision trees and neural networks for learning-to-rank (KDD)",
+          "2019",
+          "priority — an early tree-with-network combination"
+        ],
+        [
+          "[20]",
+          "Borisov et al., DeepTLF (Int. J. Data Science and Analytics)",
+          "2023",
+          "opponent — the TLF baseline, and the nearest rival by design"
+        ],
+        [
+          "[21]",
+          "Ivanov and Prokhorenkova, Boost then convolve / BGNN (ICLR)",
+          "2020",
+          "opponent — the nearest predecessor, argued against in prose and tested in no table"
+        ],
+        [
+          "[22]",
+          "Friedman, Greedy function approximation (Annals of Statistics)",
+          "2001",
+          "**definition** — the boosting algorithm whose pre-trained ensemble supplies the rule ledger"
+        ],
+        [
+          "[23]",
+          "Zaheer et al., Deep sets (NeurIPS)",
+          "2017",
+          "definition — the permutation-invariant aggregation the structural encoder relies on"
+        ],
+        [
+          "[24]",
+          "Kipf and Welling, Graph convolutional networks (ICLR)",
+          "2017",
+          "definition and opponent — the pairwise ancestor of Equation (1), and a baseline"
+        ],
+        [
+          "[25]",
+          "Hamilton, Ying and Leskovec, GraphSAGE (NeurIPS)",
+          "2017",
+          "definition — inductive representation learning, the setting the paper's inductive rows test"
+        ],
+        [
+          "[26]",
+          "Song and Ying, Decision tree methods (Shanghai Archives of Psychiatry)",
+          "2015",
+          "priority — a survey of decision trees, cited in the background"
+        ],
+        [
+          "[27]",
+          "Vaswani et al., Attention is all you need (NeurIPS)",
+          "2017",
+          "definition — attention, used by the AllSetTransformer backbone"
+        ],
+        [
+          "[28]",
+          "Sen et al., Collective classification in network data (AI Magazine)",
+          "2008",
+          "**supply** — the Cora dataset"
+        ],
+        [
+          "[29]",
+          "Rozemberczki, Allen and Sarkar, Multi-scale attributed node embedding",
+          "2021",
+          "**supply** — the Github dataset"
+        ],
+        [
+          "[30]",
+          "Shchur et al., Pitfalls of graph neural network evaluation",
+          "2018",
+          "**supply** — Amazon-P and Amazon-C; note that the cited work's subject is evaluation methodology"
+        ],
+        [
+          "[31]",
+          "Sun et al., PathSim (VLDB)",
+          "2011",
+          "**supply** — the DBLP-Conf dataset"
+        ],
+        [
+          "[32]",
+          "He et al., Cascade-BGNN (arXiv)",
+          "2019",
+          "**supply** — the Tencent dataset"
+        ],
+        [
+          "[33]",
+          "Wu et al., 3D ShapeNets (CVPR)",
+          "2015",
+          "**supply** — the ModelNet40 dataset"
+        ],
+        [
+          "[34]",
+          "Feng et al., LightHGNN (ICLR)",
+          "2024",
+          "**supply and opponent** — supplies the transductive and production protocols, and is tested as a backbone in Table IX, where it gains the most"
+        ],
+        [
+          "[35]",
+          "Oliabev, Home equity line of credit (Kaggle)",
+          "2021",
+          "**supply** — the Heloc dataset; a competition page rather than a paper"
+        ],
+        [
+          "[36]",
+          "Rosenblatt, The perceptron (Psychological Review)",
+          "1958",
+          "definition — the multilayer perceptron baseline"
+        ]
+      ]
+    },
+    {
+      "t": "h3",
+      "md": "What the table shows when read as a whole"
+    },
+    {
+      "t": "p",
+      "md": "**The roles are unequally distributed, and the distribution is the paper's argument.** Reading the roles column: nine references supply data or protocol, eleven are opponents in the results tables or in the discussion, nine are definitions of something the paper builds on, and twelve are priority — citations establishing that a line of work exists. The categories overlap by design, since five works hold two roles. The priority group is the largest and the least load-bearing: remove all twelve and the paper's method and results would be unchanged. **Counting the priority citations in a bibliography is a quick way to see how much of a paper's related work is positioning rather than dependency.**"
+    },
+    {
+      "t": "p",
+      "md": "**Five works do two jobs, and every one of them is load-bearing.** References [1], [10], [18], [24] and [34] are each both a definition or supply source and an opponent. [1] is the paper's Equation (1) and its main baseline; [10] is the rival route and the source of two datasets; [24] is the ancestor of both hypergraph routes and a baseline; [34] is the evaluation protocol and a backbone; [18] is a backbone and the source of the set-attention formalism. **A reference appearing in two roles is a sign that the paper lives inside the field it is competing in** — its foundations and its rivals are the same objects — which is normal for a paper extending a line rather than founding one, and it is why the comparisons in this paper are unusually clean when they are clean at all."
+    },
+    {
+      "t": "p",
+      "md": "**The dates say something too.** The definitions cluster in two periods: 1958 to 2017 for the machine learning foundations (perceptron, boosting, Deep Sets, GCN, GraphSAGE, attention) and 2019 to 2024 for the hypergraph-specific work (HGNN, HyperGCN, HGNN+, AllSet, LightHGNN). The priority citations span 2006 to 2023. So the paper's technical foundations are older and more settled than its immediate rivals — a normal shape, and the reason the ancestry in card 139 runs from a 2001 boosting paper and a 2017 graph convolution into a 2024 distillation method."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**The practical use of a table like this.** Before reading a paper in a new area, the reference table tells you which handful of works to read first: the definition sources, because they contain the objects every equation is built from, and the opponents, because they define what the paper is claiming to improve on. Priority citations can wait until you know the field. On this paper that is a reading list of five or six documents — HGNN for Equation (1), Friedman for the boosting, GCN for the lineage, Deep Sets for the permutation invariance, LightHGNN for the protocol, and BGNN for the claim the paper argues and does not test — costing perhaps two hours and replacing the fifty the whole bibliography would take."
+    }
+  ],
+  "close": "**End of the site.** The paper, its pre-requisites, its ten equations, thirteen exhibits, its critique and its bibliography have all been covered. What remains is what you do with it."
+}

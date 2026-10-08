@@ -2,8 +2,8 @@
   "id": "95",
   "kind": "table",
   "chapter": "experiments",
-  "section": "6.5 Table VI · production results",
-  "kicker": "6.5 · Table VI",
+  "section": "6.7 Table VI · production results",
+  "kicker": "6.7 · Table VI",
   "title": "Table VI: the production setting, and what the delta columns are actually measuring",
   "what": [
     {
@@ -54,11 +54,27 @@
     },
     {
       "t": "table",
-      "head": ["Candidate", "Computation", "Value"],
+      "head": [
+        "Candidate",
+        "Computation",
+        "Value"
+      ],
       "rows": [
-        ["RD against HGNN", "$85.93 - 86.05$", "$-0.12$"],
-        ["DD against HGNN (the better of the two here)", "$85.96 - 86.05$", "$-0.09$"],
-        ["**Printed in Table VI**", "—", "**$+0.00$**"]
+        [
+          "RD against HGNN",
+          "$85.93 - 86.05$",
+          "$-0.12$"
+        ],
+        [
+          "DD against HGNN (the better of the two here)",
+          "$85.96 - 86.05$",
+          "$-0.09$"
+        ],
+        [
+          "**Printed in Table VI**",
+          "—",
+          "**$+0.00$**"
+        ]
       ]
     },
     {
@@ -72,17 +88,47 @@
     },
     {
       "t": "table",
-      "head": ["Quantity", "Recomputed here", "Printed", "Verdict"],
+      "head": [
+        "Quantity",
+        "Recomputed from the ten Production rows",
+        "Printed",
+        "Verdict"
+      ],
       "rows": [
-        ["Average rank, RD / DD", "$1.70$ / $1.50$", "$1.7$ / $1.5$", "**matches** (and matches Table V's identical row)"],
-        ["Mean $\\Delta_{HGNN}$ over the ten Production rows", "$+2.53$", "$+2.53$", "**matches exactly**"],
-        ["Mean $\\Delta_{GBDT}$ over the ten Production rows", "$+5.94$", "$+6.31$", "does not match"]
+        [
+          "Average rank, RD / DD",
+          "$1.70$ / $1.50$",
+          "$1.7$ / $1.5$",
+          "**matches**"
+        ],
+        [
+          "Average rank, GBDT / HGNN",
+          "$3.90$ / $2.90$",
+          "$4.0$ / $2.8$",
+          "each out by $0.1$"
+        ],
+        [
+          "Mean $\\Delta_{GBDT}$ over the Production rows",
+          "$+5.94$",
+          "$+6.31$",
+          "does not match"
+        ],
+        [
+          "Mean $\\Delta_{HGNN}$ over the Production rows",
+          "$+2.72$",
+          "$+2.53$",
+          "does not match"
+        ]
       ]
     },
     {
       "t": "callout",
       "tone": "warn",
-      "md": "**Note the label before the numbers: the same row mixes two different units.** Four entries are *average ranks* and two are *average point differences*, under a single heading. That is a presentational choice worth knowing about, because a reader skimming the bottom row will read six numbers as one family. And the two averages are not mutually consistent either: the $+2.53$ reproduces as the Production-row mean against HGNN using RD, while the $+6.31$ reproduces under no aggregation tried here — the same computation gives $5.94$."
+      "md": "**Note the label before the numbers: the same row mixes two different units.** Four entries are *average ranks* and two are *average point differences*, under a single heading. That is a presentational choice worth knowing about, because a reader skimming the bottom row will read six numbers as one family. The two families then behave differently: the two average ranks the paper cares about — RD's $1.7$ and DD's $1.5$ — reproduce exactly from the ten Production rows, while the two delta averages do not. Recomputing the $\\Delta_{GBDT}$ column gives $5.94$ against a printed $6.31$, and recomputing the $\\Delta_{HGNN}$ column gives $2.72$ against a printed $2.53$. Both printed averages sit outside anything the printed cells support."
+    },
+    {
+      "t": "callout",
+      "md": "**One more use for a footer row.** It is the cheapest place in a table to check consistency, because it is the only row whose values are *derived* from the others rather than measured. Every footer average is a free test: recompute the column it summarises and see whether the two agree. Here two of the four derived quantities disagree, at a magnitude of $0.2$ to $0.4$ points — small enough to be invisible in a glance, large enough to be systematic rather than chance."
     }
   ],
   "quiz": [

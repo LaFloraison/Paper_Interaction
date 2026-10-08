@@ -86,6 +86,9 @@ def expand_include(placeholder, stem_id):
         if i == 0:
             c["kicker"] = c["kicker"] + "  1/" + str(n)
             c["band"] = sec.get("blurb", "")
+            # 占位可指定 kp：登记表的锚点落在小节总览卡上
+            if placeholder.get("kp"):
+                c["kp"] = placeholder["kp"]
             if sec.get("title"):
                 c["title"] = c.get("title") or sec["title"]
         else:
@@ -339,8 +342,18 @@ def render_card(card, chap):
         'data-chapter="' + esc(chap["name"]) + '"',
         'data-chapter-num="' + esc(chap["num"]) + '"',
     ]
+    if card.get("_secnum"):
+        attrs.append('data-sec-num="' + esc(card["_secnum"]) + '"')
     if card.get("section"):
         attrs.append('data-section="' + esc(card["section"]) + '"')
+    if card.get("_page"):
+        attrs.append('data-pdf="' + esc(card["_page"]) + '"')
+    if card.get("_rect"):
+        attrs.append('data-pdf-rect="' + esc(card["_rect"]) + '"')
+    if card.get("_quote"):
+        attrs.append('data-quote="' + esc(card["_quote"]) + '"')
+    if card.get("_clip"):
+        attrs.append('data-clip="1"')
     if card.get("kp"):
         attrs.append('data-kp="' + esc(card["kp"]) + '"')
 
@@ -390,6 +403,205 @@ def render_card(card, chap):
 
 
 # ---------------------------------------------------------------- 主流程
+
+
+
+# ---------------------------------------------------------------- 章节编号 + PDF 对应
+NUM_PREFIX = re.compile(r"^(?:[0-9]+[.][0-9]+[a-z]?|[A-Z][0-9]+)\s+")
+CHAP_LETTER = {"wrap": "W", "references": "R"}
+
+
+def assign_section_numbers(sections, chap_meta):
+    """每个章内部独立编号：章 1 的节是 1.1/1.2…，不跨章累计。
+    section 字段存的是名字（构建时剥掉旧编号）；编号在这里重新推导，避免手写漂移。"""
+    by_id = {}
+    for c in sections:
+        by_id[str(c.get("id"))] = c
+    for c in sections:
+        raw = (c.get("section") or "").strip()
+        if c.get("kind") == "practice" and c.get("for"):
+            src = by_id.get(str(c["for"]))
+            if src and src.get("section"):
+                raw = src["section"]
+        c["_secname"] = NUM_PREFIX.sub("", raw)
+    counters, seen = {}, {}
+    for c in sections:
+        ck = c.get("chapter", "main")
+        meta = chap_meta.get(ck, {})
+        num = str(meta.get("num", ""))
+        name = c["_secname"]
+        if ck not in seen:
+            seen[ck] = {}
+        key = ck + "|" + name
+        if name and key not in seen[ck]:
+            seen[ck][key] = len(seen[ck]) + 1
+        n = seen[ck].get(key)
+        if not name:
+            c["_secnum"] = ""
+            c["section"] = raw = ""
+            continue
+        if num == "0":
+            c["_secnum"] = ""
+        elif num and num != "—":
+            c["_secnum"] = num + "." + str(n)
+        else:
+            c["_secnum"] = CHAP_LETTER.get(ck, "X") + str(n)
+        c["section"] = (c["_secnum"] + " " + name).strip()
+
+
+
+def find_text_block(blocks, text):
+    """在某一页的文本块里找包含 text 的块，返回块下标；找不到返回 None。
+    大小写敏感：表题注是全大写（TABLE VII），正文引用是混合大小写。"""
+    want = " ".join(text.split())
+    for bi, b in enumerate(blocks):
+        if want in b["t"]:
+            return bi
+    return None
+
+
+
+
+import fitz               # 论文截图与题注定位都靠它
+
+CAP_GUTTER = 295          # 双栏中缝
+PAGE_X = (32.0, 562.0)    # 版心左右界
+
+
+def find_caption_rect(page, text):
+    """大小写敏感地定位题注文字，返回合并矩形；找不到返回 None。"""
+    want = [w.strip(".,:;") for w in text.split()]
+    words = page.get_text("words")
+    n = len(want)
+    for i in range(len(words) - n + 1):
+        chunk = words[i:i + n]
+        got = [w[4].strip(".,:;") for w in chunk]
+        if got != want:
+            continue
+        if text == text.upper() and any(w[4] != w[4].upper() for w in chunk):
+            continue
+        return fitz.Rect(min(w[0] for w in chunk), min(w[1] for w in chunk),
+                         max(w[2] for w in chunk), max(w[3] for w in chunk))
+    return None
+
+
+def compute_clip(page, blocks, cap, is_table):
+    """题注矩形 -> 截图矩形（连图形一起取）。
+    表：题注起，到同栏下一个文本块止；图：上一个文本块起，到题注止。"""
+    crosses = cap.x0 < CAP_GUTTER < cap.x1
+    if crosses:
+        x0, x1 = PAGE_X
+    elif cap.x1 <= CAP_GUTTER:
+        x0, x1 = PAGE_X[0], CAP_GUTTER
+    else:
+        x0, x1 = CAP_GUTTER, PAGE_X[1]
+    cand = [b for b in blocks
+            if b["x1"] > x0 + 8 and b["x0"] < x1 - 8]
+    if is_table:
+        y0 = cap.y0 - 4
+        below = [b for b in cand if b["y0"] >= cap.y1 - 1]
+        y1 = (min(b["y0"] for b in below) - 4) if below else page.rect.height - 28
+    else:
+        y1 = cap.y1 + 6
+        above = [b for b in cand if b["y1"] <= cap.y0 + 1]
+        y0 = (max(b["y1"] for b in above) + 4) if above else 28
+    y1 = min(y1, page.rect.height - 26)
+    return fitz.Rect(x0, max(26, y0), x1, y1)
+
+def load_pdf_map(cdir, chap_meta):
+    """读 pdf-map.json：每卡的页号、文本块下标、原文截图。"""
+    import base64
+    f = cdir / "pdf-map.json"
+    if not f.exists():
+        return {}, None
+    m = json.loads(f.read_text(encoding="utf-8"))
+    pages, frags, quotes, clips = {}, {}, {}, {}
+    defaults = m.get("defaults", {})
+    for cid, pg in (m.get("cards") or {}).items():
+        pages[str(cid)] = int(pg)
+    pdf = ROOT / m["file"] if m.get("file") else None
+    doc = None
+    if pdf and pdf.exists():
+        try:
+            import fitz
+            doc = fitz.open(str(pdf))
+        except Exception as e:
+            print("  [pdf] 打不开 " + str(pdf) + "：" + str(e))
+    pages_blocks = []
+    if doc is not None:
+        for pi in range(doc.page_count):
+            kept = []
+            for b in doc[pi].get_text("blocks", flags=fitz.TEXTFLAGS_TEXT | fitz.TEXT_DEHYPHENATE):
+                if b[6] != 0:
+                    continue
+                t = " ".join(b[4].split())
+                if not t or is_boilerplate(t):
+                    continue
+                kept.append({"t": t, "x0": b[0], "y0": b[1], "x1": b[2], "y1": b[3]})
+            pages_blocks.append(kept)
+    for cid, a in (m.get("anchors") or {}).items():
+        pg = int(a["page"])
+        pages[str(cid)] = pg
+        if doc is None:
+            continue
+        fr = find_text_block(pages_blocks[pg - 1], a["text"])
+        if fr is not None:
+            frags[str(cid)] = "%d:%d" % (pg, fr)
+            quotes[str(cid)] = a["text"]
+        else:
+            print("  [pdf] 第 %d 页找不到锚点 %r" % (pg, a["text"]))
+        if doc is None:
+            continue
+        page = doc[pg - 1]
+        cap = find_caption_rect(page, a["text"])
+        if cap is None:
+            continue
+        keys = [a["text"]] + list(a.get("keys") or [])
+        hrects = []
+        for k in keys:
+            r = find_caption_rect(page, k)
+            if r:
+                hrects.append(r)
+        for r in hrects:
+            try:
+                ann = page.add_highlight_annot(r)
+                if ann:
+                    ann.set_colors(stroke=(1.0, 0.86, 0.35))
+                    ann.update()
+            except Exception:
+                pass
+        clip = compute_clip(page, pages_blocks[pg - 1], cap, a["text"].startswith("TABLE"))
+        pix = page.get_pixmap(clip=clip, dpi=140)
+        clips[str(cid)] = base64.b64encode(pix.tobytes("png")).decode("ascii")
+    meta = {"doc": doc, "defaults": defaults, "pages": pages, "frags": frags, "quotes": quotes, "clips": clips, "blocks": pages_blocks}
+    return meta, doc
+
+BOILER = ("Authorized licensed use limited", "FENG et al.: KNOWLEDGE-EMBEDDED",
+          "IEEE TRANSACTIONS ON PATTERN ANALYSIS")
+
+
+def is_boilerplate(t):
+    if t.startswith(BOILER):
+        return True
+    if t.isdigit() and len(t) <= 4:
+        return True
+    return False
+
+
+def embed_paper_text(meta):
+    """论文全文的文本块（隐藏数据源）+ 单段显示所需的面板骨架之外的仅数据部分。"""
+    pages_blocks = meta["blocks"]
+    parts = ['<div id="paperPages" hidden>']
+    for cid, b64 in sorted(meta.get("clips", {}).items()):
+        parts.append('<img data-clip="%s" alt="" src="data:image/png;base64,%s">' % (cid, b64))
+    for pi, blocks in enumerate(pages_blocks):
+        parts.append('<div class="pgt" data-page="%d">' % (pi + 1))
+        for bi, b in enumerate(blocks):
+            parts.append('<p class="pb" data-page="%d" data-b="%d">%s</p>'
+                         % (pi + 1, bi, H.escape(b["t"])))
+        parts.append("</div>")
+    parts.append("</div>")
+    return "".join(parts)
 
 
 def main():
@@ -443,6 +655,23 @@ def main():
             raise SystemExit("[build] 卡 " + f.name + " 的 chapter " + ck + " 未在 meta.json 的 chapters 里声明")
         sections.append(card)
 
+    assign_section_numbers(sections, chap_meta)
+    pdfmeta, pdfdoc = load_pdf_map(cdir, chap_meta)
+    if pdfmeta:
+        for c in sections:
+            cid = str(c.get("id"))
+            pg = pdfmeta["pages"].get(cid)
+            if not pg:
+                pg = pdfmeta["defaults"].get(c.get("chapter", ""))
+            if pg:
+                c["_page"] = str(pg)
+            if cid in pdfmeta["frags"]:
+                c["_rect"] = pdfmeta["frags"][cid]
+            if cid in pdfmeta["quotes"]:
+                c["_quote"] = pdfmeta["quotes"][cid]
+            if cid in pdfmeta["clips"]:
+                c["_clip"] = pdfmeta["clips"][cid]
+
     for c in sections:
         c["_html"] = render_card(c, chap_meta[c.get("chapter", "main")])
 
@@ -481,6 +710,14 @@ initSite();
     out = out.replace("{{HEAD_TITLE}}", H.escape(meta.get("head_title", meta["title"])))
     out = out.replace("{{SUBTITLE}}", H.escape(meta.get("subtitle", "")))
     out = out.replace("{{COUNT}}", str(len(sections)))
+    # ---- 原 PDF 页面（可被 deploy 阶段整段剥掉） ----
+    if pdfdoc is not None and "--no-pages" not in sys.argv:
+        pane = embed_paper_text(pdfmeta)
+        out = out.replace("{{PAPER-PAGES}}",
+                          "<!--PI-PAGES-START-->" + pane + "<!--PI-PAGES-END-->")
+        print("  论文文本已内嵌：" + str(sum(len(b) for b in pdfmeta["blocks"])) + " 个段落")
+    else:
+        out = out.replace("{{PAPER-PANE}}", "")
 
     # ---- 图片内嵌 ----
     fig_dirs = [cdir / "figures", ROOT / "decomposition" / slug / "figs"]

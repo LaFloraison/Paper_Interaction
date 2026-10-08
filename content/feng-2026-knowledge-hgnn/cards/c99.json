@@ -1,0 +1,322 @@
+{
+  "id": "99",
+  "kind": "table",
+  "chapter": "experiments",
+  "section": "6.11 Table IX · swapping the hypergraph backbone",
+  "kicker": "6.11 · Table IX",
+  "title": "Table IX: six backbones, eighteen gains, all of them positive",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Table IX holds the knowledge-embedding stage fixed and replaces the hypergraph network that follows it. Six backbones are used — GCN, HGNN, HGNN+, HNHN, LightHGNN and AllSetTransformer — each under three settings (Production, Transductive, Inductive). For every backbone-and-setting pair the table reports the backbone's original accuracy (**Origin**), the accuracy after the two knowledge encoders and the fusion layer are prepended (the RD-HGNN and DD-HGNN columns), and the difference $\\Delta_{Origin}$, defined as the better of the two proposed variants minus Origin.",
+      "plain": "Swap the engine six times and keep the same fuel additive. If the additive helps every engine, the claim that it is a general ingredient rather than a tune-up for one particular engine holds up."
+    },
+    {
+      "t": "p",
+      "md": "**Why this table exists, in the paper's own terms.** Section IV calls the framework general, in the sense that the knowledge-embedding phase makes no assumption about the network that consumes it. That is a claim about *substitutability*, and a claim about substitutability is tested by substituting. This is the same argument as Table X later, one level less radical: here the replacement stays within hypergraph networks, whereas Table X drops all the way to an ordinary graph network."
+    },
+    {
+      "t": "p",
+      "md": "**The six backbones worth knowing before reading the numbers.** Two terms first, since every backbone description uses them. A **hyperedge** is a link that can join any number of vertices at once rather than exactly two (card 12), and the **incidence matrix** is the table recording which vertices belong to which hyperedges — it is the only structural input these networks receive. **Knowledge embedding** here means the extra feature columns prepended to each vertex's raw features before the network runs: one number counting the vertex's hyperedge memberships, plus a block of 0/1 answers to questions drawn from a pre-trained tree ensemble (cards 64 and 68). The six networks are: **HGNN**, the paper's default, which at each layer replaces every vertex's features with a degree-weighted average of the features of the vertices it shares hyperedges with (this is Equation (1), taken apart in card 61); **HGNN+**, an extension of HGNN that learns a weight per hyperedge instead of treating all hyperedges alike; **HNHN**, which runs two separate channels, one over vertices and one over hyperedges, and lets them communicate; **GCN**, an ordinary graph network — the same averaging but over pairwise edges only — applied here to a hypergraph treated as a graph; **LightHGNN**, a distilled model, meaning a larger HGNN was compressed into a much smaller network trained to reproduce its outputs, trading accuracy for inference speed; and **AllSetTransformer**, which treats a hyperedge as a set and aggregates it with **attention**, the operation that assigns each member of a set a learned weight before combining them (card 27's trail covers the mechanism)."
+    },
+    {
+      "t": "figure",
+      "src": "tab9.png",
+      "alt": "Table IX of the paper: six hypergraph backbones each evaluated in three settings, with origin accuracy, the two proposed variants and the delta to origin",
+      "cap": "Original Table IX (Feng et al., TPAMI 2026). Six backbones, three settings each, with $\\Delta_{Origin}$ in the last column."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — establish the convention, then verify it.** The whole table turns on one definition, so it has to be pinned down by recomputation rather than assumed."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Take GCN's Production row: Origin $73.12$, RD-HGNN $74.69$, DD-HGNN $74.88$, printed $\\Delta_{Origin} = +1.76$.",
+          "why": "The candidates give $74.69 - 73.12 = 1.57$ and $74.88 - 73.12 = 1.76$. Only the second matches, so the reference is the **better** of the two variants — the same convention found in Table VI's delta columns, which means the reader has already met it once."
+        },
+        {
+          "md": "Test the other direction on HGNN's Inductive row: Origin $70.12$, RD $74.44$, DD $76.42$, printed $\\Delta = +6.29$.",
+          "why": "Here the better variant is DD and the computed value is $76.42 - 70.12 = 6.30$ against a printed $6.29$ — a $0.01$ gap. That gap recurs throughout the table and is not an error: the printed delta is computed from the unrounded accuracies while the displayed accuracies carry two decimals. Twelve of the eighteen cells show this $\\pm 0.01$ artefact, so a reader who demands exact agreement from the rounded cells will generate a dozen false alarms."
+        },
+        {
+          "md": "Verify the pattern on a third row of a different backbone: HNHN Transductive, Origin $71.38$, RD $74.36$, DD $72.08$, printed $+2.97$. Computed from the better variant: $74.36 - 71.38 = 2.98$.",
+          "why": "Three rows, three backbones, the same rule and the same $0.01$ offset. The convention is now established rather than guessed, which is what makes the next step — sweeping all eighteen cells — worth doing."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — sweep the eighteen gains.**"
+    },
+    {
+      "t": "table",
+      "head": [
+        "Backbone",
+        "Setting",
+        "Origin",
+        "RD-HGNN",
+        "DD-HGNN",
+        "$\\Delta_{Origin}$"
+      ],
+      "rows": [
+        [
+          "GCN",
+          "Production",
+          "$73.12$",
+          "$74.69$",
+          "$74.88$",
+          "$+1.76$"
+        ],
+        [
+          "GCN",
+          "Transductive",
+          "$72.98$",
+          "$75.02$",
+          "$74.36$",
+          "$+2.04$"
+        ],
+        [
+          "GCN",
+          "Inductive",
+          "$73.33$",
+          "$74.32$",
+          "$75.80$",
+          "$+2.46$"
+        ],
+        [
+          "HGNN",
+          "Production",
+          "$73.36$",
+          "$74.84$",
+          "$75.72$",
+          "$+2.35$"
+        ],
+        [
+          "HGNN",
+          "Transductive",
+          "$74.17$",
+          "$75.02$",
+          "$75.26$",
+          "$+1.09$"
+        ],
+        [
+          "HGNN",
+          "Inductive",
+          "$70.12$",
+          "$74.44$",
+          "$76.42$",
+          "$+6.29$"
+        ],
+        [
+          "HGNN+",
+          "Production",
+          "$72.62$",
+          "$74.79$",
+          "$74.44$",
+          "$+2.16$"
+        ],
+        [
+          "HGNN+",
+          "Transductive",
+          "$72.73$",
+          "$74.61$",
+          "$74.12$",
+          "$+1.87$"
+        ],
+        [
+          "HGNN+",
+          "Inductive",
+          "$72.59$",
+          "$75.18$",
+          "$74.44$",
+          "$+2.59$"
+        ],
+        [
+          "HNHN",
+          "Production",
+          "$71.30$",
+          "$74.74$",
+          "$72.03$",
+          "$+3.43$"
+        ],
+        [
+          "HNHN",
+          "Transductive",
+          "$71.38$",
+          "$74.36$",
+          "$72.08$",
+          "$+2.97$"
+        ],
+        [
+          "HNHN",
+          "Inductive",
+          "$71.24$",
+          "$75.06$",
+          "$71.97$",
+          "$+3.81$"
+        ],
+        [
+          "LightHGNN",
+          "Production",
+          "$68.29$",
+          "$73.21$",
+          "$74.10$",
+          "$+5.80$"
+        ],
+        [
+          "LightHGNN",
+          "Transductive",
+          "$69.00$",
+          "$73.31$",
+          "$74.17$",
+          "$+5.16$"
+        ],
+        [
+          "LightHGNN",
+          "Inductive",
+          "$65.46$",
+          "$72.84$",
+          "$73.82$",
+          "$+8.35$"
+        ],
+        [
+          "AllSetTransformer",
+          "Production",
+          "$74.32$",
+          "$75.49$",
+          "$77.28$",
+          "$+2.96$"
+        ],
+        [
+          "AllSetTransformer",
+          "Transductive",
+          "$75.17$",
+          "$76.92$",
+          "$77.81$",
+          "$+2.64$"
+        ],
+        [
+          "AllSetTransformer",
+          "Inductive",
+          "$72.97$",
+          "$75.13$",
+          "$76.80$",
+          "$+3.83$"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Count the signs. Eighteen cells in the $\\Delta$ columns, and all eighteen are positive. The smallest is HGNN's Transductive cell at $+1.09$, the largest LightHGNN's Inductive cell at $+8.35$.",
+          "why": "This is the table's entire argument in one line, and it is a genuinely strong result to report because the bar is easy to fail: replacing the backbone changes the optimizer, the layer shapes and the feature dimensionality that the fusion layer has to target, so a framework that helped four of six backbones and hurt the other two would still be publishable as \"generally beneficial\" — and would be much less useful."
+        },
+        {
+          "md": "Order the backbones by their best gain, descending: LightHGNN $+8.35$, HGNN $+6.29$, AllSetTransformer $+3.83$, HNHN $+3.81$, HGNN+ $+2.59$, GCN $+2.46$.",
+          "why": "The ordering is not the interesting part; the *reason* for its two ends is. LightHGNN is a distillation target — a smaller model trained to imitate a larger one — so what it lost in compression is precisely detailed, per-instance information. The knowledge encoders supply exactly that kind of information, and the biggest gain follows. HGNN, by contrast, is the architecture the framework was designed around, so it is the one whose input already contains the most structure; there is less missing to supply."
+        },
+        {
+          "md": "Now compare Origin columns and $\\Delta$ columns as a pair. LightHGNN has the worst Origin values in the table — $68.29$, $69.00$, $65.46$, all below every other backbone — and the largest gains.",
+          "why": "This inverse relationship is the key to reading the table correctly, and it has a name worth carrying: **gains are relative to what a model already has.** A reader who scans only the $\\Delta$ column will conclude that LightHGNN is the best backbone, when the table says the opposite — after the framework is applied, LightHGNN's best numbers ($74.10$, $74.17$, $73.82$) are still below AllSetTransformer's *originals* on two of the three settings. The $\\Delta$ column measures headroom, not quality."
+        },
+        {
+          "md": "Notice which setting produces the largest gain: Inductive, in **all six** backbones — read the $\\Delta_{Origin}$ column of the transcribed table above and every backbone's largest value is its inductive row.",
+          "why": "Inductive is the setting where the test vertices were absent during training, so the backbone has the least to work with. A knowledge embedding computed from a vertex's own features and its hyperedge memberships transfers to unseen vertices directly, because it needs no information about their neighbours — which is a mechanism reason for expecting the largest gains exactly where the table shows them. Note also how close HNHN's and AllSetTransformer's best gains are: $+3.81$ against $+3.83$, a gap of $0.02$ that is far inside either one's reported spread, so these two should be read as level rather than ranked."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**One thing this table does not tell you: which dataset.** Section V-D5 introduces Table IX by saying the framework is validated \"by substituting HGNN with other hypergraph models under the production setting\", and specifies nothing further. The table carries no dataset column, and the surrounding text names no dataset. Eighteen cells are reported — accuracies with standard deviations to two decimals and deltas to two decimals — and **a reader cannot determine what data they were measured on.** Table X's introduction is explicit by contrast (\"across six hypergraph datasets under the transductive setting\"), which makes the omission here look like an oversight rather than a format choice. The comparison is presumably on a single dataset, given the single Origin value per row, but which one is not recoverable from the paper. This is the kind of gap that matters more than a rounding error: it does not change the sign of any result, and it does prevent anyone from checking or extending one."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What does it establish that all eighteen values in Table IX's $\\Delta$ columns are positive?",
+      "opts": [
+        {
+          "md": "That the knowledge-embedding stage is the strongest component of the framework",
+          "expl": "The table does not compare components — no variant here removes an encoder. Establishing that the encoders are what carry the gain would need an ablation at the other end: the framework with the knowledge stage replaced by nothing, which is what Table VIII's HGNN column in fact provides."
+        },
+        {
+          "md": "That the gain does not depend on any particular hypergraph backbone, which is what justifies calling the framework general",
+          "correct": true,
+          "expl": "Correct. The claim being tested is substitutability, and no single backbone's result could test it. Note the bar this clears: the six backbones differ in how they aggregate, whether they weight hyperedges, how many channels they run and how they were trained, so consistently positive gains across all six is evidence that the mechanism is architecture-independent."
+        },
+        {
+          "md": "That every backbone is improved by the same amount",
+          "expl": "The gains range from $+1.09$ to $+8.35$ — a factor of nearly eight. Uniform signs and uniform magnitudes are different claims, and only the first is true. The variation is itself informative, and the next question is what explains it."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "For LightHGNN's Inductive row, Origin is $65.46$ and DD-HGNN scores $73.82$. What is the gain? Give two decimals.",
+      "answer": 8.36,
+      "tol": 0.03,
+      "hint": "Subtract the Origin value from the better of the two proposed columns; on this row the better one is DD. The table prints a value $0.01$ below yours.",
+      "sol": "$73.82 - 65.46 = 8.36$. The table prints $+8.35$, the $0.01$ difference coming from the delta being computed on unrounded accuracies. This is the largest of the eighteen gains, and it belongs to the distilled backbone — the one whose compression discarded the most per-instance detail.",
+      "unit": "points"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "On HGNN+'s Transductive row, Origin is $72.73$, RD-HGNN scores $74.61$ and DD-HGNN scores $74.12$. What is the gain, to two decimals?",
+      "answer": 1.88,
+      "tol": 0.03,
+      "hint": "Use the higher of the two proposed columns, then subtract Origin. Do not use DD-HGNN's $74.12$.",
+      "sol": "$74.61 - 72.73 = 1.88$, against a printed $+1.87$ — the $0.01$ offset that appears in twelve of the eighteen cells. Using DD instead would give $74.12 - 72.73 = 1.39$, which is the natural mistake: nothing in the column header says the reference is the *better* of the two variants, so the convention has to be established by recomputation rather than read off the header.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "apply",
+      "q": "A reader looks at Table IX and concludes that LightHGNN is the best backbone, since it has the largest gains. Where is the reasoning wrong?",
+      "opts": [
+        {
+          "md": "Nowhere — the largest gain means the framework works best with it",
+          "expl": "The framework does work unusually well with it, and that is a real finding. But \"the framework improves it most\" and \"it is the best\" are different claims, and on this table they point in opposite directions."
+        },
+        {
+          "md": "The $\\Delta$ column measures headroom, not quality — LightHGNN has the lowest Origins in the table, and even after the framework is applied its best numbers remain below two backbones' untouched ones",
+          "correct": true,
+          "expl": "Correct. LightHGNN's Origins are $68.29$, $69.00$ and $65.46$ — the lowest of the six in every setting — and its post-framework best is $74.10$, $74.17$, $73.82$, still below AllSetTransformer's origins of $75.17$ and $72.97$-plus on two of three settings. A gain column and a level column answer different questions, and a table that prints both is inviting exactly this confusion."
+        },
+        {
+          "md": "The conclusion is right but should be based on the Production row only",
+          "expl": "Restricting to Production does not change the comparison — LightHGNN's $74.10$ is still below AllSetTransformer's $77.28$ on that setting. The error is in reading a change as a level, not in which row was used."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Your team runs a distilled model in production for its inference speed, and a paper offers a component that improves it substantially. Which of Table IX's patterns is the one to look for before believing the improvement will hold in your setting?",
+      "opts": [
+        {
+          "md": "Whether the component also improves a large, undistilled model",
+          "expl": "Worth knowing, but it is the wrong predictor here — and this table shows why: HGNN, the least distilled backbone, is near the *bottom* of the gain ordering. A component whose benefit concentrates on compressed models would look unimpressive on a full-size one while being exactly right for you."
+        },
+        {
+          "md": "Whether the component's benefit is consistent across the settings you will actually face, especially the one with unseen inputs",
+          "correct": true,
+          "expl": "Correct, and the transferable habit is to match the experimental setting to your deployment. If your production traffic includes items that did not exist at training time, the Inductive column is the relevant one — and on this table it is also where the gains are largest — for all six backbones, which is a good sign rather than a coincidence: a knowledge embedding computed from a vertex's own features and memberships needs no label information from neighbours, so it transfers to unseen vertices where a purely structural method cannot."
+        },
+        {
+          "md": "Whether the gain exceeds the reported standard deviations",
+          "expl": "The right question, and one this table does answer — every cell carries a standard deviation and several gains are several times their spread. But it tests whether the gain is real, not whether it will appear in your setting. Both checks are needed, in that order."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Table X, the same experiment pushed further — the backbone drops from a hypergraph network to an ordinary graph network, and the question becomes whether the knowledge embedding still pays when there are no hyperedges left."
+}

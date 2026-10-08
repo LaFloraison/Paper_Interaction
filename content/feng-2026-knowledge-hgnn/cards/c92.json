@@ -1,0 +1,222 @@
+{
+  "id": "92",
+  "kind": "table",
+  "chapter": "experiments",
+  "section": "6.4 Table III · the production split",
+  "kicker": "6.4 · Table III",
+  "title": "Table III: the production split, and the one row that disagrees with Table II",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Write $G$ for the complete hypergraph — every vertex, every hyperedge — and $V$ for its vertex set. The **production setting** splits the unlabelled part of $V$ into a **transductive test set** $V_t^U$ and an **inductive test set** $V_i^U$. The labelled part splits as usual into a training set $V_{tr}^L$ and a validation set $V_{va}^L$, where the superscript $L$ simply marks \"this part carries labels\". Training uses only the *observed* vertices $V_{\\mathrm{obs}} = V_{tr}^L \\cup V_{va}^L \\cup V_t^U$ to build a **sub-hypergraph** $G_{\\mathrm{sub}}$ — the same hypergraph with the inductive vertices and every hyperedge touching them deleted. Three scores follow, and it matters which graph each is computed on. The **transductive score** trains on $G_{\\mathrm{sub}}$ and evaluates on $G$ restricted to $V_t^U$. The **inductive score** trains on $G_{\\mathrm{sub}}$ and then evaluates the same trained model on the restored vertices $V_i^U$ — which is possible precisely because the model never needed their links, only their own feature vectors. The **production score** evaluates on $G$ with the combined set $V_t^U \\cup V_i^U$. Table III prints, per dataset, the two test subsets.",
+      "plain": "The test set is cut in two. One half stays in the graph while you train, minus its answers — that is the transductive half. The other half is deleted from the graph altogether, along with every hyperedge that touched it, and only reappears at scoring time — that is the inductive half, and it is the one that resembles a genuinely new user appearing tomorrow. (A hyperedge is a link joining any number of vertices at once; card 12 defines it, and card 61 defines the message passing that runs along them.)"
+    },
+    {
+      "t": "p",
+      "md": "**Why the inductive half is the harder test, stated exactly.** Two things change for an inductive vertex, and it is worth separating them. First, its own feature vector is not part of the input matrix during training, so nothing about it can influence the learned parameters. Second — and this is the part that is easy to miss — every hyperedge that touched it is also absent, so *its neighbours'* message passing ran on a graph with a hole in it. The model is not merely blind to the new vertex; it learned on a slightly different graph from the one it is finally scored on."
+    },
+    {
+      "t": "p",
+      "md": "**What the production score is, arithmetically.** Since the production test set is the union of the two halves, the production accuracy is a blend of the transductive and inductive accuracies, weighted by the sizes of the two halves. It is therefore neither of its parts, and on a dataset where the two halves differ substantially the blend can sit between them in a way that hides both. This is the reading key for Table VI, where every dataset has three rows for exactly this reason."
+    },
+    {
+      "t": "figure",
+      "src": "tab3.png",
+      "alt": "Table III of the paper: splitting of datasets under the production setting, listing vertex count, class count, training and validation sizes, and the transductive and inductive test sizes",
+      "cap": "Original Table III (Feng et al., TPAMI 2026). The first four data columns repeat Table II exactly; the last two are the split test set."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — read every column of one row, then join the two tables.** Take Cora. Table III's row is: vertex count $2{,}708$, classes $7$, training $1{,}625$, validation $677$, transductive testing $244$, inductive testing $162$. The first four data columns should repeat Table II exactly — and they do: Table II's Cora row gives the same $2{,}708$ and $7$, and the same training and validation counts $1{,}625$ and $677$. That is checkable in place, and it is the check that the two tables describe one experiment rather than two. The last two columns should be Table II's testing column split in two, and Table II gave Cora a test set of $406$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Table III's Cora row: transductive testing 244, inductive testing 162. Sum: $244 + 162 = 406$.",
+          "why": "The two tables agree, which is the check to run first. Table II's testing column and Table III's last two columns are describing the same 406 vertices at two levels of detail."
+        },
+        {
+          "md": "Compute the inductive share: $162 / 406 = 0.3990$, or 39.9%.",
+          "why": "Hold that number. The text says something different about it, and the comparison only becomes visible once the share is computed rather than eyeballed."
+        },
+        {
+          "md": "Resolve the sub-graph. Under the production protocol the training graph excludes the 162 inductive vertices: $2{,}708 - 162 = 2{,}546$ vertices remain to form $G_{\\mathrm{sub}}$.",
+          "why": "This number appears nowhere in the paper, yet it is the size of the graph the model actually learns on — 6% smaller than the graph it is later scored on. A reader who wants to know what the inductive number means has to compute it."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — the one row that does not join.** Running the same check on all ten rows, nine agree with Table II. The tenth is DBLP-Conf."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Source",
+        "DBLP-Conf test-set size"
+      ],
+      "rows": [
+        [
+          "Table II, #Testing column",
+          "$609$"
+        ],
+        [
+          "Table III, $365 + 243$",
+          "$608$"
+        ],
+        [
+          "Difference",
+          "$1$"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**One vertex, so no score moves — but note what kind of inconsistency this is.** The rounding artefacts in Table II were *within* a row: the row disagreed with its own total. This is *between* two rows of two different tables, which is a different failure mode, because both tables are describing a fixed, published dataset. Table II gives DBLP-Conf a test set of $609$; Table III's last two columns for the same row give $365 + 243 = 608$. One of the two tables is out by a vertex and the paper gives no way to tell which. The same row also fails its own internal sum: Table III prints $4{,}057$ vertices and reports $2{,}434 + 1{,}014 + 365 + 243 = 4{,}056$."
+    },
+    {
+      "t": "p",
+      "md": "**Walk 3 — the systematic discrepancy that is not a rounding artefact.** Now compare the measured inductive share across all ten rows against the sentence in Section V-A3: *\"In our experiments, 20% of the vertices in the testing set $V_U$ are designated for inductive testing, with the remaining 80% used for transductive testing.\"* Eight rows are listed below; CA-Cora and CC-Cora repeat Cora's numbers exactly, being built from the same 2,708 publications."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Dataset",
+        "Transductive",
+        "Inductive",
+        "Inductive share",
+        "Text predicts"
+      ],
+      "rows": [
+        [
+          "Cora",
+          "$244$",
+          "$162$",
+          "$39.9\\%$",
+          "$20\\%$"
+        ],
+        [
+          "GitHub",
+          "$3{,}393$",
+          "$2{,}262$",
+          "$40.0\\%$",
+          "$20\\%$"
+        ],
+        [
+          "Amazon-P",
+          "$689$",
+          "$459$",
+          "$40.0\\%$",
+          "$20\\%$"
+        ],
+        [
+          "Amazon-C",
+          "$1{,}238$",
+          "$825$",
+          "$40.0\\%$",
+          "$20\\%$"
+        ],
+        [
+          "DBLP-Conf",
+          "$365$",
+          "$243$",
+          "$40.0\\%$",
+          "$20\\%$"
+        ],
+        [
+          "Tencent",
+          "$193$",
+          "$129$",
+          "$40.1\\%$",
+          "$20\\%$"
+        ],
+        [
+          "ModelNet40",
+          "$1{,}108$",
+          "$739$",
+          "$40.0\\%$",
+          "$20\\%$"
+        ],
+        [
+          "Heloc",
+          "$941$",
+          "$628$",
+          "$40.0\\%$",
+          "$20\\%$"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Every row sits at 40%, not 20% — and this is not a rounding effect.** A rounding effect is one vertex; here the discrepancy is a *factor of two* and it is identical across all ten rows. Two readings are consistent with the printed tables. Either the table is right and the sentence's two percentages are the wrong way round, or the construction code used the other split and the sentence was written from the intent rather than the output. The tables cannot distinguish these, and the consequence is concrete: **under the printed splits, 40% of the test vertices are ones the model never saw, not 20%** — which makes the production setting a harder benchmark than the paper's own description of it. When a protocol description and the counts it describes disagree at a factor of two, the counts are the safer thing to believe, because they are reproducible from the code that produced the numbers."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "During training under the production setting, an inductive test vertex is absent from the graph. Which of the following is a consequence?",
+      "opts": [
+        {
+          "md": "The model cannot use that vertex's own information, and nothing else changes",
+          "expl": "Incomplete. The vertex's hyperedges are absent too, so its neighbours were aggregated over a graph missing those groups. The model learned on a graph that differs from the one it is scored on — that second effect is easy to overlook and is the half of the inductive difficulty that does not show up in the accuracy gap."
+        },
+        {
+          "md": "The model cannot use that vertex's information, and its neighbours were aggregated over a graph missing the hyperedges that touched it",
+          "correct": true,
+          "expl": "Correct. Both effects are present, and they pull in the same direction: independent of the new vertex's content, the structure around it is also degraded at training time. This is why Table VI reports an inductive row separately instead of letting the production blend absorb it."
+        },
+        {
+          "md": "Nothing changes for the model, since the vertex is restored at test time",
+          "expl": "Restoring it at test time is what *creates* the mismatch: the model was fitted on a graph that did not contain the vertex, then scored on one that does. The restoration is the source of the difficulty, not a repair of it."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "For Cora, how many vertices remain to build the training sub-hypergraph $G_{\\mathrm{sub}}$? Give your answer as a count.",
+      "answer": 40.0,
+      "tol": 0.15,
+      "hint": "The sub-hypergraph keeps training, validation and the transductive test, and drops only the inductive test. Start from the vertex count in Table III's Cora row and subtract one of its columns.",
+      "sol": "$2{,}708 - 162 = 2{,}546$ vertices. Equivalently $1{,}625 + 677 + 244 = 2{,}546$, which cross-checks against the row's own columns. This quantity is printed nowhere in the paper — it has to be assembled from two of the table's numbers, and it is the size of the graph the model actually learns on: about $6\\%$ smaller than the graph it is later scored on.",
+      "unit": "%"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Table III gives Heloc a transductive test of $941$ and an inductive test of $628$. What percentage of Heloc's test set is inductive? Give one decimal place.",
+      "answer": 40.0,
+      "tol": 0.15,
+      "hint": "The test set is the two parts added together. Total first, then divide the inductive part by the total.",
+      "sol": "Total test set $= 941 + 628 = 1{,}569$, which matches Table II's Heloc testing column. Share $= 628 / 1{,}569 = 0.40026$, i.e. $40.0\\%$ to one decimal. Under the sentence's stated $20\\%$, this row would have read roughly $314$ inductive and $1{,}255$ transductive.",
+      "unit": "vertices"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A paper reports 91% accuracy under a protocol it calls \"production\", and separately states that 30% of the test vertices are inductive. You recompute the split sizes from its supplementary tables and find the inductive share is 55%. What is the most useful next step?",
+      "opts": [
+        {
+          "md": "Use the 91% figure and note the discrepancy in passing",
+          "expl": "The 91% figure is the one number in the pair that the discrepancy most affects — it is a blend whose composition you have just learned is different from what was claimed. Noting it in passing is what a reader does when they have no arithmetic; you have the arithmetic."
+        },
+        {
+          "md": "Recompute any blended score using the actual share, and treat the stated protocol description as unreliable",
+          "correct": true,
+          "expl": "Correct, and the reason generalises beyond this paper. A stated share is a *description* of the numbers; the split sizes are the numbers. When they conflict, the description has to yield, and any quantity derived from the description — a blend, a weighted average, a claim about how realistic the setting is — has to be rebuilt on the real composition. The same reasoning is what makes this site recompute the average-rank row of Table V rather than quote it."
+        },
+        {
+          "md": "Assume the supplementary tables are wrong and the main text is right",
+          "expl": "This inverts the priority for no reason. Split sizes are produced by code and are reproduced by every reader who adds two columns; prose descriptions of protocols are written by hand and are the more common place for a slip. Prefer the reproducible quantity."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** with the two protocols fixed, the results tables can be read. Table V first — the transductive comparison, and the average-rank row that has to be recomputed rather than quoted."
+}

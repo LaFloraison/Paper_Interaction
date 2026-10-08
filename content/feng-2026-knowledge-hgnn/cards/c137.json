@@ -1,0 +1,163 @@
+{
+  "id": "137",
+  "kind": "reference",
+  "chapter": "references",
+  "section": "R8 · Dataset sources [28]–[35]",
+  "kicker": "References [28]–[35]",
+  "title": "Where the ten datasets came from — and what a dataset's provenance tells you",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "The paper's ten datasets are supplied by eight references, each playing the **supply** role: *[28]* Sen et al., *Collective classification in network data*, AI Magazine 2008 (Cora); *[29]* Rozemberczki, Allen and Sarkar, *Multi-scale attributed node embedding*, Journal of Complex Networks 2021 (Github); *[30]* Shchur et al., *Pitfalls of graph neural network evaluation*, 2018 (Amazon-P and Amazon-C); *[31]* Sun et al., *PathSim*, VLDB 2011 (DBLP-Conf); *[32]* He et al., *Cascade-BGNN*, arXiv 2019 (Tencent); *[33]* Wu et al., *3D ShapeNets*, CVPR 2015 (ModelNet40); *[35]* a Kaggle competition dataset (Heloc); and *[10]* HyperGCN (CA-Cora and CC-Cora).",
+      "plain": "Ten datasets, eight sources, and the sources are not the same kind of thing. Two of the ten come from a competing method's paper. One comes from a competition with no paper at all."
+    },
+    {
+      "t": "p",
+      "md": "**Why provenance matters more than it looks.** A benchmark is not a neutral sample of a domain; it is a dataset someone assembled for a purpose, and the purpose usually shows. A dataset introduced inside a method paper tends to be one that method does well on — not through manipulation, but because the authors chose the data that illustrated their point. A dataset from an evaluation-methodology paper tends to be chosen for the opposite reason: to expose problems. And a competition dataset comes with whatever the organiser decided to release."
+    },
+    {
+      "t": "p",
+      "md": "**Two of the ten deserve a closer look, and neither is a criticism of how they are used here.** Reference [30] is a paper *about evaluation pitfalls* in graph learning, cited for its data — so a reader is being handed two Amazon co-purchase networks by authors whose other contribution was a well-known argument that such benchmarks are routinely mis-evaluated. Reference [10] is a competing method, cited for CA-Cora and CC-Cora. Both citations are completely normal practice and both carry information a reader can use."
+    }
+  ],
+  "example": [
+    {
+      "t": "table",
+      "head": [
+        "Dataset",
+        "Source",
+        "Kind of source",
+        "What follows from it"
+      ],
+      "rows": [
+        [
+          "Cora",
+          "[28] Sen et al., 2008",
+          "a dataset paper, the standard citation-network benchmark",
+          "the most heavily used benchmark in the paper's field, so its numbers are comparable across papers"
+        ],
+        [
+          "Github",
+          "[29] Rozemberczki et al., 2021",
+          "a method paper (multi-scale attributed node embedding)",
+          "introduced alongside an embedding method and widely reused"
+        ],
+        [
+          "Amazon-P, Amazon-C",
+          "[30] Shchur et al., 2018",
+          "**an evaluation-methodology paper**",
+          "chosen by authors whose stated concern was how these benchmarks are evaluated"
+        ],
+        [
+          "DBLP-Conf",
+          "[31] Sun et al., 2011",
+          "a similarity-search method paper (PathSim)",
+          "a heterogeneous-information-network dataset, reused here as a hypergraph over authors"
+        ],
+        [
+          "Tencent",
+          "[32] He et al., 2019",
+          "a method paper (Cascade-BGNN) on large bipartite graphs",
+          "originates in industrial social-network data; the paper uses a $2$k-vertex subset"
+        ],
+        [
+          "ModelNet40",
+          "[33] Wu et al., 2015",
+          "a 3D shape-recognition paper",
+          "3D point clouds converted to a tabular format, then to a hypergraph by nearest neighbours"
+        ],
+        [
+          "Heloc",
+          "[35] Kaggle, 2021",
+          "**a competition dataset, no paper**",
+          "tabular credit data; the only dataset here with no methodological literature behind it"
+        ],
+        [
+          "CA-Cora, CC-Cora",
+          "[10] HyperGCN, 2019",
+          "**a competing method's paper**",
+          "the two hypergraph constructions of the same $2{,}708$ publications"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Count how many of the ten datasets come from a paper that proposed a method, and how many from a paper whose subject was data or evaluation. Five come from method papers: GitHub, DBLP-Conf, Tencent, CA-Cora and CC-Cora. A hyperedge is a link joining any number of vertices at once rather than exactly two, and a dataset whose relations are hyperedges is a hypergraph (card 12).",
+          "why": "This is not a defect and it is worth knowing. A dataset introduced alongside a method was chosen by authors who had a method to showcase, which biases it toward the regime where their method was interesting. That bias is usually mild and it is pervasive across the field — the alternative, building a new dataset for every paper, is worse. What a reader should take from it is a question: **on which of these datasets would this paper's method be expected to do well if the datasets were chosen for its benefit?** The answer here is the two hypergraph Coras, and they are indeed among the datasets where DD-HGNN's margin over HGNN is largest."
+        },
+        {
+          "md": "Note the provenance of the two Hypergraph-Cora variants in particular: they come from a competing method's paper. So the paper's strongest hypergraph results are on datasets constructed by the method it is competing against.",
+          "why": "This cuts in the paper's favour, not against it. Building a dataset inside a method paper biases it toward *that method's* regime — and HyperGCN's regime is the reduction route, not the intact-hypergraph route. That DD-HGNN records its largest margins over HGNN on exactly those two datasets is therefore more informative than it would be on a dataset built by HGNN's authors. **Provenance cuts in an unexpected direction here, and it is only visible by looking up the citations.**"
+        },
+        {
+          "md": "Notice the one dataset with no paper: Heloc, cited to a Kaggle competition page.",
+          "why": "Its citability is different in kind. A competition dataset has no methodology to check, no authors' intent to weigh, and — as reference [35] itself is a URL in the bibliography — no fixed artefact other than a live competition page. That does not make it unusable; it makes it the one dataset here whose definition a reader cannot fully recover from the literature. It is also a dataset on which the structure clearly matters — HGNN beats GCN there by $3.42$ points, its largest margin over the plain graph baseline anywhere in Table V — and that is precisely the kind of result a reader would want to check against an external description of the data, of which none exists."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**The habit worth taking from this card is one line long: look up the dataset citations.** It costs a few minutes and it tells you, for each benchmark, who built it and what they were trying to show. Papers rarely do this work for you — the dataset sentence in Table I's paragraph spends a clause on each dataset's subject matter and nothing on its provenance — and it changes how much weight each column of the results deserves. **A results table is only as interpretable as its datasets, and a dataset is only as interpretable as the paper that introduced it.**"
+    },
+    {
+      "t": "p",
+      "md": "**One more observation, from the dataset statistics themselves.** Of the ten, four are plain graphs, two are co-authorship or co-citation hypergraphs over a publication network, two are tabular data turned into hypergraphs by $k$-nearest-neighbour construction, one is 3D geometry as a table, and one is social-network data. So **most of the hypergraph datasets have hyperedges that were observed rather than constructed**: CA-Cora and CC-Cora from co-authorship and co-citation, DBLP-Conf from shared authorship, shared terms or a shared venue, and Tencent from shared community membership. Only ModelNet40 and Heloc have their relations manufactured by a procedure the authors chose — and those are exactly the two the paper describes as built by K-Nearest Neighbours, which is what bounds open question 4 to them."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does knowing that a benchmark came from a method paper change how a reader interprets results on it?",
+      "opts": [
+        {
+          "md": "Because such datasets are usually fabricated",
+          "expl": "The opposite: datasets from method papers are typically real data, often carefully prepared, and openly released. What is biased is not the data but the *choice* of which data to release as a benchmark."
+        },
+        {
+          "md": "Because the authors chose data that illustrated their method's advantage, so the benchmark is biased toward that method's regime — which also means it can work against a different method",
+          "correct": true,
+          "expl": "Correct, and the second half is what makes the observation useful rather than merely suspicious. Here the two Hypergraph-Cora variants come from HyperGCN's paper, so they are biased toward the reduction route — and the paper records its largest advantage over HGNN on exactly those datasets. A provenance bias can cut for you, and noticing which way it cuts for a given paper is the point of looking up the citations at all."
+        },
+        {
+          "md": "Because the dataset's licence may not permit reuse",
+          "expl": "A practical concern for anyone planning to reproduce the work and not a reason the numbers mean something different. Licences rarely trouble academic use of these standard benchmarks."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Table I reports ten datasets, six of them hypergraphs. Of those six, how many have hyperedges that were observed in the data rather than constructed by a procedure chosen by the authors?",
+      "answer": 4,
+      "tol": 0.5,
+      "hint": "Ask of each hypergraph dataset whether its relations were recorded or manufactured. Four of the ten are plain graphs and are not in question.",
+      "sol": "Four. CA-Cora's hyperedges are co-authorship groups and CC-Cora's are co-citation groups, both read off the publication record; DBLP-Conf's are authors linked by co-authorship, shared terms or a shared venue; Tencent's are users who joined the same social community. Only ModelNet40 and Heloc are constructed, and the paper says so for both: they are built by K-Nearest Neighbours, meaning each vertex is linked to the $k$ vertices nearest to it in feature space.",
+      "unit": "datasets"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You are building your own benchmark set for a paper on relational learning. What does this card's reasoning suggest you should do?",
+      "opts": [
+        {
+          "md": "Use only datasets whose provenance is a dedicated data paper",
+          "expl": "A defensible principle and a costly one — such datasets are rarer than the field's benchmarks, and the standard benchmarks exist precisely because they enable comparison. Comparability and neutrality pull against each other here."
+        },
+        {
+          "md": "Record, for each dataset, whether its relations were observed or constructed, and report the construction parameters alongside the results",
+          "correct": true,
+          "expl": "Correct, and it costs one column. This paper does report that ModelNet40 and Heloc use KNN construction — but not the value of $k$ per dataset, and no sensitivity study, which is open question 4. The general principle: if a benchmark's structure is an output of a procedure you chose, then your results depend on that choice, and reporting the choice is what lets a reader separate the data from your construction of it. **Observed relations need only a citation; constructed ones need their parameters and ideally a sweep.**"
+        },
+        {
+          "md": "Prefer datasets from competing methods' papers, since those are least likely to favour you",
+          "expl": "An interesting instinct, and it is not reliable: a dataset built by another method's authors is biased toward that method, which may or may not be your competitor. The robust practice is naming the provenance and its likely direction, not seeking a particular kind of paper."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** reference [34], LightHGNN — the source of the paper's evaluation protocol, and the backbone that gains most from the framework."
+}

@@ -1,0 +1,80 @@
+{
+  "_note": "全局知识地图。节点 = 知识点（id 与 shared/knowledge-registry.md 对齐）；边 = 前置 / 相关 / 对比 / 取代。布局确定性：按 cluster 分列，列内按 order 排。不做力导向。",
+  "clusters": [
+    {
+      "key": "game",
+      "name": "Games and decisions",
+      "blurb": "The vocabulary of a defender choosing a strategy against a strategic adversary. First taught in the security-games paper.",
+      "nodes": [
+        { "id": "kp-expected-utility", "order": 1 },
+        { "id": "kp-mixed-strategy", "order": 2 },
+        { "id": "kp-stackelberg-game", "order": 3 },
+        { "id": "kp-deu", "order": 4 },
+        { "id": "kp-softmax-qr", "order": 5 },
+        { "id": "kp-suqr", "order": 6 }
+      ]
+    },
+    {
+      "key": "learning",
+      "name": "Learning foundations",
+      "blurb": "What a loss is, how it is minimised, and what changes when the loss is measured on a decision rather than on a prediction.",
+      "nodes": [
+        { "id": "kp-loss-function", "order": 1 },
+        { "id": "kp-cross-entropy", "order": 2 },
+        { "id": "kp-gradient-descent", "order": 3 },
+        { "id": "kp-mle", "order": 4 },
+        { "id": "kp-counterfactual-estimation", "order": 5 },
+        { "id": "kp-opt-gradient", "order": 6 },
+        { "id": "kp-decision-focused-learning", "order": 7 }
+      ]
+    },
+    {
+      "key": "structure",
+      "name": "Relations and structure",
+      "blurb": "How a dataset is written as relations, what an operator on those relations can assume, and what goes wrong when you stack it.",
+      "nodes": [
+        { "id": "kp-hypergraph", "order": 1 },
+        { "id": "kp-permutation-invariance", "order": 2 },
+        { "id": "kp-over-smoothing", "order": 3 },
+        { "id": "kp-transductive-inductive", "order": 4 }
+      ]
+    },
+    {
+      "key": "trees",
+      "name": "Trees and ensembles",
+      "blurb": "The other family of models in this project: models that ask questions rather than compute distances.",
+      "nodes": [
+        { "id": "kp-decision-tree", "order": 1 },
+        { "id": "kp-gbdt", "order": 2 }
+      ]
+    }
+  ],
+  "edges": [
+    { "from": "kp-expected-utility", "to": "kp-deu", "type": "prereq" },
+    { "from": "kp-mixed-strategy", "to": "kp-deu", "type": "prereq" },
+    { "from": "kp-stackelberg-game", "to": "kp-deu", "type": "prereq" },
+    { "from": "kp-softmax-qr", "to": "kp-suqr", "type": "prereq" },
+    { "from": "kp-suqr", "to": "kp-deu", "type": "related" },
+    { "from": "kp-deu", "to": "kp-decision-focused-learning", "type": "prereq" },
+    { "from": "kp-loss-function", "to": "kp-cross-entropy", "type": "prereq" },
+    { "from": "kp-cross-entropy", "to": "kp-mle", "type": "related" },
+    { "from": "kp-loss-function", "to": "kp-gradient-descent", "type": "prereq" },
+    { "from": "kp-gradient-descent", "to": "kp-mle", "type": "related" },
+    { "from": "kp-counterfactual-estimation", "to": "kp-decision-focused-learning", "type": "prereq" },
+    { "from": "kp-opt-gradient", "to": "kp-decision-focused-learning", "type": "prereq" },
+    { "from": "kp-loss-function", "to": "kp-decision-focused-learning", "type": "related" },
+    { "from": "kp-cross-entropy", "to": "kp-decision-focused-learning", "type": "contrast" },
+    { "from": "kp-decision-tree", "to": "kp-gbdt", "type": "prereq" },
+    { "from": "kp-gbdt", "to": "kp-hypergraph", "type": "cross" },
+    { "from": "kp-hypergraph", "to": "kp-permutation-invariance", "type": "related" },
+    { "from": "kp-hypergraph", "to": "kp-over-smoothing", "type": "related" },
+    { "from": "kp-gbdt", "to": "kp-loss-function", "type": "related" },
+    { "from": "kp-transductive-inductive", "to": "kp-over-smoothing", "type": "cross" }
+  ],
+  "legend": [
+    { "type": "prereq", "label": "prerequisite — read the left one first" },
+    { "type": "related", "label": "related — same idea, different setting" },
+    { "type": "contrast", "label": "contrast — the two answer different questions" },
+    { "type": "cross", "label": "cross-paper link — the second paper applies the first's idea" }
+  ]
+}

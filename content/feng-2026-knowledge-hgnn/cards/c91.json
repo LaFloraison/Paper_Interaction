@@ -1,0 +1,178 @@
+{
+  "id": "91",
+  "kind": "table",
+  "chapter": "experiments",
+  "section": "6.3 Table II · the transductive split",
+  "kicker": "6.3 · Table II",
+  "title": "Table II: the transductive split, and why three of its rows do not add up",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **data split** partitions a dataset's vertices into disjoint parts before training: a **training set** whose labels are used to fit the model's parameters, a **validation set** whose labels are used to choose between candidate models and settings, and a **test set** whose labels are never used until the final report. A split is **stratified** when the partition is applied separately inside each class, so that every class keeps roughly the same proportion in each part. A **hyperedge** is a link that can join any number of vertices at once rather than exactly two, and a dataset whose relations are hyperedges is a hypergraph (defined in card 12). **Message passing** is the operation by which each vertex repeatedly replaces its own representation with an aggregate of its neighbours' — so a link is how information travels from one vertex to another. The **transductive setting** is the evaluation protocol in which the test vertices are present in the graph during training — their features and their links are available to message passing — while their labels are withheld. The alternative is the **inductive setting**, which removes the test vertices and their links entirely (card 92). Table II reports, for each of the paper's ten datasets, the vertex count, the class count, and the size of each of the three parts.",
+      "plain": "Each dataset is cut into three piles: one you learn from, one you use to pick your settings, and one you are only allowed to look at once, at the end. Under the transductive protocol the test vertices sit in the graph while you train — you can see who they are and who they connect to, just not their answers."
+    },
+    {
+      "t": "p",
+      "md": "**Why a split is stratified rather than random.** Suppose a dataset of $3{,}000$ vertices has one rare class holding 1% of them — thirty vertices. A plain random 15% test slice takes 15% of everything on average, so it expects $0.15 \times 30 = 4.5$ of that class. The expected count is not the problem; the spread around it is. Draw ten such slices and one will hold two of those thirty, another will hold eight, and one will hold none at all — and a class with no members in the test set has no measurable score. Splitting class by class removes that lottery: every class gets 15% of its own members in the test slice by construction. This is why the three columns of Table II hold their proportions so tightly: they are not the result of a random draw, they are a 60/25/15 rule applied inside every class."
+    },
+    {
+      "t": "p",
+      "md": "**What Table II fixes and what it leaves open.** It fixes the *sizes*. It does not fix which vertices land where — that depends on the seed, and the paper runs five seeds. And it does not say how the graph is assembled during training, which is the one design decision that separates this table from Table III: here the whole graph, all 2,708 vertices of Cora, is used for message passing, even though only 1,625 of them carry a usable label."
+    },
+    {
+      "t": "figure",
+      "src": "tab2.png",
+      "alt": "Table II of the paper: splitting of datasets under the transductive setting, listing vertex count, class count and the three split sizes for ten datasets",
+      "cap": "Original Table II (Feng et al., TPAMI 2026). Columns: #V vertices, #C classes, then #Training, #Validation and #Testing. The rows above the gap are plain graphs; those below are hypergraphs."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — one row, read and audited.** Take Cora: 2,708 vertices, 7 classes, training 1,625, validation 677, testing 406."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Add the three parts: $1{,}625 + 677 + 406 = 2{,}708$. That is exactly the printed #V.",
+          "why": "A split table's first duty is to be a partition. If the three parts do not sum to the whole, either a vertex was listed twice or one was dropped — and every downstream accuracy is then computed on an unknown quantity."
+        },
+        {
+          "md": "Divide each part by the vertex count: $1{,}625 / 2{,}708 = 0.600$, $677 / 2{,}708 = 0.250$, $406 / 2{,}708 = 0.150$.",
+          "why": "The proportions are the clean numbers 60%, 25% and 15%. That is the tell that the counts were *derived* from a ratio rather than measured — and it is what lets the three rows below be explained."
+        },
+        {
+          "md": "Check the class column against the split. Seven classes, and the training part holds 1,625 of 2,708 vertices — about 232 per class on average, since stratification applies the same proportion inside every class.",
+          "why": "This is the practical consequence of stratifying: the smallest class is not starved. Without it, a 7-class citation network could easily put no member of one class in the test set, and that class's per-class score would be undefined."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — three rows that are off by exactly one, and the arithmetic that explains all three.** Checking all ten rows the same way, seven balance exactly and three are one vertex over. The three are worth listing, because the explanation is the same in each case."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Row",
+        "Splits as printed",
+        "Sum",
+        "Printed #V",
+        "Gap"
+      ],
+      "rows": [
+        [
+          "Amazon-P",
+          "$4{,}590 + 1{,}913 + 1{,}148$",
+          "$7{,}651$",
+          "$7{,}650$",
+          "$+1$"
+        ],
+        [
+          "Tencent",
+          "$1{,}288 + 537 + 322$",
+          "$2{,}147$",
+          "$2{,}146$",
+          "$+1$"
+        ],
+        [
+          "ModelNet40",
+          "$7{,}387 + 3{,}078 + 1{,}847$",
+          "$12{,}312$",
+          "$12{,}311$",
+          "$+1$"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Amazon-P has 7,650 vertices. Multiply by the three proportions: $0.60 \\times 7{,}650 = 4{,}590$ (exact), $0.25 \\times 7{,}650 = 1{,}912.5$, $0.15 \\times 7{,}650 = 1{,}147.5$.",
+          "why": "Two of the three products land on a half. The training part came out whole, so only the other two can create a discrepancy."
+        },
+        {
+          "md": "Round each to the nearest whole vertex: 1,912.5 → 1,913 and 1,147.5 → 1,148. Both round up. The sum is now $4{,}590 + 1{,}913 + 1{,}148 = 7{,}651$, one more than the 7,650 you started with.",
+          "why": "This is the whole explanation, and it is a property of rounding rather than of arithmetic. Rounding each part independently guarantees nothing about the total: two round-ups and one exact value produce a surplus of exactly one."
+        },
+        {
+          "md": "Repeat on Tencent (2,146): $0.60 \\times 2{,}146 = 1{,}287.6$, $0.25 \\times 2{,}146 = 536.5$, $0.15 \\times 2{,}146 = 321.9$ — all three round up, giving 1,288, 537 and 322, a total of 2,147.",
+          "why": "Same mechanism, three round-ups this time and still a surplus of only one, because the three round-ups together add $0.4 + 0.5 + 0.1 = 1.0$ — precisely one vertex."
+        },
+        {
+          "md": "The seven rows that balance are the ones whose three products land on whole numbers, or whose fractional parts happen to cancel. Cora is the second case, and it is worth working out because it is **not** that 2,708 divides cleanly: $0.60 \times 2{,}708 = 1{,}624.8$, which rounds up to $1{,}625$ and is $0.2$ too high; $0.25 \times 2{,}708 = 677.0$ exactly; and $0.15 \times 2{,}708 = 406.2$, which rounds down to $406$ and is $0.2$ too low.",
+          "why": "The $+0.2$ and the $-0.2$ cancel, so Cora balances by luck rather than by construction — which is exactly why seven rows balance and three do not. So the pattern is not \"three careless rows among ten\" but \"one rounding rule applied to ten rows of different size\". Knowing the mechanism changes what you should do about it: nothing. The affected quantity is one vertex out of thousands, and no reported accuracy moves."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**This is the mildest of the paper's numerical inconsistencies, and it is worth being precise about why.** A rounding surplus of one vertex is not evidence of a mistake — it is the expected behaviour of computing parts as percentages and rounding. The reason to work through it anyway is methodological: you now know the *signature* of percentage rounding in a split table, which is a surplus or deficit of one, and you can therefore tell it apart from the signatures that matter — a row that does not match the same dataset in another table, or an error of ten or a hundred."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "In the transductive setting, what is the model allowed to see of a **test** vertex during training?",
+      "opts": [
+        {
+          "md": "Nothing at all — test vertices are removed from the graph until evaluation",
+          "expl": "That is the inductive protocol, reported in Table III. Under the transductive protocol the test vertices are present in the graph throughout. Keeping the two apart is the single most important thing this pair of tables tests."
+        },
+        {
+          "md": "Its features and its links, but not its label",
+          "correct": true,
+          "expl": "Correct. The vertex exists, its feature vector is a column of the input matrix, and its hyperedges contribute to message passing — only the label is withheld. That is what \"transductive\" means, and it is why a transductive score is not by itself evidence about vertices the model has never seen."
+        },
+        {
+          "md": "Its label, but not its features",
+          "expl": "Exactly inverted. Labels are what evaluation withholds; features are what message passing consumes. A test vertex whose label were visible would make the reported accuracy meaningless."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Table II's Amazon-C row prints $8{,}251$ training, $3{,}438$ validation and $2{,}063$ testing vertices, against a printed vertex count of $13{,}752$. What do the three parts sum to?",
+      "answer": 13752,
+      "tol": 0.5,
+      "hint": "Add all three parts. The sum should equal the vertex count printed in the same row — this is one of the rows that balances.",
+      "sol": "$8{,}251 + 3{,}438 = 11{,}689$, and $11{,}689 + 2{,}063 = 13{,}752$ — exactly the printed #V, so the three parts are a clean partition. The underlying products are $0.60 \times 13{,}752 = 8{,}251.2$, $0.25 \times 13{,}752 = 3{,}438.0$ and $0.15 \times 13{,}752 = 2{,}062.8$: the $+0.2$ and the $-0.2$ cancel, as they did for Cora.",
+      "unit": "vertices"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Github's row prints training $22{,}620$, validation $9{,}425$ and testing $5{,}655$. What total do these three give?",
+      "answer": 37700,
+      "tol": 0.5,
+      "hint": "Add all three. The sum is the vertex count printed in the same row, so if your answer is in the thousands rather than the tens of thousands you dropped a part.",
+      "sol": "$22{,}620 + 9{,}425 = 32{,}045$, and $32{,}045 + 5{,}655 = 37{,}700$ — exactly the printed #V. Github is one of the seven rows that balance, because $0.60 \\times 37{,}700 = 22{,}620$, $0.25 \\times 37{,}700 = 9{,}425$ and $0.15 \\times 37{,}700 = 5{,}655$ are all exact.",
+      "unit": "vertices"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You are preparing your own dataset for a vertex-classification study and decide to take 60%, 25% and 15% by rounding each part to the nearest whole vertex. What have you thereby guaranteed about the three parts?",
+      "opts": [
+        {
+          "md": "That they sum to the vertex count",
+          "expl": "This is precisely what independent rounding does *not* guarantee, and Table II is the demonstration: three of its ten rows miss the total by one vertex for exactly this reason. If you need the sum to hold, round two parts and define the third as the remainder."
+        },
+        {
+          "md": "That each part is as close as possible to its target proportion, but not that they sum correctly",
+          "correct": true,
+          "expl": "Correct, and the fix follows immediately from it: compute the first two parts by rounding, then obtain the third by subtraction instead of by its own rounded product. The three then sum to the total by construction, at the cost of the third part being at most one vertex away from its ideal size — a strictly better trade. Note the direction of the trade here: you are choosing which of two properties to give up, and the one to give up is the least consequential."
+        },
+        {
+          "md": "That the split is stratified",
+          "expl": "Rounding has nothing to do with stratification. Stratifying means applying the proportions inside each class separately; you would still have to decide how to round the per-class counts, which makes the rounding question harder rather than settled."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Table III, the same ten datasets under the production setting — where the test set is cut in two and part of it is hidden from the model entirely. The split sizes there connect back to this table, and one of them does not."
+}

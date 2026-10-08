@@ -3,7 +3,7 @@
   "kind": "kp-b",
   "kp": "kp-decision-tree",
   "chapter": "pre",
-  "section": "2.2 In this paper",
+  "section": "Learning from features",
   "kicker": "Pre-knowledge · in this paper",
   "title": "Decision trees in this paper: read as a list of questions, never as a predictor",
   "what": [
@@ -18,14 +18,35 @@
     },
     {
       "t": "table",
-      "head": ["Aspect of a decision tree", "Does this paper use it?"],
+      "head": [
+        "Aspect of a decision tree",
+        "Does this paper use it?"
+      ],
       "rows": [
-        ["Its predictions", "**No.** The ensemble's output is computed during pre-training and then discarded"],
-        ["Its inner nodes (the questions)", "**Yes** — one coordinate per inner node"],
-        ["Its depth structure", "**Yes**, but only as a single number per node: the node's depth, used as an importance weight"],
-        ["Its leaves", "**No.** Figure 2 draws them with class colours only to show what was trained"],
-        ["Its impurity or split criteria", "**No.** The tree is used after training; how it chose its splits never appears"],
-        ["Its axis-parallel cut structure", "**Indirectly** — it is why each question involves one feature and a threshold"]
+        [
+          "Its predictions",
+          "**No.** The ensemble's output is computed during pre-training and then discarded"
+        ],
+        [
+          "Its inner nodes (the questions)",
+          "**Yes** — one coordinate per inner node"
+        ],
+        [
+          "Its depth structure",
+          "**Yes**, but only as a single number per node: the node's depth, used as an importance weight"
+        ],
+        [
+          "Its leaves",
+          "**No.** Figure 2 draws them with class colours only to show what was trained"
+        ],
+        [
+          "Its impurity or split criteria",
+          "**No.** The tree is used after training; how it chose its splits never appears"
+        ],
+        [
+          "Its axis-parallel cut structure",
+          "**Indirectly** — it is why each question involves one feature and a threshold"
+        ]
       ]
     },
     {

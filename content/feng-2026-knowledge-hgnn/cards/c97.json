@@ -1,0 +1,271 @@
+{
+  "id": "97",
+  "kind": "table",
+  "chapter": "experiments",
+  "section": "6.9 Table VII · number of decision trees",
+  "kicker": "6.9 · Table VII",
+  "title": "Table VII: how many trees, and what happens on either side of the answer",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Table VII varies a single quantity — the number of trees in the gradient-boosted tree ensemble that the TDR-Encoder pre-trains — over the values $5, 10, 50, 100, 150, 200$, and reports the accuracy of three models on the hypergraph dataset CC-Cora: the GBDT ensemble itself, RD-HGNN and DD-HGNN. The best entry in each row is bold. Every other setting is held at its Table IV value. Names: the **TDR-Encoder** is the paper's rule encoder (card 68); **GBDT** is a gradient-boosted decision tree ensemble, where each tree is fitted to what the previous ones got wrong (cards 13–16); **RD-HGNN** and **DD-HGNN** are the paper's two models, taking the rule stream alone and the rule plus structural streams respectively (cards 74–75); **HGNN** is the hypergraph neural network whose propagation is the paper's Equation (1).",
+      "plain": "Six training runs of the same experiment with one number changed: how large the tree ensemble is. The GBDT column shows what the ensemble scores on its own; the other two show what happens to the full method when that ensemble feeds it."
+    },
+    {
+      "t": "p",
+      "md": "**Why this parameter is the one worth ablating.** The number of trees controls two things at once, and they are the reason the curve has a peak rather than a plateau. First, capacity: more trees means more **question nodes** — the internal splits of the trees, each of which is recorded as one rule — means a longer **rule ledger**, which is the block of 0/1 entries and position weights that each vertex contributes to the network's input. Card 93 worked out the bound: a vertex's rule ledger is at most $C_r = (\text{trees}) \times (2^{d} - 1)$ entries long, where $C_r$ is the question count for one vertex and $d$ is the maximum depth of a tree, since a full binary tree of depth $d$ has $2^{d} - 1$ internal nodes. So tree count is the main knob on the size of the knowledge embedding. Second, purity: gradient boosting is a *relay*, where each new tree is fitted to what the previous ones got wrong. Once the easy structure has been captured, the residual a new tree is fitted to contains less signal and more training-set accident."
+    },
+    {
+      "t": "p",
+      "md": "Capacity and purity push in opposite directions, which is what produces an interior optimum rather than a monotone curve. **The reader's job in this table is to find that optimum and then check whether the paper's prose agrees with it** — because this is one of several places in the paper where the text and the table make different claims."
+    },
+    {
+      "t": "figure",
+      "src": "tab7.png",
+      "alt": "Table VII of the paper: ablation study on the number of decision trees, giving GBDT, RD-HGNN and DD-HGNN accuracies for six tree counts",
+      "cap": "Original Table VII (Feng et al., TPAMI 2026). Six tree counts, three models, on CC-Cora. Bold marks the best entry in each row."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the three columns as three different questions.** Before arithmetic, note that the columns are not three variants of one thing: GBDT is the ensemble scoring *itself*, RD is the ensemble's knowledge handed to a hypergraph network, and DD adds a second knowledge stream on top. So the table answers three questions at once — how good is the ensemble, how much does using it help, and how much does a second stream add.",
+      "rows": [
+        [
+          "5",
+          "$68.94 \\pm 2.01$",
+          "$72.97 \\pm 3.54$",
+          "**$73.46 \\pm 2.97$**",
+          "DD"
+        ],
+        [
+          "10",
+          "$70.36 \\pm 1.98$",
+          "$74.33 \\pm 2.11$",
+          "**$74.98 \\pm 3.40$**",
+          "DD"
+        ],
+        [
+          "50",
+          "$71.74 \\pm 2.53$",
+          "$75.70 \\pm 3.30$",
+          "**$75.77 \\pm 3.78$**",
+          "DD"
+        ],
+        [
+          "100",
+          "$71.69 \\pm 2.12$",
+          "**$75.31 \\pm 3.33$**",
+          "$74.98 \\pm 2.98$",
+          "RD"
+        ],
+        [
+          "150",
+          "$70.74 \\pm 1.47$",
+          "$74.44 \\pm 3.70$",
+          "**$75.28 \\pm 3.38$**",
+          "DD"
+        ],
+        [
+          "200",
+          "$70.76 \\pm 2.12$",
+          "$71.49 \\pm 2.94$",
+          "**$75.13 \\pm 3.02$**",
+          "DD"
+        ]
+      ]
+    },
+    {
+      "t": "table",
+      "head": [
+        "Trees",
+        "GBDT",
+        "RD-HGNN",
+        "DD-HGNN",
+        "Best in row"
+      ],
+      "rows": [
+        [
+          "5",
+          "$68.94$",
+          "$72.97$",
+          "**$73.46$**",
+          "DD"
+        ],
+        [
+          "10",
+          "$70.36$",
+          "$74.33$",
+          "**$74.98$**",
+          "DD"
+        ],
+        [
+          "50",
+          "$71.74$",
+          "$75.70$",
+          "**$75.77$**",
+          "DD"
+        ],
+        [
+          "100",
+          "$71.69$",
+          "**$75.31$**",
+          "$74.98$",
+          "RD"
+        ],
+        [
+          "150",
+          "$70.74$",
+          "$74.44$",
+          "**$75.28$**",
+          "DD"
+        ],
+        [
+          "200",
+          "$70.76$",
+          "$71.49$",
+          "**$75.13$**",
+          "DD"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "The RD column, read as a rise and then a fall: $72.97 \\to 74.33 \\to 75.70$ then $75.31 \\to 74.44 \\to 71.49$.",
+          "why": "Two movements with different meanings. From 5 to 50 trees the ledger lengthens and the knowledge improves: $75.70 - 72.97 = +2.73$. From 50 to 200 it decays by $71.49 - 75.70 = -4.21$ points, and since the decay is larger than the entire gain, an over-large ensemble is worse for RD than a five-tree one. That is the relay-overfitting hypothesis made visible."
+        },
+        {
+          "md": "The DD column, read for its range: $73.46, 74.98, 75.77, 74.98, 75.28, 75.13$. Maximum $75.77$, minimum $73.46$, range $2.31$.",
+          "why": "Compare with RD's range of $4.21$ (from $75.70$ down to $71.49$) and GBDT's of $2.80$ (from $71.74$ down to $68.94$). DD's column is the flattest of the three even though it is the one built from two knowledge sources. The explanation the paper gives — that DD draws on two kinds of knowledge so degrading one degrades it less — is exactly what a smaller range measures."
+        },
+        {
+          "md": "Locate the peak of each column: GBDT peaks at 50 ($71.74$), RD peaks at 50 ($75.70$), DD peaks at 50 ($75.77$).",
+          "why": "Write the peaks down before reading the prose. All three at the same value is a pleasant consistency — the ensemble's own optimum and the two downstream models' optima coincide, which is what you would expect if the ledger's quality is genuinely what is being traded. Note too how flat the top is: DD at 150 loses $0.49$ points relative to 50, well inside the $\\pm 3.38$ standard deviation printed beside that 150-tree cell."
+        },
+        {
+          "md": "Now compare with the paper's own sentence, which says DD-HGNN's \"performance continued to improve, peaking at 150 trees\", and that RD suffered \"a 5-point decrease at 200 trees\".",
+          "why": "Both claims fail against the table. DD's peak is at 50 trees ($75.77$); at 150 trees it is $75.28$, i.e. $0.49$ below its peak and on a curve that has already turned over. RD's fall from 50 to 200 trees is $75.70 - 71.49 = 4.21$ points, not 5. The direction of the first claim is the more consequential of the two: it says the ledger keeps improving with more trees when the table shows it does not."
+        }
+      ]
+    },
+    {
+      "t": "table",
+      "head": [
+        "Claim in Section V-D3",
+        "What Table VII shows",
+        "Verdict"
+      ],
+      "rows": [
+        [
+          "DD \"continued to improve, peaking at 150 trees\"",
+          "DD peaks at 50 trees ($75.77$); at 150 it is $75.28$",
+          "peak mislocated in the text"
+        ],
+        [
+          "RD shows \"a 5-point decrease at 200 trees\"",
+          "$75.70 - 71.49 = 4.21$ points",
+          "text rounds $4.2$ up to $5$"
+        ],
+        [
+          "DD \"remained stable and did not experience significant drops\"",
+          "Range $2.31$ points, the smallest of the three columns",
+          "**supported**"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Notice the shape of the two errors rather than their size.** The third claim — that DD is stable — is the one the table's *ordering* supports, and it is the claim the paper actually needs. The two failures are both errors of reading a curve's shape: a peak placed one gridline too far right, and a drop rounded from $4.2$ to $5$. Neither changes the paper's argument, and both would be caught by anyone who plots the three columns. The lesson is not that this paper is careless; it is that **prose about a curve is written from memory of the curve, and the table is the record.** When a paper tells you where a peak is, look at the column."
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — the question the table does not answer.** All three optima sit at 50 trees, but nothing in the table says whether 50 is a property of CC-Cora or of the method. The ablation venue is a single dataset, and the tree count interacts with dataset size and feature dimensionality — a larger dataset could reasonably support a longer ledger before the relay starts fitting noise. Table IV shows the chosen counts differing across datasets ($20$ to $190$), which is consistent with the optimum depending on the dataset, but the ablation offers no per-dataset curve to confirm it. **A one-dataset ablation establishes that a knob matters; it does not establish where to set it on your data.** That is a limit of the experiment's design and not something more careful reading can recover."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does the RD-HGNN column have an interior maximum rather than improving monotonically with the tree count?",
+      "opts": [
+        {
+          "md": "Because more trees slow training, so the model has not converged at the larger counts",
+          "expl": "The curves are the results of completed runs with fixed budgets, and the decline is large and systematic rather than a convergence shortfall — 100 and 150 trees both score below 50. A convergence problem would also show up on the training loss, which is not what is being reported."
+        },
+        {
+          "md": "Because early trees capture general structure while later trees fit what is left of the residual, which is increasingly training-set accident",
+          "correct": true,
+          "expl": "Correct. Boosting is a relay: each tree is fitted to what the ensemble so far gets wrong. Once the signal has been captured, the residual is dominated by noise, so additional trees contribute noisier rules to the knowledge ledger. That is why the loss after the peak is larger than the total gain before it."
+        },
+        {
+          "md": "Because each additional tree halves the learning rate, so later trees contribute less",
+          "expl": "Shrinkage is a fixed multiplier applied to every tree's contribution; it does not change as the ensemble grows, and it does not generate a peak. It would explain a flattening at most."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Using Table VII, by how many points does the GBDT baseline fall between 50 trees and 200 trees? Give two decimals.",
+      "answer": 0.98,
+      "tol": 0.03,
+      "hint": "Subtract the 200-tree GBDT value from the 50-tree GBDT value. Use only the GBDT column.",
+      "sol": "$71.74 - 70.76 = 0.98$ points. Compare that with the same span for the other two columns: RD falls $4.21$ points from 50 to 200 trees, and DD only $0.64$. **The ensemble's own loss is smaller than the loss of the model built from its ledgers** — which is a genuinely interesting asymmetry, because it means the degradation at large tree counts is not that the ensemble gets worse, but that its ledger becomes harder to learn from.",
+      "unit": "points"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "What is the total fall of the DD-HGNN column across the whole sweep — from 5 trees to 200 trees? Give two decimals.",
+      "answer": 1.67,
+      "tol": 0.03,
+      "hint": "Find the DD value at 5 trees and at 200 trees, and subtract the smaller from the larger. Do not use the intermediate rows.",
+      "sol": "$73.46 - 75.13$ — that is, DD *rises* from $73.46$ at five trees to $75.13$ at two hundred, a net gain of $1.67$ points. Nothing falls: DD's worst value is its first. The correct range statistic is that maximum minus minimum, $75.77 - 73.46 = 2.31$, which is the flattest of the three columns against RD's $4.21$ and GBDT's $2.80$.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "apply",
+      "q": "The paper's text says DD peaks at 150 trees while the table shows a peak at 50. You have to choose one number to report for DD's best accuracy on CC-Cora. Which, and on what reasoning?",
+      "opts": [
+        {
+          "md": "Report the 150-tree value, since the authors chose that configuration",
+          "expl": "The authors' *choice* of 150 for some dataset is a separate matter from where the peak is on this curve, and Table VII's own column shows 150 scoring below 50 for DD. Following the prose here means reporting a value lower than the best one the table contains."
+        },
+        {
+          "md": "Report the 50-tree value, $75.77$, since it is the maximum of the printed column and the peak location is a fact about the numbers rather than about the prose",
+          "correct": true,
+          "expl": "Correct. A peak is a property of the plotted values, and here the values are printed in the table. This is the same rule that resolved Table V's rank row and Table VI's delta columns: **where a number and a description of that number disagree, the number wins.** The practical corollary is that the disagreement is worth reporting rather than silently resolving — a reader who cites DD's peak as 150 trees has propagated the error."
+        },
+        {
+          "md": "Report both and let the reader decide",
+          "expl": "Presenting an unresolvable pair is honest when the evidence genuinely conflicts — as it does for the 20%-versus-40% inductive split, where two tables cannot be reconciled. Here it can be: the peak is read off six printed numbers, and one of the two candidate values is not the maximum. Reporting both would be importing a doubt that the evidence does not support."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You are adapting this method to a dataset ten times larger than CC-Cora, with far more features. On the evidence in Table VII, what is the defensible way to choose the ensemble size?",
+      "opts": [
+        {
+          "md": "Use 50, since that is where the optimum lies in this ablation",
+          "expl": "50 is where the optimum lies *on CC-Cora*. The table's own design cannot tell you whether the peak moves with dataset size, and the paper's chosen counts across datasets vary by nearly a factor of ten, which is weak evidence that it does move."
+        },
+        {
+          "md": "Run the same sweep on your own validation data, because the peak is a property of where the residual stops carrying signal, which depends on the dataset",
+          "correct": true,
+          "expl": "Correct, and it costs one experiment. The mechanism behind the peak — later trees fit the residual, whose signal content depends on how much structure the earlier trees captured — is dataset-dependent by construction. What the ablation transfers is the *existence* and the *shape* of the tradeoff, not the location of its optimum. This is the general rule for hyperparameter ablations: transfer the qualitative conclusion, re-derive the number."
+        },
+        {
+          "md": "Use 200, since the DD variant is stable there and more trees cannot hurt it",
+          "expl": "DD's flatness makes 200 comparatively safe for DD, and the claim \"cannot hurt\" is what the same table refutes for RD, which loses $4.21$ points from 50 to 200 trees. Note also what the 200-tree setting buys DD: its 200-tree value of $75.13$ is $1.67$ points *above* its 5-tree value, but $0.64$ below its own peak at 50 — so forty times the pre-training compute of the 5-tree setting buys a point and a half, and forty times the 5-tree setting's compute is also four times the compute of the setting that would have scored best."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Table VIII, where the ablated quantity is the depth of the hypergraph network itself — and where a plain HGNN's accuracy falls by more than forty points, with a standard deviation of exactly zero at the bottom."
+}

@@ -1,0 +1,130 @@
+{
+  "id": "134",
+  "kind": "reference",
+  "chapter": "references",
+  "section": "R5 · Reference [22] · GBDT",
+  "kicker": "Reference [22]",
+  "title": "Reference [22]: Friedman's gradient boosting — where the rules come from",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Reference [22]** is *J. H. Friedman, \"Greedy function approximation: a gradient boosting machine\", Annals of Statistics, vol. 29, pp. 1189–1232, 2001.* It is the paper that formalised boosting as **gradient descent in function space**: rather than updating parameters, the method adds one new weak learner at a time, each fitted to the negative gradient of the loss with respect to the current model's predictions, and each contributing a shrunken step. Applied with decision trees as the weak learners it produces the **gradient-boosted decision tree** ensemble. The paper cites it as a **definition source** — the trees used by the TDR-Encoder — the paper's rule encoder, card 68 — are a pre-trained GBDT — and as an **opponent**, in the GBDT baseline column.",
+      "plain": "Friedman's paper is why gradient boosting works. Instead of nudging numbers inside a model, it builds the model itself one small piece at a time, where each new piece is aimed at whatever the current model is still getting wrong. Chain enough of those pieces together and the result is powerful enough that it is still the default method for tabular data twenty-five years later."
+    },
+    {
+      "t": "p",
+      "md": "**The one idea from this reference that this paper depends on.** Boosting is a relay: at each step the current model has predictions, the loss has a gradient on each training point, and the next tree is fitted to those gradients. The consequence is that **the ensemble's trees are not independent**. The first tree describes the largest, simplest structure in the data; later trees describe progressively finer corrections to what the earlier ones missed. Two facts follow, and both are used later in this site: the number of trees is a genuine capacity knob rather than a repetition count, and a tree late in the sequence is fitted to a residual that has less signal and more noise in it."
+    },
+    {
+      "t": "p",
+      "md": "**Why this paper's use of the ensemble is unusual, and where the novelty claim attaches.** The standard way to use a GBDT inside a larger model is to let it produce a prediction or a leaf assignment and hand that onward — which is what reference [20] does, and what reference [21] does with a graph network attached downstream. This paper does neither: it **walks** the pre-trained trees and reads the internal nodes. For each node, it records whether the vertex satisfied the split condition and how deep the node sits. The ensemble's own predictions are never used by the model."
+    },
+    {
+      "t": "p",
+      "md": "**What that buys, in one comparison.** A leaf assignment is one value per tree — with sixty trees, sixty numbers per vertex, and two vertices in the same leaf are indistinguishable. The rule ledger is one bit per internal node: up to $900$ questions for Cora's configuration — $60$ trees of maximum depth $4$, each with $2^{4} - 1 = 15$ internal nodes — $60$ trees of maximum depth $4$, each with $2^{4} - 1 = 15$ internal nodes, and two vertices are distinguishable by every question they answered differently on the way down. The paper's own summary of the difference from reference [21] is that it uses the tree's outputs while this paper uses the tree's questions."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the GBDT column, and why it is not the easy baseline it looks like.**"
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Locate it among the feature-only methods. MLP has a column mean of $80.254$; GBDT has $81.992$. So the boosting ensemble beats the neural network by $1.74$ points while reading exactly the same input.",
+          "why": "This gap is what makes GBDT a serious baseline rather than a control. Both methods see only vertex features; the difference is the model class, and on these tabular feature matrices the tree ensemble wins. That is the well-known behaviour of gradient boosting on tabular data, and it is the reason the paper's rule encoder is built from it rather than from a network."
+        },
+        {
+          "md": "Compare GBDT with the structure-only methods: GCN at $84.805$ and HGNN at $85.529$. Both beat GBDT by more than $2.8$ points.",
+          "why": "So structure beats features on these datasets, and features-in-a-better-class still lose to features-plus-structure. The ladder is: features alone, then structure alone, then both. Table X's four generations are this ladder spelled out, and GBDT is its second rung."
+        },
+        {
+          "md": "Now check the ensemble size against Table VII, where the GBDT column is swept directly: $68.94$ at five trees, peaking at $71.74$ at fifty, and $70.76$ at two hundred.",
+          "why": "Note the shape. The ensemble's own optimum is at the *same* tree count as both downstream models' optima, and its loss beyond that point is smaller than RD's. This is a mild surprise worth recording: the component whose rules RD depends on degrades less with tree count than RD itself does, so the relay-overfitting that costs RD $4.21$ points at two hundred trees is not simply the ensemble getting worse — it is the *ledger of an over-large ensemble* being worse to learn from than the ensemble's own predictions are."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**A useful asymmetry to carry away.** The GBDT column in this paper is doing two things: measuring the strongest feature-only method available, and measuring the component the method is built from. Those are different quantities, and only the second one explains the paper's design. When a method is built by *re-using* an existing model rather than by extending it, the model's own performance column stops being a baseline and becomes a diagnostic — because a rule encoder fed by a weak ensemble would fail for a reason that has nothing to do with the encoder."
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — a check on the paper's use of a pre-trained component.**"
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Establish what is pre-trained and on what. Section IV-D3 says the TDR-Encoder \"involves pre-training GBDT with predefined tasks to extract task-relevant knowledge from features for use in downstream HGNNs\". So the trees are fitted once, before the hypergraph network, and then frozen while the network trains.",
+          "why": "Two consequences follow immediately. First, the trees' cost is paid once per dataset and is additional to the network's training cost — a cost the paper never reports, which is open question 3. Second, the trees never see the graph, so they cannot know which vertices are connected; the rule ledger is purely a function of each vertex's own feature vector."
+        },
+        {
+          "md": "Take the second consequence seriously and check it against the noise experiment. In Figure 3(c) the rule stream is one of the two things DD-HGNN carries (DD-HGNN and RD-HGNN are the paper's two models, taking the rule and structural streams together and the rule stream alone), and DD is the most noise-robust curve.",
+          "why": "Careful here, because the two streams behave differently under feature noise. The rule stream reads the features, so noise corrupts it — trees split on feature values, and a corrupted coordinate changes which splits are satisfied. The structural stream counts hyperedge memberships and never reads a feature. So the mechanism behind DD's robustness in panel (c) is the structural stream, not the rule stream. Getting this backwards is easy and it matters: it is the difference between \"the ensemble protects us from noise\" and \"the part that never looks at the features protects us from noise\"."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**And the open question that this reference card cannot close.** The phrase \"predefined tasks\" is never defined further. In gradient boosting the task is a target — the labels a tree is fitted to. If those labels are the classification labels, then the trees were fitted to information that may include validation and test vertices, and the encoder would be supplying the network with knowledge derived from labels the evaluation withholds. The paper never states the boundary. This is ledger-adjacent — it is open question 1, the one item in this site's list that bears on whether every reported number means what it is presented to mean."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why does the number of trees in a boosted ensemble function as a capacity knob rather than as a repetition count?",
+      "opts": [
+        {
+          "md": "Because each tree is fitted to the current model's residual, so each one adds a correction the previous trees did not contain",
+          "correct": true,
+          "expl": "Correct — this is the relay structure that reference [22] formalised as gradient descent in function space. Because each tree is fitted to what the ensemble so far gets wrong, the trees capture progressively finer structure, and after the largest patterns are captured the residual contains more noise than signal. That is why Table VII's curves rise and then fall: capacity stops helping and purity starts hurting."
+        },
+        {
+          "md": "Because more trees means more parameters, and more parameters means more capacity in the usual sense",
+          "expl": "Parameter count is the mechanism for a neural network's width and not for boosting's tree count. The distinguishing feature here is that the added parameters are fitted to a moving target — the residual — rather than jointly with the existing ones."
+        },
+        {
+          "md": "Because each tree is trained on a random subset of the features",
+          "expl": "Feature subsampling is an optional variant of boosting that reduces correlation between trees and is not what defines the relay. Without subsampling the rise-and-fall in Table VII still occurs, for the residual reason."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Using Table V's column means — HGNN $85.529$ and GCN $84.805$ — what does the hypergraph generalisation buy over the pairwise one, in points, to three decimals?",
+      "answer": 0.724,
+      "tol": 0.02,
+      "hint": "Both are column means over the same ten datasets, so subtract directly. Expect under one point.",
+      "sol": "$85.529 - 84.805 = 0.724$ points on average across the ten datasets. This is the value of allowing a relation to hold more than two vertices, averaged over a collection in which four of the ten datasets have relations that were never anything but pairwise. On a dataset where the relations are genuinely large the gap is bigger — DBLP-Conf's is $3.22$.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You want to reuse a pre-trained model's internal structure as features for a second model, as this paper does with its tree ensemble. What is the first thing to establish?",
+      "opts": [
+        {
+          "md": "That the pre-trained model is strong on the task",
+          "expl": "Relevant, since a weak source gives weak features — and secondary. A strong model trained on the wrong information is worse than a moderate one trained on the right information, because the leak is invisible in its accuracy."
+        },
+        {
+          "md": "Which data its training saw, and in particular whether any of it overlaps the evaluation set of the second model",
+          "correct": true,
+          "expl": "Correct, and it comes first because the failure is silent. A pre-trained component that saw evaluation data supplies the second model with information the evaluation is supposed to withhold, and the resulting scores are inflated in a way no amount of local inspection reveals — the component is simply a strong feature extractor from the second model's point of view. This is exactly the boundary this paper leaves unstated for its rule encoder, which is why it heads this site's list of open questions rather than sitting quietly among the implementational details."
+        },
+        {
+          "md": "That the two models' interfaces match dimensionally",
+          "expl": "An engineering detail, and one the fusion layer exists to handle — the semantic and dimensional gaps named in the conclusion are precisely this. It is not the risk that changes what the results mean."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** reference [20], DeepTLF — the nearest rival method, and the weakest column in the paper's own results."
+}

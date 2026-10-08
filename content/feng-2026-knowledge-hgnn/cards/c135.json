@@ -1,0 +1,174 @@
+{
+  "id": "135",
+  "kind": "reference",
+  "chapter": "references",
+  "section": "R6 · Reference [20] · DeepTLF",
+  "kicker": "Reference [20]",
+  "title": "Reference [20]: DeepTLF — the nearest rival, and the weakest column",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Reference [20]** is *V. Borisov, K. Broelemann, E. Kasneci and G. Kasneci, \"DeepTLF: robust deep neural networks for heterogeneous tabular data\", International Journal of Data Science and Analytics, vol. 16, pp. 85–100, 2023.* The paper describes its role as follows: \"DeepTLF [20] encoded tabular data using boosting trees and then fed it into a neural network to transform heterogeneous input data into homogeneous data\", and lists it among the five baselines as \"TLF [20], which combines boosting trees with neural networks for enhanced learning\". It is therefore cited as an **opponent** — the nearest existing method on the design axis that matters to this paper.",
+      "plain": "DeepTLF does a version of the paper's own idea: run the features through boosted trees, hand the result to a neural network. That makes it the closest rival by design, and a reader would expect it to be the strong baseline. It finishes last of seven."
+    },
+    {
+      "t": "p",
+      "md": "**Why the nearest rival by design is often the least informative baseline by score.** A baseline is informative when it is strong *in the conditions it was built for*. DeepTLF's stated purpose is heterogeneous tabular data — tables in which columns have different types, with categorical fields and missing entries that must be harmonised before a network can read them. That is a real and common problem, and the tree ensemble is a natural tool for it: trees handle mixed types without preprocessing, so their outputs are already homogeneous."
+    },
+    {
+      "t": "p",
+      "md": "**Now look at what this paper's datasets actually present.** Four are plain graphs over sparse bag-of-words feature vectors; two are the same publications with their relations drawn as hyperedges — links joining any number of vertices at once rather than exactly two; two are tabular datasets turned into hypergraphs by a nearest-neighbour construction; one is a set of point clouds in tabular form. The feature matrices are sparse, numeric and already homogeneous. **The problem DeepTLF was built to solve is not present in this evaluation.** Its tree component has nothing to harmonise, and its network receives the same kind of input any other baseline receives."
+    },
+    {
+      "t": "p",
+      "md": "**What follows is not that the comparison is rigged — it is that the comparison is uninformative about the question it appears to answer.** The question a reader wants answered by the TLF column is: *does this paper's way of combining trees with a network beat the existing way?* What the column actually measures is: *how does a method designed for heterogeneous tables perform on homogeneous sparse features attached to a graph?* Those are different questions, and the second one has an uninteresting answer."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — put the TLF column beside the two methods it should bracket.**"
+    },
+    {
+      "t": "table",
+      "head": [
+        "Method",
+        "Family",
+        "Column mean",
+        "Average rank"
+      ],
+      "rows": [
+        [
+          "DD-HGNN",
+          "proposed",
+          "$87.648$",
+          "$1.5$"
+        ],
+        [
+          "RD-HGNN",
+          "proposed",
+          "$87.602$",
+          "$1.7$"
+        ],
+        [
+          "HGNN",
+          "structure only",
+          "$85.529$",
+          "$3.3$"
+        ],
+        [
+          "GCN",
+          "structure only",
+          "$84.805$",
+          "$3.9$"
+        ],
+        [
+          "GBDT",
+          "feature only",
+          "$81.992$",
+          "$5.1$"
+        ],
+        [
+          "MLP",
+          "feature only",
+          "$80.254$",
+          "$5.8$"
+        ],
+        [
+          "**TLF**",
+          "**trees plus network**",
+          "**$77.720$**",
+          "**$6.1$**"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "TLF is last on both statistics. Its mean is $81.992 - 77.720 = 4.272$ points below GBDT's, and its average rank is $6.1$ against GBDT's $5.1$.",
+          "why": "A method that combines trees with a network finishing *four points below* the trees alone is the striking part. Whatever TLF's network adds, it is not adding it here — which is what a method evaluated outside its design conditions tends to look like."
+        },
+        {
+          "md": "Check a dataset where the effect is clearest. On Cora, TLF scores $65.11$ against GBDT's $74.30$ — a deficit of $9.19$ points, the largest gap between them anywhere in the table.",
+          "why": "Cora's features are a $1{,}433$-dimensional sparse bag of words. That is the least heterogeneous feature matrix in the paper's collection: every column is the same kind of number. The largest deficit appearing precisely where TLF's stated strength is least relevant is consistent with the diagnosis, though a single dataset cannot establish it."
+        },
+        {
+          "md": "Now push back on that reading. TLF also does well nowhere — it has the best score on no dataset at all.",
+          "why": "Being outside its setting would explain a method landing mid-table, not a method landing last everywhere. So the honest statement is narrower than it looks: **the TLF column cannot distinguish \"this combination is weak\" from \"this method was evaluated where it does not apply\".** Either explanation is consistent with every cell in the column, and the paper provides nothing that separates them — no TLF result on a heterogeneous tabular dataset, no analysis of its failure, no tuning details. The column is there; the evidence is not."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**What this costs the paper, and what it does not.** It does not cost the paper its main claim: the comparison against HGNN is unaffected, and that is the comparison the paper's argument rests on. What it costs is the *rhetorical* claim that the framework improves on the previous way of combining trees with networks. That claim appears in the related work, where the paper argues that prior methods \"have not fully capitalized on the advantages of boosting trees in tabular data, necessitating a deeper level of structural integration\" — and it is not supported by the TLF column, because that column does not measure it. **An opponent that is not given a fair chance cannot be beaten, only outrun.**"
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — what a reader should take from a weak baseline column, in general.**"
+    },
+    {
+      "t": "list",
+      "ordered": true,
+      "items": [
+        "**Ask what the method was built for before reading what it scored.** A baseline's number is only interpretable alongside the conditions it was designed to face. This takes one sentence of the cited paper's abstract and it changes how much weight the column can carry.",
+        "**Look for where the deficit is largest, not where the method finishes.** TLF's biggest single loss is on the most homogeneous feature matrix in the collection, which is a clue the aggregate column hides. Position in a column is far less informative than the pattern across datasets.",
+        "**Distinguish a baseline that lost from a baseline that was not competing.** The first is evidence about methods; the second is evidence about experimental design, and it instructs the reader to discount the comparison rather than the method."
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is DeepTLF's role in this paper's experiments, and what makes it the most interesting baseline?",
+      "opts": [
+        {
+          "md": "It is the strongest baseline, so beating it is the paper's main claim",
+          "expl": "It is the weakest of the five, by both mean and average rank. The strongest structural baseline is HGNN, and that is the comparison the paper's central claim rests on."
+        },
+        {
+          "md": "It is the nearest rival by design — trees feeding a network — which makes it the natural test of the paper's novelty, and it is evaluated outside the setting it was built for",
+          "correct": true,
+          "expl": "Correct. That combination is what makes the column worth reading rather than skipping. A nearest rival finishing last is either a very strong result for the paper or a sign that the comparison could not test the question it appears to test, and the evidence in the table does not choose between the two."
+        },
+        {
+          "md": "It is the only baseline that uses both features and structure",
+          "expl": "It uses features and a network — no graph, no hypergraph. Its input is a table; the paper's description of it says it transforms heterogeneous input data into homogeneous data, with no relational component."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "On CA-Cora in Table V, TLF scores $56.23$ and GBDT scores $71.54$. What is the difference in points, to two decimals? Give the magnitude.",
+      "answer": 15.31,
+      "tol": 0.03,
+      "hint": "Subtract the smaller from the larger. This is the largest gap between these two methods anywhere in Table V.",
+      "sol": "$71.54 - 56.23 = 15.31$ points. CA-Cora is a $7$-class co-authorship hypergraph over citation-network features, and TLF — which combines trees with a network — finishes fifteen points below the trees alone. Note how much larger this is than the same comparison's average: across all ten datasets TLF trails GBDT by $4.272$ points, so the deficit is concentrated rather than uniform. A method that fails unevenly is more likely to be misconfigured for part of a benchmark than simply weaker than the alternative.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A paper you are reviewing includes a baseline that finishes far below the others. What is the most useful thing to ask for?",
+      "opts": [
+        {
+          "md": "Its removal, since it is not competitive",
+          "expl": "Removing it loses the comparison entirely. A weak baseline is still evidence if it was given a fair chance — the useful question is whether it was, and that is answerable without deleting anything."
+        },
+        {
+          "md": "Evidence that it was run in the conditions it was designed for, and its tuning budget relative to the proposed method",
+          "correct": true,
+          "expl": "Correct. Both halves are needed. Setting mismatch explains a method failing where its strength is irrelevant; an unequal budget explains a method failing where its strength is relevant but untuned. Together they separate \"this method is inferior\" from \"this method was not competing\", and only the first supports the conclusion the comparison is being used to draw. On this page's example the public evidence stops at the mismatch — the paper reports no tuning details for TLF at all."
+        },
+        {
+          "md": "A larger set of baselines to compensate",
+          "expl": "More baselines dilute rather than repair. If one comparison cannot attribute its result, adding comparisons that vary more things at once does not fix the attribution problem — it multiplies it."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** reference [21], BGNN — the nearest predecessor, cited in the related work and measured in no table."
+}

@@ -1,0 +1,164 @@
+{
+  "id": "112",
+  "kind": "critique",
+  "chapter": "conclusion",
+  "section": "7.3 Critique 1 · the audit ledger",
+  "kicker": "7.3 · Critique",
+  "title": "The audit: fourteen places where the paper's numbers do not balance",
+  "body": [
+    {
+      "t": "p",
+      "md": "This card has one job: to collect every numerical inconsistency found while recomputing this paper from its own tables. Each entry carries the arithmetic needed to check it, and every entry can be verified in under a minute by a reader with the PDF open. Nothing here is a matter of interpretation."
+    },
+    {
+      "t": "p",
+      "md": "**Read the list by weight, not by length.** Some entries are rounding artefacts of one vertex; some are systematically offset averages; and a few change what a reader would conclude. The verdict column says which is which. And note the framing before starting: **no entry below overturns the paper's main claim**, which is that prepending a knowledge-embedding stage to a hypergraph network improves accuracy. That claim is supported by Table V, Table VI, Table IX and Table X, and every one of those tables reproduces in the directions that matter. What follows is about the precision of the record, not the direction of the result."
+    },
+    {
+      "t": "table",
+      "head": [
+        "#",
+        "Issue",
+        "The arithmetic",
+        "Weight"
+      ],
+      "rows": [
+        [
+          "1",
+          "**Text quotes average ranks of 1.9 and 1.7; the table prints 1.7 and 1.5.**",
+          "RD's ranks over the ten datasets sum to $17$, so $17/10 = 1.7$; DD's sum to $15$, so $15/10 = 1.5$. Neither model ties with any other on any dataset, so no tie convention can move these two numbers — they are the only values the results support.",
+          "directional"
+        ],
+        [
+          "2",
+          "**Section V-B quotes average gains of 5.86 and 2.28.**",
+          "From the cells: DD mean $87.648$, GBDT mean $81.992$, HGNN mean $85.529$. So DD $- $ GBDT $= 5.656$ and DD $- $ HGNN $= 2.119$. RD $- $ HGNN $= 2.073$. Neither 5.86 nor 2.28 reproduces; both quoted values are about $0.2$ too high.",
+          "directional"
+        ],
+        [
+          "3",
+          "**The abstract's \"average improvement of 2.5% across all datasets\" has no stated basis.**",
+          "The two candidate quantities are $5.656$ and $2.119$. Neither rounds to $2.5$. The abstract also does not say whether the unit is score points or a relative percentage — a distinction that changes the number by an order of magnitude.",
+          "directional"
+        ],
+        [
+          "4",
+          "**\"A 7.3% gain on the Cora dataset\" does not say which Cora, and there are two.**",
+          "Table VI's Cora transductive row: RD at $88.89$ against HGNN at $81.59$ gives $7.30$ ✓. Table V's Cora row: RD at $88.64$ against HGNN at $81.81$ gives $6.83$. Both are correct and they differ by $0.47$ — the paper states no protocol and no table.",
+          "directional"
+        ],
+        [
+          "5",
+          "**Text says 20% of test vertices are inductive; both tables show 40%.**",
+          "Every row of Table III: Cora $162/406 = 39.9\\%$, Github $2{,}262/5{,}655 = 40.0\\%$, Amazon-P $459/1{,}148 = 40.0\\%$, Heloc $628/1{,}569 = 40.0\\%$. A factor of two, identical across ten independently sized datasets — not a rounding effect.",
+          "**changes the benchmark**"
+        ],
+        [
+          "6",
+          "**Text says DD peaks at 150 trees; Table VII peaks at 50.**",
+          "DD at 50 trees is $75.77$; at 150 trees it is $75.28$ — $0.49$ below its own maximum. GBDT and RD also peak at 50. The text's claim that DD \"continued to improve\" describes a curve that has already turned over.",
+          "directional"
+        ],
+        [
+          "7",
+          "**Text says RD drops 5 points at 200 trees; the table gives 4.21.**",
+          "$75.70 - 71.49 = 4.21$. A rounding slip that runs against the authors' own interest, since it overstates the severity of over-long ensembles.",
+          "minor"
+        ],
+        [
+          "8",
+          "**Table VI's footer delta averages do not reproduce.**",
+          "Footprint prints $+6.31$ and $+2.53$. Over the ten production rows the $\\Delta_{GBDT}$ values sum to $59.42$, mean $5.94$; the $\\Delta_{HGNN}$ values sum to $27.18$, mean $2.72$. The printed $6.31$ is in fact the value of one of the table's own cells, the Amazon-C production row.",
+          "moderate"
+        ],
+        [
+          "9",
+          "**Table VI's footer ranks for GBDT and HGNN are each 0.1 out.**",
+          "Over the ten production rows: GBDT averages $3.9$ (printed $4.0$) and HGNN $2.9$ (printed $2.8$). RD's $1.7$ and DD's $1.5$ reproduce exactly. Same family of drift as Table V's printed rank row.",
+          "minor"
+        ],
+        [
+          "10",
+          "**Table VI prints $+0.00$ where the value is $-0.09$.**",
+          "Github production: RD $85.93$, DD $85.96$, HGNN $86.05$. The better of the two proposed models gives $85.96 - 86.05 = -0.09$. This is a **sign error, not a rounding error**: it converts a loss into a draw, in the column that summarises how much better the proposed models are.",
+          "**directional**"
+        ],
+        [
+          "11",
+          "**Table I's average vertex degree mixes two conventions — and one row matches neither.**",
+          "The standard convention is $2|E|/|V|$. Github: $2 \\times 144{,}501 / 37{,}700 = 7.67$ against a printed $7.7$ ✓. Amazon-P instead matches $|E|/|V|$: $238{,}163 / 7{,}650 = 31.13$ against a printed $31.1$ ✓. Cora matches neither: $7{,}440/2{,}708 = 2.75$ and $2 \\times 7{,}440/2{,}708 = 5.49$, against a printed $3.9$.",
+          "moderate"
+        ],
+        [
+          "12",
+          "**Split sums are off by one vertex in four places, and one row disagrees between two tables.**",
+          "Within Table II: Amazon-P $4{,}590+1{,}913+1{,}148 = 7{,}651$ against a printed $7{,}650$; Tencent $2{,}147$ against $2{,}146$; ModelNet40 $12{,}312$ against $12{,}311$. Within Table III: DBLP-Conf $2{,}434+1{,}014+365+243 = 4{,}056$ against a printed $4{,}057$. And between the tables, DBLP-Conf's test set is $609$ in Table II and $365+243 = 608$ in Table III.",
+          "minor"
+        ],
+        [
+          "13",
+          "**Table IX reports eighteen accuracies without naming the dataset.**",
+          "Section V-D5 introduces it as validation of the framework \"by substituting HGNN with other hypergraph models under the production setting\" and specifies no dataset. The table has no dataset column. Compare Table X, whose introduction names six datasets explicitly.",
+          "**not checkable**"
+        ],
+        [
+          "14",
+          "**Feature-only baselines disagree across three datasets that share a vertex set.**",
+          "MLP scores $69.04$ on Cora and $68.55$ on both CA-Cora and CC-Cora; GBDT scores $74.30$ on Cora and $71.69$ on both. A feature-only method cannot see the graph, so on datasets with the same vertices and the same split sizes these should be one experiment. The CA-Cora/CC-Cora pair agrees exactly; the Cora entry does not.",
+          "moderate"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**Four of the fourteen are worth pausing on, and they are named below.** Entry 5 changes the meaning of the paper's most realistic experiment: the production setting is a *harder* benchmark than the paper describes, with 40% of test vertices unseen rather than 20%. Entry 10 removes a sign. Entry 13 leaves a whole table unattributable — not wrong, but impossible for anyone to reproduce or extend. Entry 1 is the one a reader is most likely to quote, because average rank is the paper's own headline summary and the quoted pair appears in the abstract."
+    },
+    {
+      "t": "h3",
+      "md": "How to read a ledger like this one"
+    },
+    {
+      "t": "p",
+      "md": "**Separate what can be re-derived from what cannot.** Entries 1 through 4 and 8 through 12 are all derivable from numbers the paper itself prints, which makes them checkable by anyone and therefore a matter of arithmetic rather than opinion. Entry 13 is different in kind: it is a claim that the table *cannot* be checked, which no amount of recomputation fixes. And entry 5 sits in between — the counts are printed, so the discrepancy is established, but which of the two statements is right is a question about the code, not the text."
+    },
+    {
+      "t": "p",
+      "md": "**Separate systematic from random.** A single rounding slip is noise. The same offset appearing in both of a paper's quoted gains (entry 2), in two footer averages (entry 8) and in two footer ranks (entry 9) is a pattern, and patterns of that size usually mean one of two things: an intermediate quantity was computed from a slightly different version of the data than the printed cells, or the printed cells were transcribed at a different precision from the quantity actually averaged. **Neither implies fabrication and neither implies carelessness; both mean the printed tables and the printed prose are not two views of one computation.**"
+    },
+    {
+      "t": "p",
+      "md": "**Ask of each entry what a reader would have concluded differently.** Entry 7 — $4.21$ rounded to 5 — changes nothing. Entry 6 changes where a reader believes the method's optimum lies, which matters to anyone tuning it. Entry 10 changes whether a method wins or loses. This is the ranking that should decide how much attention each item gets — and it is not the order the items appear in, which is roughly the order a reader encounters them. The weight column exists so that the two rankings can be told apart."
+    },
+    {
+      "t": "reveal",
+      "label": "Which single entry best shows that verification cannot be replaced by reading?",
+      "md": "Entry 10 is the strongest candidate, and the reason is its size. A $0.09$-point deficit is the kind of number no reader notices and no reviewer flags, and it is *invisible in the prose* because the prose does not mention Github at all. It becomes visible only by taking the two proposed models' cells, choosing the larger, and subtracting the baseline — three steps, all of them arithmetic. Entry 1 is a close second: the quoted ranks (1.9, 1.7) look exactly like the printed ones (1.7, 1.5), shifted by one position, so a reader skimming sees a familiar pair of small numbers. **Both entries share a property worth naming: they are wrong in a way that reads as correct.** A value that is off by two orders of magnitude announces itself; a value that is off by one position in a rank column, or by a sign in a cell whose magnitude is $0.00$, does not."
+    },
+    {
+      "t": "h3",
+      "md": "A positioning note, not an audit entry"
+    },
+    {
+      "t": "p",
+      "md": "One boundary matters enough to state here, though it belongs to the related-work argument rather than the ledger. The paper positions itself against **BGNN**, a predecessor that combined a tree ensemble with a graph network. BGNN uses the ensemble as a *translator*: it passes heterogeneous table features through the boosted trees and hands the outputs to the graph network as a uniform representation. This paper uses the ensemble as a *source of rules*: it walks each pre-trained tree and records, for every internal node, whether the vertex satisfied that node's split — one bit per question — together with the node's depth."
+    },
+    {
+      "t": "p",
+      "md": "The one-line distinction the paper draws is that BGNN uses the trees' **outputs** while this paper uses the trees' **questions**. That is a real difference in what gets encoded, and it is checkable in principle: a translation output is a handful of values per vertex, whereas a rule ledger is one bit per question node and can run to thousands of columns. What makes this a note rather than an entry is that **BGNN appears in no results table.** The paper argues the distinction in prose and never measures it, so a reader cannot see from the experiments whether the longer ledger is what produces the gain or whether either tree-based approach would have done as well."
+    },
+    {
+      "t": "h3",
+      "md": "What the ledger does not say"
+    },
+    {
+      "t": "p",
+      "md": "It does not say the paper is unreliable, and the distinction matters. Every one of the paper's four main claims — that the knowledge embedding improves accuracy, that the gain is largest where a backbone has the most to gain, that an unsmoothed knowledge stream resists depth, and that the embeddings transfer to unseen vertices — is supported by tables that reproduce in the directions that matter. Table V's average-rank row is internally consistent under a stated convention. Table VII and Table VIII are consistent with each other on the over-smoothing story. Table IX's eighteen gains are all positive and all reproducible to within a rounding cent. Table X's footer reproduces exactly in all six columns."
+    },
+    {
+      "t": "p",
+      "md": "What the ledger does say is narrower and more useful: **the paper's prose and its tables were not generated from one another.** Numbers quoted in the abstract, in Section V-B and in Section V-D3 all drift from the cells that are supposed to be their source, always by small amounts and never in a direction that flatters the method. The practical consequence for a reader is a rule about which artefact to trust. **Quote the tables, not the sentences about the tables** — and when you are the author, generate the sentences from the tables, because no reviewer will do it for you."
+    }
+  ],
+  "close": "**Next:** the second half of the critique — the questions the paper leaves open, which is a different kind of finding from an arithmetic slip and, for anyone intending to use the method, the more consequential one."
+}

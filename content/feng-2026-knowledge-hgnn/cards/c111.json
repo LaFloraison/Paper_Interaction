@@ -1,0 +1,211 @@
+{
+  "id": "111",
+  "kind": "conclusion",
+  "chapter": "conclusion",
+  "section": "7.2 What the conclusion leaves out",
+  "kicker": "7.2 · The missing paragraph",
+  "title": "The paragraph that is not there: limitations, cost, and the counterexample",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "The **limitations statement** is the part of a paper in which the authors name the conditions under which their claims may fail, the costs of their method, and the questions their experiments do not settle. A **negative result** is a result within the paper's own experiments that contradicts or bounds one of its claims. Section VI of this paper contains neither: it has no limitations paragraph, no computational cost figures, no discussion of the one dataset where the method fails to beat its baseline, and its only forward-looking sentence is \"pave the way for future research in this field\".",
+      "plain": "There is no paragraph saying what the method cannot do. This card is about that absence — what a limitations paragraph would have had to say, and what it costs a reader that it is not there."
+    },
+    {
+      "t": "p",
+      "md": "**Why an absent limitations section is a stronger claim than a weak one.** A short or vague limitations paragraph still tells you the authors looked. Its absence tells you either that they found nothing worth naming — implausible for a method with six hyperparameters, a pre-trained component and a data-dependent hyperedge construction — or that they decided not to say. Those two possibilities lead to very different places, and the paper gives no way to choose between them. In a venue where the section is conventional, the reader is left to do the authors' work."
+    },
+    {
+      "t": "p",
+      "md": "**The test to apply to your own reading of this, before accepting it.** The absence is real, but its significance depends on the venue's norms, and different fields treat it differently. A TPAMI paper in 2026 is expected to include a limitations discussion; a short conference paper often is not. The check is cheap: open three or four recent papers from the same venue and look for the paragraph. If it is there in most, its absence here is a choice. That is a check any reader can run and no amount of close reading can replace."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the four jobs of a conclusion, and which are done.** The paragraph being assessed is Section VI, whose five sentences name, in order: the framework; the pair of encoders; the fusion module; the two models; and a closing claim about the field. Its words are quoted in full in card 110."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Conventional job",
+        "Present in Section VI?",
+        "If it had been written here, it would have had to say"
+      ],
+      "rows": [
+        [
+          "Restate the contribution against the evidence",
+          "**yes**, sentences 1–4",
+          "—"
+        ],
+        [
+          "Locate the contribution in the field",
+          "partly, via \"set new standards\"",
+          "which prior methods on which benchmarks it supersedes"
+        ],
+        [
+          "State limitations",
+          "**no**",
+          "the six items in Walk 2 below"
+        ],
+        [
+          "Name future work",
+          "**no**, beyond \"pave the way\"",
+          "which of the open experiments are tractable"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The third row is the one that reshapes how the rest of the paper reads.** Every question a reader accumulates while reading — and the last card of this chapter collects six of them — lands in the limitations paragraph when the authors have anticipated it, and nowhere at all when they have not. So a missing limitations paragraph is not a missing apology. It is a missing map of the paper's own uncertainties, which means the reader has to build that map from scratch, using the tables and the arithmetic. Names used throughout: **GBDT** is the gradient-boosted decision tree ensemble; **TDR-Encoder** is the paper's rule encoder (card 68); **HGNN** is the hypergraph neural network whose propagation is the paper's Equation (1); **RD-HGNN** and **DD-HGNN** are the paper's two models, taking the rule stream alone and the rule plus structural streams together (cards 74–75)."
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — the limitations a reader can reconstruct, in order of how much they matter.** Each of these is derivable from the paper's own text; none is stated in it."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Limitation",
+        "Where the paper leaves it open",
+        "How much it matters"
+      ],
+      "rows": [
+        [
+          "The pre-training task's label boundary",
+          "Section IV says the TDR-Encoder pre-trains GBDT \"with predefined tasks\" and never says whether that uses training labels only",
+          "**highest** — if the pre-training saw test labels, every reported number is compromised"
+        ],
+        [
+          "Computational cost",
+          "The hardware is given; no timings, no memory, no ledger widths, no pre-training overhead is reported",
+          "high for adoption — the GBDT pre-training is paid again for every dataset"
+        ],
+        [
+          "The rule ledger's width",
+          "Card 93 shows a vertex's rule block can reach thousands of entries; the actual figure per dataset is never printed",
+          "high — it sets the memory and time cost that is also unreported"
+        ],
+        [
+          "Hyperedge construction when none exists",
+          "KNN in feature space with $k$ between 5 and 20, chosen by rule of thumb, and no sensitivity study",
+          "high — $k$ is a design decision made by hand and never tested"
+        ],
+        [
+          "Ablations on one dataset",
+          "Tables VII and VIII and Figure 3 all run on CC-Cora alone",
+          "moderate — establishes that a knob matters, not where to set it"
+        ],
+        [
+          "The three Cora variants",
+          "Cora, CA-Cora and CC-Cora share a vertex set and split sizes, yet feature-only baselines score differently on Cora",
+          "moderate — bounds how precisely any \"on Cora\" claim can be read"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Note the shape of the first item: it is not a limitation the authors overlooked. It is one whose *statement* would have resolved a doubt, and whose omission leaves the doubt open.",
+          "why": "This is the category to look for when a limitations section is missing: things the paper could have said in one sentence and did not. A limitation that requires new experiments is excusable; a limitation that requires one clause in Section IV-D is not. That the rule encoder is pre-trained on \"predefined tasks\" without saying whose labels those tasks use is exactly that kind — and its consequence is the largest of the six, because it bears on every number in the paper."
+        },
+        {
+          "md": "The second and third items compound: the method's fixed cost is not reported, and the quantity that most determines it is not reported either.",
+          "why": "Hold those two together and the omission becomes concrete. Table IV lists tree counts running from 20 to 190 and depths up to 7; card 93's bound gives a rule block of up to $C_r \\le \\text{trees} \\times (2^d - 1)$ entries per vertex, doubled by the content-and-position pairing. For Github that reaches into the thousands of columns per vertex, each a real number. **A reader planning to apply the method cannot estimate whether it will fit in memory**, and the paper's only response to the question is a sentence about its own hardware."
+        },
+        {
+          "md": "Now the sixth item, which is the mildest and the most instructive about how to read a results table.",
+          "why": "It is a *consistency* observation rather than a missing experiment: MLP and GBDT cannot see the graph, so on three datasets built from the same 2,708 publications they should agree, and they do not for the plain-graph variant. Card 100 worked this through. The reason to put it in a limitations list is not that it undermines a claim — it does not — but that it bounds one: the paper's statements about \"Cora\" are statements about one of three distinct experimental setups, and its own abstract's headline \"$7.3\\%$ gain on the Cora dataset\" therefore names no experiment: the same comparison comes out at $7.30$ on one of the three and $6.83$ on another."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 3 — the negative result that is in the tables and not in the text.** The clearest example is small enough to state in one line: on Github, under the production setting, the paper's models lose to the plain HGNN baseline, by $0.09$ points for the better of the two. Section VI claims \"superior performance across diverse datasets\". Section V-B states the rule — RD wins on graph datasets, DD on hypergraph datasets — and Github is a graph dataset."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**It is worth being precise about what is and is not objectionable here.** The result itself is unobjectionable: a 0.09-point deficit on one of ten datasets is inside the run-to-run spread, and no reasonable reader would treat it as refuting a method that wins on the other nine. What is missing is one sentence naming it. A paper that said \"on Github our models are level with HGNN, which we attribute to the dataset's shallow structure\" would be *stronger*, not weaker — the claim would then be bounded and therefore checkable, and the nine wins would read as measured rather than as selected. **The cost of not writing that sentence is not that the paper overstates by 0.09 points. It is that a reader who finds the row must now wonder what else the prose smoothed over.**"
+    },
+    {
+      "t": "p",
+      "md": "Section VI's final sentence — \"pave the way for future research in this field\" — is the corresponding gap on the forward side. It names no direction. Against the six items above, a future-work list almost writes itself: specify the pre-training label boundary, report ledger widths and timings, rerun the $k$ sweep for hyperedge construction, repeat the ablations on a second dataset, and test what happens when the binarised rule content is replaced by a distance-preserving value. **Each is a concrete experiment, and each is the kind of thing the sentence \"paves the way\" was standing in front of.**"
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why is the *absence* of a limitations section more informative than a brief one would have been?",
+      "opts": [
+        {
+          "md": "Because it proves the authors did not consider any limitations",
+          "expl": "It proves nothing of the kind. It may equally mean the authors considered several and chose not to write them, which is the more common situation in a paper whose method has six hyperparameters and a pre-trained component. The point is that the absence leaves the reader unable to distinguish those cases."
+        },
+        {
+          "md": "Because it removes the reader's map of the paper's own uncertainties, leaving them to reconstruct it from the tables",
+          "correct": true,
+          "expl": "Correct. A limitations paragraph is where anticipated doubts are collected and addressed. Without it, each doubt has to be rediscovered independently — which is exactly what the published commentary on a paper does, and what this site's critique chapter is doing with arithmetic instead. Notice that the reconstruction is possible here; the six items in Walk 2 all come from the paper's own text. It is the *labour* that has been moved to the reader, not the information."
+        },
+        {
+          "md": "Because a limitations section is required by the venue's submission guidelines",
+          "expl": "Venue norms are a real consideration and a check any reader can run in five minutes by opening recent papers from the same venue. But a formatting lapse is a much weaker finding than a missing map of uncertainties, and stating the weaker version would overstate what the absence shows."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "The card lists six limitations a reader can reconstruct from the paper's own text. Which of them cannot be closed by any further reading, further data, or further experiment carried out by a third party?",
+      "opts": [
+        {
+          "md": "The unreported computational cost",
+          "expl": "A third party can time the method on their own hardware. Cost is a measurement, and the paper's omission makes it inconvenient rather than impossible — this is the difference between an unreported quantity and an unknowable one."
+        },
+        {
+          "md": "The unspecified label boundary of the rule encoder's pre-training",
+          "correct": true,
+          "expl": "Correct, and the reason is what makes this item different in kind from the other five. Whether the pre-training task used test labels is a fact about the authors' code and data, not about the published model — no re-reading of the paper recovers it, and no experiment by a third party settles it either, because the question is what the original runs did rather than what the method can do. That is why it heads this chapter's list: it is the one item on it that only the authors can close."
+        },
+        {
+          "md": "The hyperedge construction's un-swept parameter $k$",
+          "expl": "A third party can rerun the four constructed datasets at other values of $k$ — the paper reports the construction procedure and the range it chose from, so the experiment is reproducible. The gap is that nobody has run it, not that nobody can."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "On Github's production row, GBDT is $85.69$, HGNN is $86.05$, RD-HGNN is $85.93$ and DD-HGNN is $85.96$. What is the best of the paper's two models minus HGNN, to two decimals?",
+      "answer": -0.09,
+      "tol": 0.02,
+      "hint": "Take the higher of the two proposed models and subtract the HGNN column. The sign is what matters.",
+      "sol": "$85.96 - 86.05 = -0.09$. Table VI prints $+0.00$ in this cell, which converts a near-tie loss into a near-tie win. The magnitude is negligible and the sign is not: it is the difference between a method that beats its own backbone on nine of ten datasets and one that beats it on ten of ten. Neither the abstract nor the conclusion mentions the exception.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You have found one dataset in a paper where the proposed method fails to beat its baseline, and the paper's conclusion claims broad superiority without mentioning it. What is the most useful thing to do next?",
+      "opts": [
+        {
+          "md": "Reject the paper's central claim",
+          "expl": "Far too strong. A single near-tie — here a 0.09-point deficit — against nine datasets of gains does not refute a method whose mechanism the paper also tests directly. Treating every unmentioned exception as decisive would leave you unable to read any empirical paper."
+        },
+        {
+          "md": "Check whether the exception has a structural explanation, and whether the paper's own framing predicts it",
+          "correct": true,
+          "expl": "Correct, and this is where an exception earns its keep. Here the paper does state a rule — RD wins on graph datasets, DD on hypergraph datasets — and Github is a graph dataset, so the exception is not random: it is a case where the authors' own account predicts the method should do well. Trying to explain *why* the prediction failed is what turns a 0.09-point curiosity into a question about the method, and it is the same move that turns a limitation into a research direction. **An unexplained exception is a gap; an explained one is a finding.**"
+        },
+        {
+          "md": "Check whether the baseline was tuned fairly on that dataset",
+          "expl": "A reasonable check and a narrower one. It asks whether the comparison is valid, not whether the method's behaviour is understood — and if the baseline turns out to have been tuned fairly, you are back to needing the structural explanation."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the critique chapter proper — a ledger of fourteen places where the paper's own numbers do not balance, each with arithmetic you can redo in a minute."
+}

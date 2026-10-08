@@ -3,6 +3,6 @@
   "kind": "include",
   "library": "hypergraph-nn-family",
   "chapter": "pre",
-  "section": "2.4 The graph-network half",
+  "section": "Relations and structure",
   "kicker": "Extension · Hypergraph neural networks"
 }

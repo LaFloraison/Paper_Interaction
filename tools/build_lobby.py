@@ -65,8 +65,106 @@ def parse_registry():
     return rows
 
 
+
+# ---------------------------------------------------------------- 全局知识地图
+KMAP = ROOT / "shared" / "knowledge-map.json"
+
+ECOL = {"prereq": "#1a6bff", "related": "#16a34a", "contrast": "#dc2626", "cross": "#7c3aed"}
+
+
+def wrap(text, n):
+    words = text.split()
+    lines, cur = [], ""
+    for w in words:
+        if cur and len(cur) + 1 + len(w) > n:
+            lines.append(cur); cur = w
+        else:
+            cur = (cur + " " + w) if cur else w
+    if cur:
+        lines.append(cur)
+    return lines[:3]
+
+
+def build_knowledge_map(kps):
+    """按 knowledge-map.json 的 cluster/order 做确定性布局，手写 SVG。"""
+    if not KMAP.exists():
+        return ""
+    km = json.loads(KMAP.read_text(encoding="utf-8"))
+    by_id = {k["id"]: k for k in kps}
+
+    NW, NH, GAPX, GAPY, PAD = 176, 52, 22, 16, 16
+    maxrows = max(len(c["nodes"]) for c in km["clusters"])
+    width = PAD * 2 + len(km["clusters"]) * NW + (len(km["clusters"]) - 1) * GAPX
+    height = 34 + maxrows * (NH + GAPY) + 34
+
+    pos = {}
+    for ci, cl in enumerate(km["clusters"]):
+        for nd in cl["nodes"]:
+            x = PAD + ci * (NW + GAPX)
+            y = 34 + (nd["order"] - 1) * (NH + GAPY)
+            pos[nd["id"]] = (x, y, cl["key"])
+
+    out = ['<div class="kmap"><svg viewBox="0 0 %d %d" width="100%%" role="img" '
+           'aria-label="Global knowledge map: knowledge points grouped by area, with prerequisite and related links">'
+           % (width, height)]
+    out.append('<defs>')
+    for t, c in ECOL.items():
+        out.append('<marker id="km-%s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" '
+                   'orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="%s"/></marker>' % (t, c))
+    out.append('</defs>')
+
+    for t, edges in (("cross", []), ("contrast", []), ("related", []), ("prereq", [])):
+        pass
+    # 先画边，再画节点，保证节点压住线
+    for e in km["edges"]:
+        a, b = pos.get(e["from"]), pos.get(e["to"])
+        if not a or not b:
+            continue
+        x1, y1 = a[0] + NW / 2, a[1] + NH / 2
+        x2, y2 = b[0] + NW / 2, b[1] + NH / 2
+        col = ECOL.get(e["type"], "#9aa6b8")
+        dash = ' stroke-dasharray="5 4"' if e["type"] in ("contrast", "cross") else ""
+        out.append('<line x1="%.0f" y1="%.0f" x2="%.0f" y2="%.0f" stroke="%s" stroke-width="1.6" '
+                   'opacity="0.55"%s marker-end="url(#km-%s)"/>' % (x1, y1, x2, y2, col, dash, e["type"]))
+
+    for ci, cl in enumerate(km["clusters"]):
+        x0 = PAD + ci * (NW + GAPX)
+        out.append('<text x="%.0f" y="20" font-size="12" font-weight="700" fill="#7a8699" letter-spacing="1">%s</text>'
+                   % (x0, H.escape(cl["name"].upper())))
+
+    for nd in [n for c in km["clusters"] for n in c["nodes"]]:
+        k = by_id.get(nd["id"])
+        x, y, ck = pos[nd["id"]]
+        if not k:
+            fill, stroke, txtc, label, url = "#f2f4f8", "#d7dce4", "#9aa6b8", nd["id"], None
+        else:
+            fill, stroke, txtc = "#eef4ff", "#1a6bff", "#24313f"
+            label = k["en"]
+            pap = next((pp for pp in PAPERS_LIST if pp["slug"] == k["paper"]), None)
+            url = ("%s#%s" % (pap["site"], k["id"])) if pap else None
+        g_open = '<a href="%s">' % H.escape(url) if url else '<g>'
+        g_close = "</a>" if url else "</g>"
+        out.append(g_open)
+        out.append('<rect x="%.0f" y="%.0f" width="%d" height="%d" rx="10" fill="%s" stroke="%s"/>'
+                   % (x, y, NW, NH, fill, stroke))
+        lines = wrap(label, 24)
+        ty = y + (NH - (len(lines) - 1) * 13) / 2 + 1
+        for i, ln in enumerate(lines):
+            out.append('<text x="%.0f" y="%.0f" font-size="11.5" fill="%s" text-anchor="middle">%s</text>'
+                       % (x + NW / 2, ty + i * 13, txtc, H.escape(ln)))
+        out.append(g_close)
+
+    out.append("</svg></div>")
+
+    leg = "".join('<span class="kmleg"><i style="background:%s"></i>%s</span>'
+                  % (ECOL.get(l["type"], "#9aa6b8"), H.escape(l["label"])) for l in km.get("legend", []))
+    return "".join(out) + '<div class="kmlegend">' + leg + "</div>"
+
+
 def main():
+    global PAPERS_LIST
     papers = json.loads(PAPERS.read_text(encoding="utf-8"))
+    PAPERS_LIST = papers
     kps = parse_registry()
     kp_by_paper = {}
     for k in kps:
@@ -131,9 +229,9 @@ def main():
         pap = next((p for p in papers if p["slug"] == k["paper"]), None)
         url = "%s#%s" % (pap["site"], k["id"]) if pap else "#"
         kp_rows.append(
-            '<tr><td class="kpid">%s</td><td><a href="%s">%s</a><div style="color:#7a8699;font-size:13px">%s</div></td>'
+            '<tr><td class="kpid">%s</td><td><a href="%s">%s</a></td>'
             '<td style="white-space:nowrap;color:#7a8699;font-size:13.5px">%s</td><td>%s</td></tr>'
-            % (H.escape(k["id"]), H.escape(url), H.escape(k["en"]), H.escape(k["zh"]),
+            % (H.escape(k["id"]), H.escape(url), H.escape(k["en"]),
                H.escape(pap.get("short") if pap else k["paper"]), H.escape(k["note"]))
         )
     kp_tab = ('<table class="kptab"><thead><tr><th>id</th><th>knowledge point</th>'
@@ -155,6 +253,7 @@ def main():
            .replace("{{STATS}}", stats)
            .replace("{{PAPERS}}", "\n".join(cards_html))
            .replace("{{HOWTO}}", howto)
+           .replace("{{KNOWLEDGEMAP}}", build_knowledge_map(kps))
            .replace("{{KPCOUNT}}", str(len(kps)))
            .replace("{{KPTAB}}", kp_tab)
            .replace("{{SEARCH_INDEX}}", json.dumps(index, ensure_ascii=False, separators=(",", ":")))
@@ -201,10 +300,18 @@ bibliography, full cards for the handful of references the paper actually leans 
 
 <h4>Reading one</h4>
 <ul>
-<li>Progress saves automatically in this browser, per paper. <strong>☰</strong> opens the outline; the top-right
-corner always shows the chapter and section you are in; <strong>← →</strong> or A/D move between cards.</li>
-<li>The <strong>✚</strong> button on any card inserts your own note card after it.</li>
-<li>Arrow keys and <code>/</code> work on the keyboard; <code>/</code> here focuses the search box.</li>
+<li>Progress saves automatically in this browser, per paper. <strong>← →</strong> or A/D move between cards, and the
+top-right corner always shows the chapter and section you are in.</li>
+<li><strong>☰ opens the outline</strong>, which runs chapter → section → card. Chapters and sections fold away, and the
+numbering restarts inside each chapter (1.1, 1.2 … 6.1, 6.2 …) rather than counting straight through the whole site.
+Each card in the outline carries the page of the paper it was built from.</li>
+<li><strong>＋ Add card</strong> on any card inserts your own note card after it. It is stored in this browser, never
+uploaded, and can be deleted again from the card itself.</li>
+<li><strong>▥ Paper</strong> splits the screen: your card on the left, one paragraph of the paper on the right — set in
+the paper's own serif on white, with the passage that card was built from highlighted, and a screenshot of that
+spot in the PDF underneath — keywords highlighted — whenever the card is about a table or figure. Clicking a paragraph jumps back to the card that reads it; <code>◀ ▶</code> reads
+the paper a paragraph at a time. Press <code>P</code> to toggle it.</li>
+<li>Arrow keys, <code>P</code> and <code>/</code> work on the keyboard; <code>/</code> here focuses the search box.</li>
 </ul>
 """
 

@@ -3,6 +3,7 @@
   "kind": "include",
   "library": "symmetry-permutation",
   "chapter": "pre",
-  "section": "2.4 The graph-network half",
-  "kicker": "Extension · Symmetry and permutation invariance"
+  "section": "Relations and structure",
+  "kicker": "Extension · Symmetry and permutation invariance",
+  "kp": "kp-permutation-invariance"
 }

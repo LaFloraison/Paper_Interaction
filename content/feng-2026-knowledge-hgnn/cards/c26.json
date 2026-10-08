@@ -3,6 +3,6 @@
   "kind": "include",
   "library": "activation-gating",
   "chapter": "pre",
-  "section": "2.4 The graph-network half",
+  "section": "Fusion and gating",
   "kicker": "Extension · Sigmoids and gating"
 }

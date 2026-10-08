@@ -359,3 +359,28 @@ python tools/upd_index.py                  # 大厅 + 知识点目录
 
 - v4 产物保持原样（`pi-spec` 仍标 v4，validate 自动豁免三段式旧检查）。
 - **试点：以 Paper #2（feng-2026-knowledge-hgnn）按 v5 重制**——蓝图、已验证数值、13 张图、46 份审卡记录都已现成，是最便宜的试车场；用它测出新流水线的实际耗时与质量，再开 Paper #3。
+
+---
+
+## v5.1 增补：大纲折叠、原 PDF 对照、插卡（2026-10-08）
+
+### 1. 大纲：章 → 节 → 卡，章内编号
+
+- 三级结构，章与节都可折叠；`Expand all` / `Collapse all` 在底部。
+- **编号在章内重新起算**：`data-sec-num` 由 `build_site.py` 的 `assign_section_numbers()` 推导，章 1 是 1.1/1.2，章 6 是 6.1…6.14，Wrap-up/References 用 W1…/R1…。**不要手写编号**——手写会漂移（v5 初版第 2 章 21 张卡曾全部标成「2.1」）。
+- 卡片 JSON 的 `section` 只写**名字**（如 `"Datasets"`）；构建器剥掉旧编号后统一重编。
+- 习题卡（`kind: "practice"` 且带 `for`）继承源卡的节，与源卡同节显示。
+- 状态存 `localStorage['pi-outline-<slug>']`；首次打开只展开当前卡所在的章与节。
+
+### 2. 原 PDF 对照栏
+
+- 数据：`content/{slug}/pdf-map.json` — `defaults` 按章给默认页，`cards` 逐卡覆盖，`anchors` 给需要精确高亮的卡（表/图题注原文）。
+- 构建：`build_site.py` 用 PyMuPDF 抽**文本块**（过滤页眉页脚/页码），按页分组内嵌到 `<!--PI-PAGES-START--> … <!--PI-PAGES-END-->` 之间；题注矩形**大小写敏感**地定位（表题注是全大写 `TABLE VII`，正文引用是 `Table VII`），并归一化成 0..1 坐标写进 `data-pdf-rect`。
+- 运行：分栏时**卡片靠左、不再居中**（`justify-content: flex-start`）；面板一次只显示**一段**——衬线字体（Times）、白底、两端对齐，锚点命中的那段文字套黄底高亮；表/图卡会把卡内嵌的原图克隆到段落下方。`paperSync()` 在 `goCard()` 里被调，点段落跳回该页对应的第一张卡；`◀ ▶` 逐段翻论文；`P` 或 `▥ Paper` 切换；<1024px 自动隐藏且不允许打开。
+- 文本版很轻（全文约 60KB），默认随镜像走；`--no-paper` 可剥。剥掉后 `paperInit()` 会把 `▥ Paper` 按钮隐藏。
+- 高亮锚点：`anchors[cid].text` 两处用——(a) 在文本块里定位段落（`data-pdf-rect="页:块号"`）；(b) **大小写敏感**地定位题注矩形，按规则截取**原 PDF 截图**（表：题注→同栏下一个文本块；图：上一文本块→题注；跨中缝的题注取整页宽），并把关键词（题注 + 可选 `keys`）用 PyMuPDF 高亮注记**烘焙进图里**，以 `data-clip` 内嵌。
+- 注意：这份 PDF 的表/图是矢量画、**没有文字层**（所以数字搜不到），文本栏只能给出题注——截图正好补上这一点。
+
+### 3. 插卡
+
+- 每张卡右上角 `＋ Add card`；写入 `localStorage['pi-custom-<slug>']`，用 `data-custom-id` 定位，可删；换卡不丢。

@@ -3,6 +3,6 @@
   "kind": "include",
   "library": "gnn-lineage",
   "chapter": "pre",
-  "section": "2.1 Foundations",
+  "section": "Relations and structure",
   "kicker": "Extension · Graph neural networks"
 }

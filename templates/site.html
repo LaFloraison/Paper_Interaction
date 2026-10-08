@@ -15,16 +15,32 @@
   <button id="menuBtn" aria-label="Outline">☰</button>
   <div id="topbarTitle">{{HEAD_TITLE}}<span class="tb-sub">{{SUBTITLE}}</span></div>
   <div id="chapStrip"></div>
+  <button id="paperBtn" aria-pressed="false" title="Show the original paper alongside (P)">▥ Paper</button>
 </header>
 <nav id="outline">
   <div id="outlineHead"><span>Outline</span> · <span id="outlineCount">{{COUNT}}</span><button id="outlineClose">✕</button></div>
   <ul id="outlineList"></ul>
+  <div id="outlineFoot"><button id="expandAll">Expand all</button><button id="collapseAll">Collapse all</button></div>
 </nav>
 <div id="scrim"></div>
 
 <main id="cardArea">
 <!--CARD-CONTENT-->
 </main>
+
+<aside id="paperPane" class="hidden" aria-label="Original paper passage">
+  <div class="pp-head">
+    <span class="pp-tag" id="ppTag">p.—</span>
+    <button class="pp-sync" id="ppSync" title="Show the passage this card is built from">↩ This card's passage</button>
+  </div>
+  <div class="pp-body" id="ppBody"></div>
+  <div class="pp-fig" id="ppFig" hidden></div>
+  <div class="pp-nav">
+    <button id="ppPrev">◀ Previous paragraph</button>
+    <button id="ppNext">Next paragraph ▶</button>
+  </div>
+  <div id="paperPages" hidden>{{PAPER-PAGES}}</div>
+</aside>
 
 <nav id="navbar">
   <button id="navPrev">← Back</button>

@@ -1,0 +1,152 @@
+{
+  "id": "138",
+  "kind": "reference",
+  "chapter": "references",
+  "section": "R9 · Reference [34] · LightHGNN",
+  "kicker": "Reference [34]",
+  "title": "Reference [34]: LightHGNN — the protocol, and the backbone that gains most",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Reference [34]** is *Y. F. Feng et al., \"LightHGNN: distilling hypergraph neural networks into MLPs for 100x faster inference\", in Proceedings of the International Conference on Learning Representations, 2024.* The paper cites it for two things. It is the **supply** source for the paper's entire evaluation design: \"We adopt two experimental setups [34] for a comprehensive comparison: the transductive and production settings.\" And it is an **opponent**, appearing as one of the six backbones in Table IX — where it also records the largest gains of any backbone tested.",
+      "plain": "The protocols every results table in this paper follows come from this reference. The same work's model is also in Table IX as a backbone, and it is the one the framework helps most."
+    },
+    {
+      "t": "p",
+      "md": "**A protocol citation is the most consequential kind of supply citation.** Data can be replaced; a protocol decides what every number in the paper means. Citing [34] for the two experimental setups means that the definitions of *transductive*, *inductive* and *production* used throughout this site's Chapter 6 are inherited rather than invented — and it means the paper's most realistic benchmark is somebody else's design, adopted wholesale."
+    },
+    {
+      "t": "p",
+      "md": "**What LightHGNN actually is, since that is what explains Table IX.** It is a distillation method: a full hypergraph network is trained first, then a much smaller model — an MLP — is trained to reproduce the larger model's outputs, in the manner of knowledge distillation. The point is speed, and the title advertises a hundredfold inference speedup. What is lost in the compression is the larger model's ability to compute per-instance, structure-dependent representations: a distilled MLP receives the feature vector and nothing else, so any information the original network derived from the graph must be baked into its weights or not exist at all."
+    },
+    {
+      "t": "p",
+      "md": "**That is the mechanism behind Table IX's largest gain.** LightHGNN's origins are $68.29$, $69.00$ and $65.46$ — the lowest of the six backbones in every setting — and its gains are $+5.80$, $+5.16$ and $+8.35$, the largest of the six in every setting. The paper's framework supplies exactly what distillation discarded: a vertex-level description of its hyperedge memberships and its rule outcomes, computed fresh for each input rather than frozen into weights. **A backbone's gain tracks what it lacks**, and the distilled backbone lacks the most."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — read Table IX's two extremes and confirm the inverse relationship.**"
+    },
+    {
+      "t": "table",
+      "head": [
+        "Backbone",
+        "Origin: Prod. / Transd. / Induct.",
+        "$\\Delta$: Prod. / Transd. / Induct."
+      ],
+      "rows": [
+        [
+          "**LightHGNN**",
+          "**$68.29$ / $69.00$ / $65.46$**",
+          "**$+5.80$ / $+5.16$ / $+8.35$**"
+        ],
+        [
+          "HGNN",
+          "$73.36$ / $74.17$ / $70.12$",
+          "$+2.35$ / $+1.09$ / $+6.29$"
+        ],
+        [
+          "HGNN+",
+          "$72.62$ / $72.73$ / $72.59$",
+          "$+2.16$ / $+1.87$ / $+2.59$"
+        ],
+        [
+          "HNHN",
+          "$71.30$ / $71.38$ / $71.24$",
+          "$+3.43$ / $+2.97$ / $+3.81$"
+        ],
+        [
+          "GCN",
+          "$73.12$ / $72.98$ / $73.33$",
+          "$+1.76$ / $+2.04$ / $+2.46$"
+        ],
+        [
+          "AllSetTransformer",
+          "$74.32$ / $75.17$ / $72.97$",
+          "$+2.96$ / $+2.64$ / $+3.83$"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Check the inverse relationship directly. LightHGNN has the lowest origin in all three settings and the largest gain in all three. HGNN has the highest origin in the inductive setting ($70.12$) and the second-largest gain there ($+6.29$) — which breaks the pattern at first glance.",
+          "why": "Look closer before accepting the break. HGNN's inductive origin is high *for a structural method*, and its inductive gain is large because the inductive setting is where any method has the least to work with. The inverse relationship holds across backbones in a setting; it does not hold for one backbone across settings. **A pattern in a table usually has a scope, and finding the scope is what keeps a correlation from being overread.**"
+        },
+        {
+          "md": "Rank the six origins in the inductive setting, ascending: LightHGNN $65.46$, HGNN $70.12$, HNHN $71.24$, HGNN+ $72.59$, AllSetTransformer $72.97$, GCN $73.33$.",
+          "why": "Now compare against the gains in that setting, descending: $+8.35$, $+6.29$, $+3.83$, $+3.81$, $+2.59$, $+2.46$. Read the two lists side by side and the correspondence is close to order-reversing: the lowest origin takes the largest gain, the second-lowest the second-largest, and so on, with HNHN the single pair that does not fit."
+        },
+        {
+          "md": "Now put this beside the paper's framing. Table IX is presented as evidence for a general framework, and the paper's discussion of it emphasises that all eighteen gains are positive.",
+          "why": "Both readings are correct and they should be held together. All eighteen positive is a real result about generality. The inverse relationship is a real result about *where* the generality pays. The paper reports the first and does not report the second, which is a missed opportunity rather than an error: **the inverse relationship is the more useful finding for a practitioner, because it tells you which of your models to try the framework on first.**"
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**And the gap that this reference sits on top of.** Table IX reports eighteen accuracies with standard deviations, six backbones and three settings — and names no dataset, either in the table or in the paragraph introducing it. That is ledger entry 13, and it is worth restating here because this is the card where a reader is most likely to want the number: the largest gain in the paper's generality table, $+8.35$ points, is a quantity whose *data* is not identified. Reference [34] supplies the protocol for that table; nothing in the paper supplies the table's subject."
+    },
+    {
+      "t": "p",
+      "md": "**One structural fact about this citation.** LightHGNN is by Y. F. Feng et al., and this paper's first author is Yifan Feng — so the paper's evaluation protocol and one of its tested backbones both come from the same author's earlier work, as does its Equation (1) via reference [1]. Two of the paper's most load-bearing references are in-house. Nothing about this is improper; the works are published and anyone can run them. What it means for a reader is that **the paper's baseline, its metric definitions and its protocol all originate in a single research line**, so the natural check — do these choices favour this method? — cannot be run by comparing against an independent tradition. The one place it can be checked is this paper's own Table X, where the framework is applied to a plain graph network and still gains, and Table IX, where five backbones that are *not* from that line are also improved."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why is citing a reference for an evaluation protocol a more consequential act than citing one for a dataset?",
+      "opts": [
+        {
+          "md": "Because a protocol determines what every reported number means, while a dataset can be swapped without changing the meaning of the results",
+          "correct": true,
+          "expl": "Correct. A different dataset changes the answers; a different protocol changes the questions. Adopting the transductive and production settings from [34] is what makes this paper's inductive rows mean \"vertices absent during training\" rather than some other notion of generalization — and it is also why the discrepancy between the paper's stated 20% inductive share and its tables' 40% matters, since the protocol being adopted has a defined meaning that the paper's prose then mis-describes."
+        },
+        {
+          "md": "Because datasets are usually public while protocols are not reproducible",
+          "expl": "Protocols are highly reproducible — they are definitions, usually implemented in released code. The reason protocol citations matter is their scope, not their reproducibility."
+        },
+        {
+          "md": "Because a protocol citation is usually a courtesy citation",
+          "expl": "Protocol citations are the opposite of courtesy citations: they carry the definitions the paper is bound by. A courtesy citation is one whose removal would change nothing, and this one's removal would leave the paper's central experiment undefined."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "For HNHN's inductive row, Origin is $71.24$ and the better proposed variant is RD-HGNN at $75.06$. What is the gain, to two decimals?",
+      "answer": 3.82,
+      "tol": 0.03,
+      "hint": "Subtract Origin from the higher of the two proposed columns. The table prints a value one hundredth below yours.",
+      "sol": "$75.06 - 71.24 = 3.82$, against a printed $+3.81$ — the $0.01$ offset visible in twelve of the eighteen cells, which comes from the delta being computed on unrounded accuracies. Note that the reference here is RD, not DD: HNHN is one of the backbones where the rule-only variant comes out ahead.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You have a distilled model deployed for inference speed, and a component that improves it substantially in a published experiment. Using this card's reasoning, what should you check before expecting the same gain?",
+      "opts": [
+        {
+          "md": "Whether the component also improves the full-size model the distilled one came from",
+          "expl": "Informative, and the reverse of the useful check. This table shows the full-size models gaining *less* than the distilled one — HGNN gains $+1.09$ in one setting where LightHGNN gains $+8.35$. A component that helps little on the full model can be exactly what a compressed model needs."
+        },
+        {
+          "md": "Whether what the component supplies is the kind of information distillation discarded, since gains track what a model lacks",
+          "correct": true,
+          "expl": "Correct, and it is checkable rather than speculative. Distillation compresses a large model into one that cannot compute per-instance structural features; this framework supplies per-instance structural features computed fresh at inference. The two fit. If instead your distilled model had lost only calibration or a decision threshold, a structural encoder would supply nothing it lacks, and the published gain would be about the published model rather than about compression in general."
+        },
+        {
+          "md": "Whether the gain exceeds the reported standard deviations",
+          "expl": "The right second question — several of these gains are several times their reported spreads, so they pass — and it tests whether the gain is real rather than whether it will appear in your setting. The mechanism check has to come first, because a real gain in an unrelated setting is still not a prediction about yours."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the lineage diagram — this paper's ancestors, the work it changes, and the directions it opens."
+}

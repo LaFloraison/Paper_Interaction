@@ -1,0 +1,342 @@
+{
+  "id": "96",
+  "kind": "figure",
+  "chapter": "experiments",
+  "section": "6.8 Figure 3 · hyperparameter and noise ablations",
+  "kicker": "6.8 · Figure 3",
+  "title": "Figure 3: two knobs and a bucket of noise",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "An **ablation study** measures a model's behaviour when one factor is removed or varied while everything else is held fixed. A **sensitivity sweep** is the continuous version: rather than removing a component, one input is varied across a range and the resulting score plotted. Figure 3 contains three such sweeps side by side — panel (a) varies the position-mapping scale $\\alpha$, panel (b) varies the position-mapping shift $\\beta$, and panel (c) varies the proportion of Gaussian noise added to the vertex features. Panels (a) and (b) sweep the two coefficients of Equation (6), $\\mu_p(o) = \\alpha / (d(o) + \\beta)$.",
+      "plain": "Take one number the model has, turn it through its whole plausible range, and watch the accuracy move. Do it three times for three different numbers. A flat curve means the model does not care about that number; a cliff means it cares a great deal and you had better have set it well. The names used throughout: **RD-HGNN** and **DD-HGNN** are the paper's two models, differing only in whether the rule stream alone (RD) or the rule and structural streams together (DD) are fused into the network's input (cards 74–75); **GBDT** is the gradient-boosted decision tree ensemble and **HGNN** the hypergraph neural network whose propagation is the paper's Equation (1) (card 61); a **hyperedge** is a link joining any number of vertices at once (card 12)."
+    },
+    {
+      "t": "p",
+      "md": "**The symbols in Equation (6), since panels (a) and (b) turn on them.** The two coefficients are the ones being swept, and they appear in the rule-position mapping $\\mu_p(o) = \\alpha / (d(o) + \\beta)$. Read it in words: a rule is an internal node $o$ of a decision tree — a question that was asked on the way down — and $d(o)$ is that node's depth, with the root at depth $0$. The mapping assigns each question an importance that decreases with depth, on the principle that a question asked near the root partitions more of the data and therefore counts for more. **$\\alpha$ scales every weight by the same factor; $\\beta$ is added to the depth before the division, so it sets how fast importance falls away.** That structural difference — a common factor versus a change of shape — is what the next two panels measure separately, and it is why one of them turns out to be inert."
+    },
+    {
+      "t": "p",
+      "md": "**Why a sweep is worth more than a single reported value.** A hyperparameter table tells you what the authors chose. It does not tell you whether the choice was consequential. If a coefficient can be moved across its entire range with the score moving by one point, then the choice was safe and the method does not depend on fine tuning; if the score falls off a cliff at one end, then the paper's number is only reproducible if you find the same region, and anyone reporting a single value has hidden how narrow the safe region is. **A sweep converts \"what did they pick\" into \"does the pick matter\", and the second question is the one that decides whether you can use the method.**"
+    },
+    {
+      "t": "p",
+      "md": "**Before reading the curves, name the axes.** All three panels plot accuracy in percent on the vertical axis. The horizontal axes differ: panel (a) is $\\alpha$ running 1 to 10 in unit steps, panel (b) is $\\beta$ running 1 to 10 in unit steps, and panel (c) is the noise ratio in percent, labelled at $0, 10, 20, 40, 60, 80$ — note that the last four labels are spaced by 20 while the first two are spaced by 10. **Panel (c)'s horizontal axis is therefore not linear in the label spacing**, and a slope read off it by eye between 20 and 60 will be overestimated by roughly a factor of two. This is the first trap in the figure and it is present in the paper's own labelling."
+    },
+    {
+      "t": "figure",
+      "src": "fig3.png",
+      "alt": "Figure 3 of the paper: three panels showing accuracy against alpha, against beta, and against feature noise ratio",
+      "cap": "Original Figure 3 (Feng et al., TPAMI 2026). (a) sweeping $\\alpha$ over 1–10; (b) sweeping $\\beta$ over 1–10; (c) accuracy against the proportion of Gaussian noise added to features. Red squares mark RD-HGNN and black circles DD-HGNN throughout; panel (c) adds GBDT (magenta triangles) and HGNN (blue inverted triangles)."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — panel (a): a knob that does nothing.** Reading the ten red points of RD-HGNN across $\\alpha = 1 \\dots 10$:"
+    },
+    {
+      "t": "table",
+      "head": [
+        "$\\alpha$",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10"
+      ],
+      "rows": [
+        [
+          "RD-HGNN (read off)",
+          "$75.6$",
+          "$75.8$",
+          "$76.6$",
+          "$76.5$",
+          "$76.5$",
+          "$76.0$",
+          "$76.7$",
+          "$75.9$",
+          "$76.2$",
+          "$75.3$"
+        ],
+        [
+          "DD-HGNN (read off)",
+          "$74.4$",
+          "$74.5$",
+          "$75.5$",
+          "$75.7$",
+          "$74.6$",
+          "$74.9$",
+          "$74.4$",
+          "$74.9$",
+          "$75.7$",
+          "$74.6$"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Take the range of each curve: RD runs from $75.3$ to $76.7$, a span of $1.4$ points; DD runs from $74.4$ to $75.7$, a span of $1.3$.",
+          "why": "Both spans are of the same order as the per-cell standard deviations elsewhere in the paper — Table VII reports spreads of $2$ to $4$ points on a single cell. So the visible wobble in panel (a) is inside the noise floor: the honest reading is that the curve is flat, not that it peaks at $\\alpha = 7$."
+        },
+        {
+          "md": "Note also that the two curves never cross. DD sits below RD at every one of the ten values, by between $0.5$ and $2.3$ points.",
+          "why": "A consistent ordering across a sweep is itself a useful signal. It means whatever $\\alpha$ does, it does it to both models equally — the gap between them is a property of the models, not of this coefficient."
+        },
+        {
+          "md": "Now ask why, from Equation (6): $\\mu_p(o) = \\alpha / (d(o) + \\beta)$. Here $\\alpha$ sits in the numerator and multiplies *every* weight in the rule-position vector by the same factor. The rule block of a vertex's embedding is scaled uniformly.",
+          "why": "This is the mechanism the paper states: \"the linear nature of alpha's effect across all features, essentially scaling them. Such scaling can be smoothly absorbed by the subsequent HGNN layers.\" A uniform rescaling of a block of features can be undone by the learned linear transform in the next layer, so it changes nothing about what the network can represent. The flat curve is not a coincidence — it is what the formula predicts, and that agreement between the algebra and the plot is the most informative thing in panel (a)."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — panel (b): a knob that matters.** The same two curves, now against $\\beta$."
+    },
+    {
+      "t": "table",
+      "head": [
+        "$\\beta$",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10"
+      ],
+      "rows": [
+        [
+          "RD-HGNN (read off)",
+          "$50.5$",
+          "$54.5$",
+          "$67.0$",
+          "$67.0$",
+          "$68.5$",
+          "$74.0$",
+          "$74.7$",
+          "$75.0$",
+          "$75.7$",
+          "$75.5$"
+        ],
+        [
+          "DD-HGNN (read off)",
+          "$60.0$",
+          "$69.0$",
+          "$73.5$",
+          "$74.8$",
+          "$75.0$",
+          "$74.5$",
+          "$75.8$",
+          "$76.0$",
+          "$76.4$",
+          "$76.0$"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Measure the gap at the low end. At $\\beta = 1$: DD is at about $60.0$ and RD at about $50.5$, so the two curves are separated by roughly $9.5$ points.",
+          "why": "This is a direct test of a sentence in the paper, which says that \"at lower $\\beta$ values, DD-HGNN outperforms RD-HGNN by approximately 10 percentage points under the same conditions\". Read off the plotted curves, the gap at $\\beta = 1$ is about $9.5$ — **the text is right here**, which is worth stating explicitly, because a reader who has just checked several of the paper's other numbers may start expecting every one of them to be wrong. Checking is what tells you which claims to trust, and this one survives."
+        },
+        {
+          "md": "Take each curve's own span: RD falls from about $75.7$ at $\\beta = 9$ down to $50.5$ at $\\beta = 1$ — a $25$-point collapse. DD falls from about $76.4$ to $60.0$ — a $16$-point drop.",
+          "why": "Compare with panel (a)'s spans of $1.3$ and $1.4$. The same equation's two coefficients produce effects differing by more than a factor of fifteen. That asymmetry is the single most important finding in this figure."
+        },
+        {
+          "md": "Explain it from the formula. $\\beta$ is added to the depth *inside a denominator*. Changing it therefore changes the shape of the decay: how much a depth-1 question counts relative to a depth-7 one is a ratio that depends on $\\beta$, and no rescaling downstream can restore it.",
+          "why": "This is the structural reason for the asymmetry, and it is a small worked example of a general principle worth carrying: **a factor that multiplies every coordinate uniformly is absorbable by the next linear layer; a factor that changes the ratios between coordinates is not.** The same principle explains why feature standardisation is harmless before a network and why any monotone transformation of a learned weighting is not."
+        },
+        {
+          "md": "Notice DD's shape as well: it is already near its plateau by $\\beta = 3$ and barely moves afterwards, whereas RD climbs until $\\beta = 6$ or so.",
+          "why": "The paper's interpretation is that DD carries two streams of knowledge, so when the rule stream is degraded at low $\\beta$ the structural stream still holds the score up. This is consistent with everything else in the paper — DD is the more robust model in Table VII, in Table VIII and in panel (c) below — which is the kind of repetition across independent experiments that turns a claim into a finding."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 3 — panel (c): four curves under a bucket of noise.** The noise acts on the features themselves, which are corrupted by $\\tilde{X} = (1 - \\alpha) X + \\alpha \\epsilon$ with $\\epsilon \\sim \\mathcal{N}(0, 0.5)$, where $\\alpha$ in *this* formula is the noise proportion and has nothing to do with the $\\alpha$ of Equation (6)."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**Stop and mark that collision.** The letter $\\alpha$ denotes the position-mapping scale in Equations (6) and (7) — a value in $\\{6, \\dots, 10\\}$ — and, in the noise formula of Section V-D2, the noise proportion — a value in $[0, 1]$. Two different quantities, one symbol, in the same section of the same paper. The ranges make them distinguishable if you are paying attention and the plot is titled with the right one; nothing else does. When you implement this method, name them differently, because a silent symbol collision is exactly the kind of thing that survives a code review."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Noise ratio",
+        "0%",
+        "10%",
+        "20%",
+        "40%",
+        "60%",
+        "80%",
+        "Drop over the range"
+      ],
+      "rows": [
+        [
+          "DD-HGNN",
+          "$75.6$",
+          "$74.3$",
+          "$73.9$",
+          "$72.5$",
+          "$71.6$",
+          "$71.3$",
+          "$\\approx 4.3$"
+        ],
+        [
+          "RD-HGNN",
+          "$74.3$",
+          "$73.5$",
+          "$73.5$",
+          "$72.4$",
+          "$71.8$",
+          "$70.4$",
+          "$\\approx 3.9$"
+        ],
+        [
+          "GBDT",
+          "$72.5$",
+          "$71.5$",
+          "$70.5$",
+          "$67.5$",
+          "$66.5$",
+          "$65.5$",
+          "$\\approx 7.0$"
+        ],
+        [
+          "HGNN",
+          "$73.5$",
+          "$71.0$",
+          "$70.0$",
+          "$67.0$",
+          "$64.0$",
+          "$57.5$",
+          "$\\approx 16.0$"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "At 0% noise, in descending order: DD $75.6$, RD $74.3$, HGNN $73.5$, GBDT $72.5$.",
+          "why": "Note that HGNN already beats GBDT before any noise is added, by about a point — which is the paper's own stated premise for this experiment: \"while HGNN outperforms GBDT in the absence of noise, its performance drops significantly with increased noise due to its smoothing mechanism.\""
+        },
+        {
+          "md": "At 80% noise the order is DD $71.3$, RD $70.4$, GBDT $65.5$, HGNN $57.5$. HGNN has gone from second place among the four to last, by a margin of nearly eight points over the next-worst curve.",
+          "why": "The crossing happens between 20% and 40% for GBDT-versus-HGNN. An ordinal reversal in a sweep is a much stronger statement than a difference in endpoints, because it cannot be produced by an offset — the two methods genuinely respond differently to the manipulation."
+        },
+        {
+          "md": "Read the two proposed models against the two baselines: DD loses about $4.3$ points across the whole noise range, RD about $3.9$, GBDT about $7.0$, and HGNN about $16.0$.",
+          "why": "The paper's summary is that the proposed methods \"combine the strengths of both HGNN and GBDT, exhibiting only a slight performance decline\". The numbers support it, and the sharper form is this: **the proposed models decline less than either baseline, and they start higher than both.** Read the endpoints to see it — at 80% noise DD is at $71.3$ and RD at $70.4$, while GBDT has fallen to $65.5$ and HGNN to $57.5$. DD's worst point is nearly six points above GBDT's worst and nearly fourteen above HGNN's, having started under three points above GBDT."
+        },
+        {
+          "md": "Ask why HGNN is the fragile one, using mechanism rather than curve shape. HGNN's only operation is averaging a vertex's features with those of its hyperedge members.",
+          "why": "Averaging is a filter that attenuates a signal's deviation from the local mean — which is exactly what noise is. Worse, along a hypergraph the averaging is *iterated*, so a noisy coordinate is not only smoothed but spread to neighbours. GBDT never averages, because each tree reads one feature at a time and splits on a threshold; a corrupted coordinate can only affect the splits that read it. The knowledge embedding gives DD access to a structural stream — how many hyperedges a vertex sits in — which is computed from the incidence matrix and therefore completely untouched by feature noise. That is a clean mechanism story, and it is what makes the panel more than a curve comparison."
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**What this figure establishes and what it does not.** Established: the model is insensitive to $\\alpha$, sensitive to $\\beta$, and markedly more noise-robust than a plain hypergraph network. Not established: *how* the $\\beta$ sensitivity interacts with the other hyperparameters. All three panels in this figure vary one axis at a time on one dataset (the ablation venue is CC-Cora, as Table VII and VIII confirm), so the flatness of a curve is flatness conditional on every other setting held at its chosen value — and a hyperparameter that is inert alone can matter in combination. A one-dimensional sweep is a screen, not a guarantee, and the difference between the two is precisely what a factorial design exists to close."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why is the model insensitive to $\\alpha$ but strongly sensitive to $\\beta$?",
+      "opts": [
+        {
+          "md": "Because $\\alpha$ is searched over a wider grid than $\\beta$",
+          "expl": "Both are grid-searched over the same set, $\\{6, \\dots, 10\\}$, and both panels sweep them over 1 to 10. The cause is their position in Equation (6), not the size of the search."
+        },
+        {
+          "md": "Because $\\alpha$ scales every coordinate uniformly and the next layer can undo that, while $\\beta$ changes the ratios between depths and nothing downstream can undo that",
+          "correct": true,
+          "expl": "Correct. In $\\mu_p(o) = \\alpha / (d(o) + \\beta)$, $\\alpha$ is a common factor on the whole rule-position block; a uniform rescaling is absorbable by the following learned linear map. $\\beta$ sits inside the denominator next to the depth, so it sets how much a shallow rule outranks a deep one — a ratio no rescaling can restore."
+        },
+        {
+          "md": "Because $\\beta$ appears in the loss function and $\\alpha$ does not",
+          "expl": "Neither appears in the loss. Both are constants inside the position mapping, which shapes the input features; neither is differentiated with respect to anything."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "In panel (b), by roughly how many percentage points do the DD-HGNN and RD-HGNN curves differ at $\\beta = 1$? Give your read-off to the nearest point.",
+      "answer": 9.5,
+      "tol": 1.5,
+      "hint": "Find the leftmost point of each curve. One sits on the 60 gridline of the vertical axis; the other sits just above the 50 gridline.",
+      "sol": "DD at $\\beta = 1$ reads about $60.0$ and RD about $50.5$, a gap of roughly $9.5$ points. The paper's text says the two differ \"by approximately 10 percentage points\" at low $\\beta$, and the plot agrees — this is one of the paper's stated comparative claims that does reproduce from its own figure.",
+      "unit": "points"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "In panel (c), by roughly how many percentage points does the HGNN curve (blue inverted triangles) fall between 0% and 80% noise? Give your read-off to the nearest point.",
+      "answer": 16,
+      "tol": 2,
+      "hint": "HGNN starts just above the 70 gridline and ends slightly below the 60 gridline. The vertical axis spans 50 to 75 across the full panel height, so count gridlines rather than guessing.",
+      "sol": "HGNN reads about $73.5$ at 0% and about $57.5$ at 80%, a fall of roughly $16$ points. For comparison, DD falls about $4.3$ and GBDT about $7.0$ over the same range. Remember when reading the horizontal positions that the labelled points are $0, 10, 20, 40, 60, 80$ — the spacing between labels is not uniform, so a slope estimated between the 20 and 60 labels is roughly twice the true per-percent slope.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You plan to apply this method to a dataset whose features are known to be noisy sensor readings. On the evidence of Figure 3, which part of the framework is doing the work of protecting you, and what does that imply about how you should configure it?",
+      "opts": [
+        {
+          "md": "The rule stream, so the number of trees should be increased",
+          "expl": "The rule stream reads the features — every tree splits on feature values — so noise propagates through it. Increasing the tree count adds capacity, which at high noise can fit the noise; Table VII already shows RD degrading at 200 trees."
+        },
+        {
+          "md": "The structural stream, since it is computed from the incidence matrix and never reads a feature value — so the dual model, which keeps that stream separate, is the one to prefer",
+          "correct": true,
+          "expl": "Correct, and the distinction between the two streams is the transferable part. Each vertex's structural encoding counts hyperedge memberships, a quantity derived from the graph alone; no amount of feature corruption touches it. The DD variant fuses that stream with the rule stream rather than replacing it, which is why panel (c) puts DD on top at every noise level while HGNN — which has no such stream — collapses. The practical inference: on noisy features the choice of variant matters more than the tuning of either coefficient in Figure 3."
+        },
+        {
+          "md": "Neither stream; the noise robustness comes from the fusion layer's Hadamard product",
+          "expl": "The Hadamard product is the mechanism by which the two streams are combined, not a source of robustness. It is a gate that a stream's own content opens or closes; if there were two noisy streams to combine, it would have nothing clean to protect."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why can the visible wobble in panel (a) not be read as an optimal value of $\\alpha$?",
+      "opts": [
+        {
+          "md": "Because the curve is plotted on too coarse a grid to see a peak",
+          "expl": "Ten points across a 1-to-10 range is a fine grid relative to the effect size. The problem is not resolution but signal: the effect being looked for is smaller than the spread of the underlying measurements."
+        },
+        {
+          "md": "Because the span of the curve, about 1.4 points, is comparable to the per-cell standard deviations elsewhere in the paper, so the wobble is inside the noise floor",
+          "correct": true,
+          "expl": "Correct. Table VII, for instance, reports single-cell standard deviations of $2$ to $4$ points. A $1.4$-point difference between two points on a curve is therefore not distinguishable from run-to-run variation. Reading an argmax off such a curve would be reading the seed rather than the model."
+        },
+        {
+          "md": "Because the two curves in the panel are drawn for different datasets",
+          "expl": "The Hadamard product — the element-wise multiplication of the two knowledge streams — is the mechanism by which they are combined, not a source of robustness. It is a gate that one stream's content opens or closes over the other; if both streams carried noise, it would have nothing clean to protect."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Table VII, where the same question is asked of the tree ensemble — how many trees should the rule encoder mine, and what happens on either side of the answer."
+}

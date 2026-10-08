@@ -1,0 +1,281 @@
+{
+  "id": "95p",
+  "kind": "practice",
+  "for": "95",
+  "chapter": "experiments",
+  "section": "6.7 Table VI · practice",
+  "kicker": "6.7 · Practice",
+  "title": "Practice: three rows per dataset, two reference models, one footer that misleads",
+  "what": [
+    {
+      "t": "p",
+      "md": "Table VI is the most structured table in the paper and the one most likely to be misread, because it has three layers of convention stacked on top of each other. Names first: **GBDT** is the gradient-boosted decision tree ensemble baseline and **HGNN** the hypergraph neural network baseline whose propagation is the paper's Equation (1); **RD-HGNN** and **DD-HGNN** are the paper's two models, differing only in whether the rule stream alone or the rule and structural streams together are fused into the network's input. Under the **transductive** setting every test vertex is present in the graph during training with its label withheld; under the **inductive** setting a held-out fraction of the test vertices — here about 40% — are absent entirely, links included; the **production** setting scores both halves together. Card 95 worked through the delta columns and the GitHub anomaly. This set builds the same reflexes on rows that card did not use."
+    },
+    {
+      "t": "p",
+      "md": "Four things to hold, all established in card 95:"
+    },
+    {
+      "t": "p",
+      "md": "**The ten production rows of Table VI**, transcribed so that every item below can be worked from this card alone. Table VI's footer prints four average ranks ($4.0$, $2.8$, $1.7$, $1.5$ for GBDT, HGNN, RD and DD) and two average point differences ($+6.31$, $+2.53$)."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Dataset (production row)",
+        "GBDT",
+        "HGNN",
+        "RD-HGNN",
+        "DD-HGNN",
+        "$\\Delta_{GBDT}$",
+        "$\\Delta_{HGNN}$"
+      ],
+      "rows": [
+        [
+          "Cora",
+          "$74.30$",
+          "$81.91$",
+          "$88.25$",
+          "$86.48$",
+          "$+13.95$",
+          "$+6.34$"
+        ],
+        [
+          "GitHub",
+          "$85.69$",
+          "$86.05$",
+          "$85.93$",
+          "$85.96$",
+          "$+0.26$",
+          "$+0.00$"
+        ],
+        [
+          "Amazon-P",
+          "$91.58$",
+          "$93.29$",
+          "$94.82$",
+          "$94.66$",
+          "$+3.24$",
+          "$+1.53$"
+        ],
+        [
+          "Amazon-C",
+          "$85.58$",
+          "$87.08$",
+          "$91.89$",
+          "$91.40$",
+          "$+6.31$",
+          "$+4.80$"
+        ],
+        [
+          "CA-Cora",
+          "$71.69$",
+          "$75.82$",
+          "$79.85$",
+          "$80.14$",
+          "$+8.45$",
+          "$+4.32$"
+        ],
+        [
+          "DBLP-Conf",
+          "$79.77$",
+          "$93.59$",
+          "$94.51$",
+          "$94.74$",
+          "$+14.97$",
+          "$+1.14$"
+        ],
+        [
+          "CC-Cora",
+          "$71.69$",
+          "$73.36$",
+          "$74.84$",
+          "$75.72$",
+          "$+4.03$",
+          "$+2.35$"
+        ],
+        [
+          "Tencent",
+          "$92.85$",
+          "$93.72$",
+          "$95.40$",
+          "$95.65$",
+          "$+2.79$",
+          "$+1.92$"
+        ],
+        [
+          "ModelNet40",
+          "$95.31$",
+          "$97.62$",
+          "$97.93$",
+          "$98.08$",
+          "$+2.77$",
+          "$+0.45$"
+        ],
+        [
+          "Heloc",
+          "$69.90$",
+          "$68.22$",
+          "$72.55$",
+          "$72.27$",
+          "$+2.65$",
+          "$+4.33$"
+        ]
+      ]
+    },
+    {
+      "t": "list",
+      "ordered": true,
+      "items": [
+        "**Three settings per dataset.** The production row blends the transductive and inductive rows, so it is a weighted combination and not equal to either.",
+        "**Each delta is computed from whichever of RD and DD scores higher on that row** — verified on twenty-nine of thirty rows. The reference model therefore changes as you read down the column.",
+        "**A delta column is not a measurement of one model.** It cannot be averaged with the delta of a different row's reference model as though it were.",
+        "**The footer row mixes units.** Four numbers are average ranks; two are average point differences. They are not the same kind of quantity and do not belong to one family."
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "The single most useful habit for this table: **before reading any delta, recompute one.** Pick a row at random, take the higher of RD and DD, subtract the baseline, and compare. One recomputation tells you the convention for the whole column."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**One fully worked prototype.** Take Heloc's production row: GBDT $69.90$, HGNN $68.22$, RD-HGNN $72.55$, DD-HGNN $72.27$, with printed $\\Delta_{GBDT} = +2.65$ and $\\Delta_{HGNN} = +4.33$."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Identify the candidate models. RD scores $72.55$, DD scores $72.27$. RD is the higher of the two on this row.",
+          "why": "This step has to come first, because the convention is \"the better of the two\", and on Heloc the better one is RD — the opposite of the hypergraph datasets, where DD usually wins."
+        },
+        {
+          "md": "Compute both deltas from RD: $72.55 - 69.90 = 2.65$ and $72.55 - 68.22 = 4.33$.",
+          "why": "Both match the printed values exactly. Two matching cells in one row is much stronger evidence for the convention than one, because a wrong reference model rarely produces two coincidental matches."
+        },
+        {
+          "md": "Check what DD would have given, as a control: $72.27 - 69.90 = 2.37$ and $72.27 - 68.22 = 4.05$. Neither is printed.",
+          "why": "Working out the wrong answer as well as the right one is what makes the identification conclusive rather than merely consistent. On Cora the roles reverse — that is exactly what card 95 used to establish the convention."
+        },
+        {
+          "md": "Read the three settings together: Heloc production $72.55$, transductive $72.56$, inductive $72.53$ for RD.",
+          "why": "All three are within $0.03$ of each other, which is the substantive finding about Heloc: this dataset is one where hiding 40% of the test vertices costs the model essentially nothing. That is not true of every row, and the three-row format is what makes the difference visible."
+        }
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "On a given dataset's production row, why can the production accuracy not be computed as the average of the transductive and inductive accuracies?",
+      "opts": [
+        {
+          "md": "Because they are measured on different graphs and different vertex sets",
+          "expl": "True, and a real complication — but it is not the reason the average fails. The reason is arithmetic: the two halves are of unequal size."
+        },
+        {
+          "md": "Because the two test halves differ in size, so the combined score is a weighted blend rather than an unweighted average",
+          "correct": true,
+          "expl": "Correct. On Cora the halves are 244 and 162, so a 60/40 weighting applies; an unweighted mean would give the smaller inductive half the same influence as the larger transductive one. On a dataset where the two scores differ a lot, this moves the answer by more than a point."
+        },
+        {
+          "md": "Because the production numbers are computed from a different random seed",
+          "expl": "All three rows come from the same five-seed runs over the same trained models. The difference between them is which vertices are being scored, not how the model was trained."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Table VI's footer prints four average ranks and two average point differences under one heading. Why can those six numbers not be read as one family?",
+      "opts": [
+        {
+          "md": "Because they were computed over different numbers of datasets",
+          "expl": "They are all computed over the same ten datasets. The difference between them is what each one measures, not how many rows it averaged."
+        },
+        {
+          "md": "Because an average rank and an average point difference are different units — one records a placement among four methods, the other a margin in accuracy points",
+          "correct": true,
+          "expl": "Correct. $1.7$ means \"on average second-best of four\", while $+6.31$ means \"so many accuracy points ahead\". They do not add, do not average together, and cannot be compared in size — a rank of $1.0$ is perfect and a delta of $+1.0$ is nearly nothing. Mixing the two under one heading is a presentational choice that invites a reader skimming the bottom row to read six numbers as one family; on this footer it is made worse by the fact that the two delta averages do not reproduce from the cells above them."
+        },
+        {
+          "md": "Because ranks are rounded to one decimal and deltas to two",
+          "expl": "The precision differs, and that is a symptom of the two being different quantities rather than the reason. Rounding cannot make a placement and a margin into the same kind of number."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Github's inductive row prints GBDT $85.51$, HGNN $86.13$, RD-HGNN $85.58$, DD-HGNN $85.72$. What is the correct $\\Delta_{HGNN}$ from these cells? Give two decimals, with the sign.",
+      "answer": -0.41,
+      "tol": 0.02,
+      "hint": "Take the better of the two proposed models on this row, then subtract the HGNN column. The answer is negative — which is the interesting part.",
+      "sol": "DD at $85.72$ beats RD at $85.58$, so the reference is DD: $85.72 - 86.13 = -0.41$. The paper prints $-0.40$, a rounding difference. **The sign is the finding.** Github is the dataset where the proposed method loses to a plain structural baseline, and it does so under every setting — which is why the paper's claim that the method wins \"across diverse datasets\" needs reading alongside this row.",
+      "unit": "points"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Cora's transductive row prints GBDT $74.04$ with $\\Delta_{GBDT} = +14.84$. What is $74.04 + 14.84$? Give two decimals.",
+      "answer": 88.88,
+      "tol": 0.02,
+      "hint": "Straight addition. The result is within 0.01 of one of the four accuracies printed on that row — which is how it identifies the reference model.",
+      "sol": "$74.04 + 14.84 = 88.88$, and the row's RD-HGNN cell prints $88.89$ — the 0.01 gap is the paper's delta being computed from the unrounded accuracy. So the reference model on Cora's transductive row is RD, which is consistent with Cora being a dataset where RD beats DD. Working in this direction (delta plus baseline, then identify) is faster than testing both candidates whenever the printed delta is large relative to the gap between RD and DD.",
+      "unit": "accuracy"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "The ten production rows print $\\Delta_{GBDT}$ values of $13.95$, $0.26$, $3.24$, $6.31$, $8.45$, $14.97$, $4.03$, $2.79$, $2.77$ and $2.65$. What is their mean? Give two decimals.",
+      "answer": 5.94,
+      "tol": 0.03,
+      "hint": "Add the ten values, then divide by ten. The footer of Table VI prints a different number for this quantity.",
+      "sol": "The ten values sum to $59.42$, so the mean is $5.942 \\rightarrow 5.94$. Table VI's footer prints $+6.31$ — which is not the mean of this column, and is in fact the value of one of its own cells, the Amazon-C production row. Identical treatment of the $\\Delta_{HGNN}$ column gives $2.72$ against a printed $2.53$. Both footer averages are unreproducible from the cells above them.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "apply",
+      "q": "A reader adopts Table VI's printed footer value $6.31$ and reports that the proposed method beats GBDT by $6.31$ points on average. What is wrong with that claim?",
+      "opts": [
+        {
+          "md": "Nothing — 6.31 is the paper's own printed average",
+          "expl": "It is printed, and the printed value does not reproduce from the cells it summarises: over the ten production rows those give $5.94$. Adopting a paper's printed average without checking it is precisely the failure this practice set is built to remove."
+        },
+        {
+          "md": "The mean is taken over a column whose reference model changes from row to row, so it is not an average of one method's performance",
+          "correct": true,
+          "expl": "Correct, and this is the deeper problem — it would remain even if the arithmetic came out clean. On some rows the delta measures RD's margin, on others DD's. Averaging them produces a quantity that corresponds to no model that exists. The $5.94/6.31$ mismatch is a symptom; the mixed reference is the disease."
+        },
+        {
+          "md": "The mean should be over all thirty rows, not the ten production rows",
+          "expl": "A defensible alternative aggregation, and doing it still does not give $6.31$ — the twenty transductive and inductive rows push the mean to about $6.04$. More importantly it does not fix the mixed-reference problem: those rows have the same issue, since the reference model switches on them too."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You are asked to review a submission whose headline claim is \"our method improves accuracy by 7.4% on average\". The paper supplies a per-dataset results table. Which single check most efficiently tests the claim?",
+      "opts": [
+        {
+          "md": "Confirm that 7.4 appears in the abstract and the conclusion consistently",
+          "expl": "Internal consistency of a repeated claim is worth a glance, but two occurrences of the same number are not independent evidence — both are usually copied from one place. This check cannot catch a value that is wrong at its source."
+        },
+        {
+          "md": "Recompute the average from the per-dataset cells, first establishing which of the authors' models each reported margin refers to",
+          "correct": true,
+          "expl": "Correct, and the ordering is the point. Establish the *definition* of the averaged quantity before computing it, because a claim like \"7.4% on average\" hides at least three choices: which of the authors' models, which baseline, and which aggregation over datasets. Each choice can move the number by a point or more. This is exactly the sequence that exposed the delta columns here: recompute first, then ask what was recomputed."
+        },
+        {
+          "md": "Check whether the improvement exceeds the reported standard deviations",
+          "expl": "A good question, and the *second* one. Significance testing is only meaningful once the quantity being tested is pinned down; establishing that an underspecified number is statistically significant is not progress."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the ablation studies, where the paper tests its own components — beginning with Figure 3's three panels, which sweep the two position-mapping coefficients and then pour noise into the features."
+}

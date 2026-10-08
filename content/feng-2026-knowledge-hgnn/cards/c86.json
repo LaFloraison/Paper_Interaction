@@ -1,0 +1,269 @@
+{
+  "id": "86",
+  "kind": "experiment",
+  "chapter": "experiments",
+  "section": "6.1 The baselines",
+  "kicker": "6.1 · Baselines",
+  "title": "The five baselines, one at a time — and what beating each one actually proves",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "A **baseline** is a method included in a comparison so that a new method's performance can be interpreted against something other than zero. The paper uses five. **Feature-only baselines** — a multilayer perceptron (MLP, the simplest feed-forward neural network: a stack of dense layers) and gradient-boosted decision trees (GBDT, an ensemble of small trees each fitted to what the previous ones got wrong; cards 13–16) — read each vertex's feature vector and ignore the relations entirely. **Structure-only baselines** — a graph convolutional network (GCN, which averages each vertex with its pairwise neighbours) and a hypergraph neural network (HGNN, the model whose propagation is this paper's Equation (1), taken apart in card 61) — read the relations and use the features only as inputs to propagate. **A hybrid baseline**, DeepTLF (abbreviated TLF), combines a tree ensemble with a neural network, and is the closest existing method in design to this paper's rule encoder. The two models being proposed are RD-HGNN and DD-HGNN (cards 74 and 75): both prepend a knowledge-embedding stage to the same hypergraph network, RD taking the rule stream alone and DD taking the rule and structural streams together. A **hyperedge** is a link that can join any number of vertices at once, rather than exactly two — the paper's central object, defined in card 12.",
+      "plain": "Five opponents, chosen so that each one answers a different question. Two of them see only the features, two see only the structure, and one already does something close to what this paper does."
+    },
+    {
+      "t": "p",
+      "md": "**Why three families rather than five strong methods.** A baseline set is an argument, and its shape determines which conclusions the experiment can support. If every baseline were strong on the same axis, a win would leave open whether the gain came from that axis or from something else. By including methods blind to structure and methods blind to everything but structure, the paper can attribute a gain: beating MLP or GBDT shows the relations matter, beating GCN or HGNN shows the knowledge embedding adds something beyond the relations."
+    },
+    {
+      "t": "p",
+      "md": "**The one that is not a weak opponent.** It is tempting to treat feature-only methods as padding, on the reasoning that anything using the graph should beat anything that does not. On these datasets that reasoning is wrong for GBDT. Gradient-boosted trees are among the strongest available methods on tabular data — a point the paper makes itself — and the same ensemble, pre-trained on the same features, is the *source* of this paper's rule embedding. So the GBDT column is not a floor being cleared; it is the accuracy of the component the method is built from, measured on its own."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Baseline",
+        "Family",
+        "Sees features?",
+        "Sees relational structure?",
+        "What beating it establishes"
+      ],
+      "rows": [
+        [
+          "MLP",
+          "Feature only",
+          "yes",
+          "no",
+          "that the task is not solved by features alone"
+        ],
+        [
+          "GBDT",
+          "Feature only",
+          "yes",
+          "no",
+          "that the graph contributes beyond the strongest tabular method available"
+        ],
+        [
+          "GCN",
+          "Structure only",
+          "as inputs",
+          "pairwise edges",
+          "that hyperedges carry information pairwise edges miss"
+        ],
+        [
+          "HGNN",
+          "Structure only",
+          "as inputs",
+          "hyperedges",
+          "**that the knowledge embedding contributes beyond the convolution it is prepended to**"
+        ],
+        [
+          "TLF",
+          "Hybrid (a tree ensemble feeding a network)",
+          "yes",
+          "no",
+          "that encoding rules explicitly beats routing them through a network as a preprocessing stage"
+        ]
+      ]
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — the two structure-only baselines, and which comparison does the work.** GCN and HGNN look similar in a results table and are doing different jobs."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "GCN operates on pairwise edges. Applied to a hypergraph dataset it must first flatten the hypergraph into a graph, which means expanding each hyperedge into the pairs it contains — the clique expansion. That expansion is many-to-one: dozens of different hyperedge sets can produce the same graph, and the expansion cannot be inverted.",
+          "why": "So GCN's presence tests how much the pairwise approximation loses. CA-Cora is one of the six datasets in Table X — the table walked in card 100, whose columns are datasets rather than methods — where HGNN is at $75.67$ and GCN at $75.23$, a gap of $0.44$ points. Small, which is itself informative: on this dataset the pairwise approximation is not costing much, so a reader should not expect large gains from hypergraph structure here."
+        },
+        {
+          "md": "HGNN is the model whose convolution is this paper's Equation (1) — the propagation rule $X \\leftarrow D_v^{-1/2} H D_e^{-1} H^{\\mathsf T} D_v^{-1/2} X \\Theta$, taken apart symbol by symbol in card 61. The framework does not replace it: it prepends two encoders and a fusion layer to it.",
+          "why": "That makes HGNN the decisive baseline of the whole paper. Comparing DD-HGNN against HGNN holds the backbone fixed and varies only whether the knowledge encoders are present, so the difference is attributable to them. On Table V's column means that difference is $87.648 - 85.529 = 2.119$ points. **If one comparison in this paper carries the claim, it is this one** — and it is also the comparison Section V-B states loosely: the abstract quotes a figure of $2.28$ for a quantity the same paper's table gives as $2.12$."
+        },
+        {
+          "md": "Notice what the other baselines cannot do. Beating MLP shows structure is worth something — but the method would also beat MLP if only HGNN were doing the work. Beating GBDT shows the graph helps — but again, HGNN alone would show that.",
+          "why": "This is the general logic of controlled comparison: **a baseline earns its place by ruling out a specific alternative explanation.** MLP rules out \"features suffice\"; GBDT rules out \"the strongest feature-only method suffices\"; GCN rules out \"pairwise structure suffices\"; HGNN rules out \"the convolution alone suffices\". Each answers a question the others leave open, which is why five baselines from three families is a design rather than a list."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — TLF, the nearest relative, and an awkward result.** TLF also combines a tree ensemble with a neural network, which makes it the baseline whose success or failure bears most directly on this paper's novelty claim."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Method",
+        "Family",
+        "Mean accuracy over Table V",
+        "Average rank"
+      ],
+      "rows": [
+        [
+          "DD-HGNN",
+          "proposed",
+          "$87.648$",
+          "$1.5$"
+        ],
+        [
+          "RD-HGNN",
+          "proposed",
+          "$87.602$",
+          "$1.7$"
+        ],
+        [
+          "HGNN",
+          "structure only",
+          "$85.529$",
+          "$3.3$"
+        ],
+        [
+          "GCN",
+          "structure only",
+          "$84.805$",
+          "$3.9$"
+        ],
+        [
+          "GBDT",
+          "feature only",
+          "$81.992$",
+          "$5.1$"
+        ],
+        [
+          "MLP",
+          "feature only",
+          "$80.254$",
+          "$5.8$"
+        ],
+        [
+          "**TLF**",
+          "**hybrid**",
+          "**$77.720$**",
+          "**$6.1$**"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**TLF is the weakest of the seven baselines — last by mean and last by average rank — while being the one designed most like this paper's method.** That is a fact worth stating plainly rather than glossing, and it has two readings. The uncharitable one is that the comparison is uninformative: a hybrid method that fails on these datasets tells you nothing about whether hybrid methods work. The charitable one, which the paper's own framing supports, is that TLF is built for **heterogeneous tabular data** — its selling point is handling mixed column types — while these datasets offer sparse bag-of-words features and a graph, which is not its setting. Neither reading is verifiable from the paper, because it reports no TLF result on a dataset where TLF is at its best. **A baseline that is weak in the setting where it was designed is not evidence for anything**, and the paper's related-work section argues its difference from TLF on design grounds without addressing the score."
+    },
+    {
+      "t": "p",
+      "md": "**Walk 3 — the baseline that is not in the tables.** The related-work section also positions the paper against BGNN, which bolted a tree ensemble onto a graph network. BGNN does not appear in any results table, so the comparison is argued rather than measured."
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "BGNN's use of the trees is as a translator: it takes heterogeneous table features, passes them through the tree ensemble, and hands the *outputs* to the graph network as a uniform feature representation.",
+          "why": "That is a real and useful thing to do. It solves the problem of mixing column types, which is why it was proposed."
+        },
+        {
+          "md": "This paper's use of the trees is as a source of rules: it walks each pre-trained tree, records for every internal node whether the vertex satisfied that node's split condition — a 0 or a 1 — and records how deep the node sits, then weights the bits by that depth.",
+          "why": "The distinction is what goes into the ledger. BGNN keeps the ensemble's final score or its leaf assignment, which is a small number of values per vertex; this paper keeps one bit per question node, which is a much longer and more specific description of *why* the vertex landed where it did. The paper's own formulation of the difference is that BGNN uses the tree's outputs while this paper uses the tree's questions."
+        },
+        {
+          "md": "Ask what the missing comparison costs.",
+          "why": "If BGNN is the nearest predecessor, then the paper's claim to novelty rests on a difference that no table measures. The design argument is specific and checkable in principle — the two methods extract different objects from the same ensemble — but a reader cannot see from the results whether the longer ledger is what produces the gain or whether either tree-based variant would have sufficed. **A missing baseline converts a measured claim into an argued one**, and the paper's strongest evidence is all against baselines it does include."
+        }
+      ]
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "MLP and GBDT are both feature-only baselines. Why include the second one rather than only the simpler?",
+      "opts": [
+        {
+          "md": "To pad the comparison with methods that are easy to beat",
+          "expl": "GBDT is not easy to beat on tabular data, and the paper's own rule encoder is built from the same ensemble. Including a weak baseline lowers the bar; including GBDT raises it, and it is the more informative of the two."
+        },
+        {
+          "md": "Because MLP sets a low floor and GBDT a high one, so the pair shows how much of the gain over MLP is really coming from features rather than from structure",
+          "correct": true,
+          "expl": "Correct. The two differ in strength — MLP sets a low feature-only floor, GBDT a high one — and having both lets a reader see how much of the gain over MLP is really coming from features rather than from structure. On Table V's column means that distinction is worth $80.254$ to $81.992$, i.e. $1.74$ points."
+        },
+        {
+          "md": "Because MLP is needed for the inductive setting and GBDT for the transductive one",
+          "expl": "Both are run in both settings. Neither method has a structural assumption that would restrict it to one protocol; MLP and GBDT consume feature matrices and know nothing about how the vertices are connected."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Which single comparison in the paper's experiments most directly supports the claim that the knowledge-embedding stage improves hypergraph learning?",
+      "opts": [
+        {
+          "md": "DD-HGNN against MLP",
+          "expl": "It supports a much weaker claim, because the comparison varies two things at once: DD-HGNN has both a hypergraph backbone and the knowledge embedding, while MLP has neither. A win leaves open which of the two produced it."
+        },
+        {
+          "md": "DD-HGNN against HGNN",
+          "correct": true,
+          "expl": "Correct. The two models differ only in whether the knowledge encoders and fusion layer are present — the backbone, the data, the protocol and the evaluation are identical. Table V's column means put the gap at $87.648 - 85.529 = 2.119$ points. This is the paper's central comparison, and it is also the one whose quoted value in Section V-B, $2.28$, does not reproduce from the table."
+        },
+        {
+          "md": "DD-HGNN against GBDT",
+          "expl": "A large gap — $5.656$ points on the column means — and it varies the backbone as well as the embedding. It answers \"is this better than the strongest feature-only method\", which is a fine question and not the one about the embedding's contribution."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "What is the gap between RD-HGNN's column mean ($87.602$) and GBDT's column mean ($81.992$)? Give three decimals.",
+      "answer": 5.61,
+      "tol": 0.06,
+      "hint": "Both are means over the same ten datasets, so subtract directly. Expect a value around five points — this is the feature-only comparison, not the backbone comparison.",
+      "sol": "$87.602 - 81.992 = 5.610$ points. Note which comparison this is: RD-HGNN against the strongest feature-only method, which varies both the backbone and the knowledge embedding. That is why it is larger than the $2.119$ gap against HGNN — it answers \"is this better than the best tabular method\", not \"did the embedding contribute\". The paper's text quotes $5.86$ for this comparison, which does not reproduce from the cells.",
+      "unit": "points"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You are reviewing a submission whose method combines two existing components. Which baseline choice most strengthens the submission's claim that the combination is the contribution?",
+      "opts": [
+        {
+          "md": "A large set of diverse published methods, to show broad superiority",
+          "expl": "A broad set shows the combination is competitive but does not isolate the contribution — each comparison varies many things at once. Breadth and attribution are different goals, and a strong submission usually needs both, in different tables."
+        },
+        {
+          "md": "Component-only baselines that hold everything else fixed, plus at least one baseline that already attempts the same combination",
+          "correct": true,
+          "expl": "Correct, and the second half is the one usually missing. Holding components fixed gives attribution — the a-versus-ablation table that shows each piece earns its place. A baseline that already combines the same two things answers the question a reader asks next: **if this combination is the contribution, why does the closest existing combination not already work?** This paper supplies the first — HGNN is exactly its component-only baseline — but its nearest combinatorial predecessor, BGNN, appears only in the related-work prose and in no table at all, so the second question is answered by argument rather than measurement."
+        },
+        {
+          "md": "The strongest reported result on each dataset, regardless of whether the code is available",
+          "expl": "Using numbers from papers whose code you cannot run makes for an untunable comparison, and the setting often differs in ways that a table cannot show. It also does not address attribution at all."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "A baseline in a paper you are reading scores far below everything else, including methods it should plausibly beat. What is the most useful response?",
+      "opts": [
+        {
+          "md": "Conclude that the baseline is weak and ignore it in the discussion",
+          "expl": "Ignoring it discards a signal. A method that underperforms where its own design predicts it should do well is either misconfigured, evaluated outside its intended setting, or being reported from a different source — and each of those has consequences for how much the comparison is worth."
+        },
+        {
+          "md": "Check whether it was run in the setting it was designed for, and treat the comparison as evidence only if it was",
+          "correct": true,
+          "expl": "Correct. A baseline's result is only evidence about a method if the method was given a fair chance in its own conditions; otherwise the comparison measures the mismatch between settings. The transferable habit is to ask what each baseline was *built* for before reading its score. Here TLF is built for heterogeneous tabular data and finishes last of seven on sparse bag-of-words features attached to a graph — a result that says little about hybrid tree-network methods and a great deal about the importance of matching a baseline to its setting."
+        },
+        {
+          "md": "Recompute the baseline's score from its own paper",
+          "expl": "Worth doing if you suspect a transcription error, which is a real possibility — this site's critique chapter found two such cases in these very tables. But recomputation answers \"is the number right\", not \"is the comparison fair\", and here the fairness question is the larger one."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Table I, the ten datasets themselves — where the first audit item appears, in the form of two degree columns that turn out to be computed under different conventions."
+}

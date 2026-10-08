@@ -36,15 +36,12 @@ function goCard(n) {
   }
   piGet('progressFill').style.width = ((n + 1) / PI.cards.length * 100) + '%';
   piGet('pageNum').textContent = (n + 1) + ' / ' + PI.cards.length;
-  var items = document.querySelectorAll('#outlineList li[data-idx]');
-  for (i = 0; i < items.length; i++) {
-    if (parseInt(items[i].getAttribute('data-idx'), 10) === n) { items[i].classList.add('here'); }
-    else { items[i].classList.remove('here'); }
-  }
+  markOutlineHere();
   piGet('navPrev').disabled = (n === 0);
   piGet('navNext').textContent = (n === PI.cards.length - 1) ? 'Finish ✓' : 'Continue →';
   piGet('cardArea').scrollTop = 0;
   showChapter();
+  paperSync();
   PI.pm.save({ card: n, done: (n === PI.cards.length - 1) });
   if (typeof onCardChange === 'function') { onCardChange(n); }
 }
@@ -66,31 +63,306 @@ function showChapter() {
   el.innerHTML = '<b>' + num + ' ' + name + '</b>' + (sec ? ' · ' + sec : '');
 }
 
-/* ---------- 大纲（章 → 卡） ---------- */
+/* ============================================================
+ * Paper_Interaction core v5.1 — 覆盖片断
+ * 1) 大纲：章 → 节 → 卡 三级，可折叠；编号在节内部（1.1 / 1.2），不整体累计
+ * 2) 原 PDF 对照栏：左卡右页，双向跳转；卡声明的矩形在页面上高亮
+ * 铁律: 0 反引号 / 无 IIFE / 全局函数 / addEventListener
+ * ============================================================ */
+
+/* ---------- 大纲：章 → 节 → 卡，可折叠 ---------- */
+function outlineState() {
+  try {
+    var raw = localStorage.getItem('pi-outline-' + PI.slug);
+    if (raw) { return JSON.parse(raw); }
+  } catch (e) { }
+  return { closed: {} };
+}
+function saveOutlineState(st) {
+  try { localStorage.setItem('pi-outline-' + PI.slug, JSON.stringify(st)); } catch (e) { }
+}
+function outlineKey(kind, a, b) { return kind + '|' + a + '|' + b; }
+function makeToggleGroup(li, key) {
+  return function (ev) {
+    if (ev) { ev.stopPropagation(); }
+    var st = outlineState();
+    var body = li.querySelector('.ol-body');
+    var isClosed = body.classList.toggle('closed');
+    li.classList.toggle('closed', isClosed);
+    st.closed[key] = isClosed;
+    saveOutlineState(st);
+  };
+}
 function rebuildOutline() {
   var ol = piGet('outlineList');
+  if (!ol) { return; }
   ol.innerHTML = '';
-  var i, li, card, curChap = null;
+  var st = outlineState();
+  var fresh = !st.init;
+  if (fresh) { st.init = true; st.closed = {}; }
+  var i, card, chap, sec, li, body, head, arrow, curChap, curSec, chapLi, secLi;
+  curChap = null; curSec = null;
+  chapLi = null; secLi = null;
+  var chapCount = 0, secCount = 0;
+  var chapOf = {};
   for (i = 0; i < PI.cards.length; i++) {
     card = PI.cards[i];
-    var chap = card.getAttribute('data-chapter') || '';
+    chap = card.getAttribute('data-chapter') || '';
+    sec = card.getAttribute('data-sec-num') || '';
     if (chap !== curChap) {
       curChap = chap;
+      curSec = null;
+      chapCount++;
+      var cnum = card.getAttribute('data-chapter-num') || '';
+      var cname = chap === 'Start here' ? '' : (cnum === '0' ? '' : cnum + ' ');
       li = document.createElement('li');
-      li.className = 'chap-head';
-      li.textContent = (card.getAttribute('data-chapter-num') || '') + ' ' + chap;
+      li.className = 'ol-chap';
+      head = document.createElement('div');
+      head.className = 'ol-head';
+      arrow = document.createElement('span');
+      arrow.className = 'ol-arrow';
+      arrow.textContent = '▾';
+      head.appendChild(arrow);
+      var lbl = document.createElement('span');
+      lbl.className = 'ol-label';
+      lbl.textContent = cname + chap;
+      head.appendChild(lbl);
+      li.appendChild(head);
+      body = document.createElement('ul');
+      body.className = 'ol-body';
+      li.appendChild(body);
       ol.appendChild(li);
+      chapLi = body;
+      var ckey = outlineKey('c', chapCount, chap);
+      head.addEventListener('click', makeToggleGroup(li, ckey));
+      if (fresh) {
+        st.closed[ckey] = true;
+        chapOf[i] = ckey;
+      }
+      if (st.closed[ckey]) { li.classList.add('closed'); body.classList.add('closed'); }
+    }
+    if (sec !== curSec) {
+      curSec = sec;
+      secCount = (secLi && secLi.parentNode) ? secCount : 0;
+      li = document.createElement('li');
+      li.className = 'ol-sec';
+      head = document.createElement('div');
+      head.className = 'ol-head';
+      arrow = document.createElement('span');
+      arrow.className = 'ol-arrow';
+      arrow.textContent = '▾';
+      head.appendChild(arrow);
+      var sl = document.createElement('span');
+      sl.className = 'ol-label';
+      var sname = card.getAttribute('data-section') || '';
+      sl.textContent = sname || 'Cards';
+      head.appendChild(sl);
+      li.appendChild(head);
+      body = document.createElement('ul');
+      body.className = 'ol-body';
+      li.appendChild(body);
+      chapLi.appendChild(li);
+      secLi = body;
+      var skey = outlineKey('s', curChap, sec);
+      head.addEventListener('click', makeToggleGroup(li, skey));
+      if (fresh) { st.closed[skey] = true; }
+      if (st.closed[skey]) { li.classList.add('closed'); body.classList.add('closed'); }
     }
     li = document.createElement('li');
+    li.className = 'ol-card';
     li.setAttribute('data-idx', String(i));
-    li.textContent = (i + 1) + '. ' + (card.getAttribute('data-title') || ('Card ' + (i + 1)));
+    li.textContent = card.getAttribute('data-title') || ('Card ' + (i + 1));
+    if (card.getAttribute('data-pdf')) {
+      var pgb = document.createElement('span');
+      pgb.className = 'ol-pg';
+      pgb.textContent = 'p.' + card.getAttribute('data-pdf');
+      li.appendChild(pgb);
+    }
     li.addEventListener('click', makeOutlineGo(i));
-    ol.appendChild(li);
+    secLi.appendChild(li);
   }
-  var items = ol.querySelectorAll('li[data-idx]');
+  if (fresh) { saveOutlineState(st); }
+  markOutlineHere(true);
+}
+function markOutlineHere(first) {
+  var items = piGet('outlineList').querySelectorAll('li[data-idx]');
+  var i, li, open = null;
   for (i = 0; i < items.length; i++) {
-    if (parseInt(items[i].getAttribute('data-idx'), 10) === PI.cur) { items[i].classList.add('here'); }
+    li = items[i];
+    if (parseInt(li.getAttribute('data-idx'), 10) === PI.cur) {
+      li.classList.add('here');
+      open = li;
+    } else { li.classList.remove('here'); }
   }
+  if (open) {
+    var st = outlineState();
+    var n = open.parentNode;
+    while (n && n.id !== 'outlineList') {
+      if (n.classList && n.classList.contains('closed')) {
+        n.classList.remove('closed');
+        if (n.parentNode && n.parentNode.classList) {
+          n.parentNode.classList.remove('closed');
+          var h = n.parentNode.querySelector('.ol-head');
+          if (h && h.parentNode.classList) { n.parentNode.classList.remove('closed'); }
+        }
+      }
+      n = n.parentNode;
+    }
+    /* 收起其它章，保持大纲可读；当前章保持打开 */
+    var chaps = piGet('outlineList').children;
+    var k;
+    for (k = 0; k < chaps.length; k++) {
+      var b = chaps[k].querySelector('.ol-body');
+      if (!b) { continue; }
+      var inside = chaps[k].contains(open);
+      if (!inside && !b.classList.contains('closed')) {
+        b.classList.add('closed'); chaps[k].classList.add('closed');
+      }
+    }
+    saveOutlineState(st);
+    if (first || piGet('outline').classList.contains('open')) {
+      try { open.scrollIntoView({ block: 'center' }); } catch (e) { }
+    }
+  }
+  var cnt = piGet('outlineCount');
+  if (cnt) { cnt.textContent = (PI.cur + 1) + ' / ' + PI.cards.length; }
+}
+function setAllGroups(closed) {
+  var boxes = piGet('outlineList').querySelectorAll('.ol-body');
+  var i, st = outlineState();
+  for (i = 0; i < boxes.length; i++) {
+    if (closed) { boxes[i].classList.add('closed'); boxes[i].parentNode.classList.add('closed'); }
+    else { boxes[i].classList.remove('closed'); boxes[i].parentNode.classList.remove('closed'); }
+  }
+  st.closed = {};
+  if (closed) {
+    var heads = piGet('outlineList').querySelectorAll('li.ol-chap, li.ol-sec');
+    for (i = 0; i < heads.length; i++) { heads[i].classList.add('closed'); }
+  }
+  saveOutlineState(st);
+}
+
+/* ---------- 原论文对照栏：一次一段，衬线白底，图表随卡 ---------- */
+var PP = { on: false, flat: [], cur: 0, fromCard: true };
+
+function escHtml(t) {
+  return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function paperInit() {
+  var pane = piGet('paperPane');
+  var btn0 = piGet('paperBtn');
+  if (!pane) {
+    /* 镜像若剥掉了论文：没有对照栏，隐藏按钮 */
+    if (btn0) { btn0.style.display = 'none'; }
+    return;
+  }
+  var ps = pane.querySelectorAll('#paperPages .pb');
+  var i;
+  for (i = 0; i < ps.length; i++) { PP.flat.push(ps[i]); }
+  piGet('ppPrev').addEventListener('click', function () { paperStep(-1); });
+  piGet('ppNext').addEventListener('click', function () { paperStep(1); });
+  piGet('ppSync').addEventListener('click', function () { PP.fromCard = true; paperSync(); });
+  if (btn0) { btn0.addEventListener('click', paperToggle); }
+}
+function paperNarrow() { return window.innerWidth < 1024; }
+function paperToggle() {
+  var pane = piGet('paperPane');
+  if (!pane) { return; }
+  if (!PP.on && paperNarrow()) {
+    alert('The paper pane needs a wider window (1024px or more).');
+    return;
+  }
+  PP.on = !PP.on;
+  document.body.classList.toggle('paper-open', PP.on);
+  pane.classList.toggle('hidden', !PP.on);
+  var btn = piGet('paperBtn');
+  if (btn) { btn.setAttribute('aria-pressed', PP.on ? 'true' : 'false'); }
+  if (PP.on) { PP.fromCard = true; paperSync(); }
+}
+function paperSync() {
+  if (!PP.on) { return; }
+  var card = PI.cards[PI.cur];
+  if (!card) { return; }
+  var pg = card.getAttribute('data-pdf');
+  var idx = -1;
+  var frag = card.getAttribute('data-pdf-rect');
+  if (frag) {
+    var pp = frag.split(':');
+    var el = piGet('paperPages').querySelector('.pb[data-page="' + pp[0] + '"][data-b="' + pp[1] + '"]');
+    if (el) { idx = PP.flat.indexOf(el); }
+  }
+  if (idx < 0 && pg) {
+    for (var i = 0; i < PP.flat.length; i++) {
+      if (PP.flat[i].getAttribute('data-page') === pg) { idx = i; break; }
+    }
+  }
+  if (idx < 0) { idx = 0; }
+  var quote = card.getAttribute('data-quote') || '';
+  /* 图表：卡里内嵌的原图直接克隆过来 */
+  var figBox = piGet('ppFig');
+  figBox.innerHTML = '';
+  var im = card.querySelector('.figbox img');
+  var cap = card.querySelector('.figcap');
+  var clip = piGet('paperPages').querySelector('img[data-clip="' + card.getAttribute('data-c') + '"]');
+  if (clip) {
+    /* 首选：那一段的原 PDF 截图（关键词已高亮） */
+    var cl = clip.cloneNode(false);
+    cl.style.width = '100%';
+    figBox.innerHTML = '';
+    figBox.appendChild(cl);
+    if (cap) {
+      var cp = document.createElement('div');
+      cp.className = 'pp-figcap';
+      cp.textContent = cap.textContent;
+      figBox.appendChild(cp);
+    }
+    var tag = document.createElement('div');
+    tag.className = 'pp-figcap';
+    tag.textContent = 'Screenshot from the paper, page ' + card.getAttribute('data-pdf') + ' — keywords highlighted.';
+    figBox.appendChild(tag);
+    figBox.hidden = false;
+  } else if (im) {
+    var cl2 = im.cloneNode(true);
+    cl2.style.width = '100%';
+    figBox.innerHTML = '';
+    figBox.appendChild(cl2);
+    if (cap) {
+      var cp2 = document.createElement('div');
+      cp2.className = 'pp-figcap';
+      cp2.textContent = cap.textContent;
+      figBox.appendChild(cp2);
+    }
+    figBox.hidden = false;
+  } else { figBox.hidden = true; figBox.innerHTML = ''; }
+  showPassage(idx, quote, true);
+}
+function showPassage(idx, quote, withFig) {
+  if (idx < 0) { idx = 0; }
+  if (idx >= PP.flat.length) { idx = PP.flat.length - 1; }
+  PP.cur = idx;
+  var src = PP.flat[idx];
+  var t = src.textContent.replace(/\s+/g, ' ').trim();
+  var html = escHtml(t);
+  if (quote) {
+    var qi = t.toUpperCase().indexOf(String(quote).toUpperCase());
+    if (qi >= 0) {
+      html = escHtml(t.slice(0, qi))
+           + '<span class="pp-mark">' + escHtml(t.slice(qi, qi + quote.length)) + '</span>'
+           + escHtml(t.slice(qi + quote.length));
+    }
+  }
+  piGet('ppBody').innerHTML = '<p class="pp-lead">' + html + '</p>';
+  piGet('ppTag').textContent = 'p.' + src.getAttribute('data-page');
+  var figBox = piGet('ppFig');
+  if (!withFig) { figBox.hidden = true; figBox.innerHTML = ''; }
+  piGet('ppPrev').disabled = (idx === 0);
+  piGet('ppNext').disabled = (idx === PP.flat.length - 1);
+  var body = piGet('ppBody');
+  body.scrollTop = 0;
+}
+function paperStep(dir) {
+  PP.fromCard = false;
+  showPassage(PP.cur + dir, '', false);
 }
 
 /* ---------- 闭包工厂（替代 IIFE） ---------- */
@@ -383,12 +655,19 @@ function initCore(slug) {
   piGet('menuBtn').addEventListener('click', toggleOutline);
   piGet('outlineClose').addEventListener('click', toggleOutline);
   piGet('scrim').addEventListener('click', toggleOutline);
+  if (piGet('expandAll')) { piGet('expandAll').addEventListener('click', function () { setAllGroups(false); }); }
+  if (piGet('collapseAll')) { piGet('collapseAll').addEventListener('click', function () { setAllGroups(true); }); }
+  paperInit();
+  /* 深链：?paper=1 打开对照栏；#outline 打开大纲 */
+  if (location.search.indexOf('paper=1') >= 0) { paperToggle(); }
+  if (location.hash === '#outline' || location.search.indexOf('outline=1') >= 0) { toggleOutline(); }
   piGet('edSave').addEventListener('click', function () { saveCustomFromEditor(slug); });
   piGet('edCancel').addEventListener('click', closeCardEditor);
   document.addEventListener('keydown', function (ev) {
     if (ev.target && (ev.target.tagName === 'INPUT' || ev.target.tagName === 'TEXTAREA')) { return; }
     if (ev.key === 'ArrowRight' || ev.key === 'd' || ev.key === 'D') { navNext(); }
     if (ev.key === 'ArrowLeft' || ev.key === 'a' || ev.key === 'A') { navPrev(); }
+    if (ev.key === 'p' || ev.key === 'P') { paperToggle(); }
   });
   /* 每张原生卡挂 ✚ 插卡按钮 */
   var i;
@@ -397,7 +676,7 @@ function initCore(slug) {
     var ib = document.createElement('button');
     ib.className = 'insert-btn';
     ib.setAttribute('title', 'Insert your own card after this one');
-    ib.textContent = '＋';
+    ib.textContent = '＋ Add card';
     ib.addEventListener('click', makeInsertBtn(PI.cards[i]));
     PI.cards[i].querySelector('.card-inner').appendChild(ib);
   }
@@ -414,3 +693,4 @@ function initCore(slug) {
   }
   goCard(target);
 }
+

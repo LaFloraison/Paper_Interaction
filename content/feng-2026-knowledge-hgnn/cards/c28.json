@@ -3,6 +3,7 @@
   "kind": "include",
   "library": "evaluation-protocols",
   "chapter": "pre",
-  "section": "2.5 How results are read",
-  "kicker": "Extension · Evaluation protocols"
+  "section": "Reading results",
+  "kicker": "Extension · Evaluation protocols",
+  "kp": "kp-transductive-inductive"
 }

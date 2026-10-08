@@ -1,0 +1,83 @@
+{
+  "id": "130",
+  "kind": "narrative",
+  "chapter": "references",
+  "section": "R1 · How to read a bibliography",
+  "kicker": "References · How to read one",
+  "title": "How to read a bibliography: every citation is doing a job",
+  "body": [
+    {
+      "t": "p",
+      "md": "This paper cites thirty-six works. Reading the list as a list tells you nothing; reading it as a set of jobs tells you most of what you need to place the paper in its field. This appendix does three things: it explains the roles a citation can play (this card), it gives full cards to the eight cited works the paper actually leans on, and it lists the remaining twenty-eight one line each, together with a diagram of the lineage."
+    },
+    {
+      "t": "h3",
+      "md": "The four jobs a citation does"
+    },
+    {
+      "t": "table",
+      "head": [
+        "Job",
+        "What the citing paper uses it for",
+        "If the cited work disappeared"
+      ],
+      "rows": [
+        [
+          "**Definition**",
+          "the cited work introduced the object or the operation the paper builds on",
+          "the paper has to define it itself, and its novelty claim changes"
+        ],
+        [
+          "**Opponent**",
+          "the cited work is the alternative the paper is measured against or distinguished from",
+          "the paper has no way to show its approach is better or different"
+        ],
+        [
+          "**Supply**",
+          "the cited work provides a dataset, a metric, a protocol or a software component",
+          "the experiments cannot be run as reported"
+        ],
+        [
+          "**Priority**",
+          "the cited work establishes that someone did something first, or that a line of work exists",
+          "the paper's framing loses its context"
+        ]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Why the question is \"what job?\" rather than \"is it relevant?\"** Relevance is a property of the topic and gives you a binary answer that is almost always yes. A job is a property of the argument and gives you an answer that tells you what to read. The signal is position: a citation in the sentence that *introduces* a symbol is a definition; a citation in a results table's row header is an opponent; a citation attached to a dataset's name is a supply; a citation in a sentence beginning \"recent work has shown\" is usually priority. **Skim a paper's bibliography and for each entry guess the job from where it appears — it takes two minutes and it gives you a reading order.**"
+    },
+    {
+      "t": "p",
+      "md": "**The distinction that matters most for judging a paper is between definition and opponent.** A paper's novelty is always stated relative to something, and the something is usually cited. When a paper distinguishes itself from a cited work in prose but never measures against it, the distinction is argued rather than tested – which is the situation here with reference [21], BGNN, which appears in the related-work section and in no results table. Conversely, when the work the paper builds on directly is also the work it must beat, the paper's own results table contains the test — which is the situation with reference [1], HGNN, which is both the backbone and the baseline."
+    },
+    {
+      "t": "h3",
+      "md": "How this appendix is organised"
+    },
+    {
+      "t": "p",
+      "md": "Three tiers, in decreasing order of how much space each cited work gets — and the allocation is itself an editorial judgement about which citations the paper leans on."
+    },
+    {
+      "t": "list",
+      "ordered": true,
+      "items": [
+        "**Inline notes.** At the point in the paper where a citation is used, the card covering that passage says in one or two sentences who the cited authors are and what the citation is doing there. These appear throughout the Method, Experiments and Introduction chapters.",
+        "**Load-bearing cards.** Eight cited works carry the paper's argument and get a full card each: the backbone it builds on, the rival hypergraph route, the graph convolution underneath both, the tree ensemble that supplies its rules, the nearest rival method, the nearest predecessor that it does not measure against, the sources of its ten datasets, and the work that supplies its evaluation protocol.",
+        "**The one-line table.** The remaining twenty-eight works, one row each, with the role each plays. A bibliography read this way is a map of a research area rather than a list of names."
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**A note on what this appendix can and cannot establish.** Everything it says about *why* a work is cited is read from the citing paper's own text — where the reference appears and what the surrounding sentence claims. Nothing here asserts anything about the cited works beyond what the citing paper attributes to them, except where a cited work's own title makes its content plain. If you want to know whether HGNN really works the way this paper says it does, the reference card will tell you what the paper claims and point you at the original — which is a different and better exercise than taking the summary on trust."
+    },
+    {
+      "t": "p",
+      "md": "One pattern is worth flagging before the cards, because it shapes the whole list. **Two of the paper's most consequential references are its first author's own earlier work.** Reference [1], the hypergraph neural network whose convolution is this paper's Equation (1), is by Y. F. Feng et al.; reference [34], LightHGNN, which supplies the evaluation protocol and also appears as a backbone in Table IX, is by the same author; and the paper's first author is Yifan Feng. The same name also appears on reference [12], HGNN+, through the paper's last author, Yue Gao. This is entirely ordinary in machine learning, and it has a practical reading consequence: the paper's own baseline and its own protocol were authored in-house, so the two most important design decisions in its evaluation were made by people with a stake in the method's lineage. The protocol in question is the pair of settings the paper calls **transductive** — every test vertex is present in the graph during training, with only its label withheld — and **production**, which hides a held-out fraction of the test vertices entirely so that part of the benchmark resembles genuinely new data (card 92). That is not a criticism — it is a reason to look at what [1] and [34] actually contain rather than at what the citing sentences say about them."
+    }
+  ],
+  "close": "**Next:** the eight load-bearing cards, beginning with the backbone the paper builds on."
+}

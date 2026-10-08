@@ -1,0 +1,128 @@
+{
+  "id": "113",
+  "kind": "critique",
+  "chapter": "conclusion",
+  "section": "7.4 Critique 2 · the open questions",
+  "kicker": "7.4 · Critique",
+  "title": "Six questions the paper leaves open — and how to turn each into an experiment",
+  "body": [
+    {
+      "t": "p",
+      "md": "The previous card audited numbers the paper states. This one is about questions the paper does not answer, which is a different kind of finding and, for anyone intending to use the method, the more consequential one. None of the six is a complaint about exposition: each is a thing a reader would need to know in order to run this method, and each is stated here with the experiment or the one-line disclosure that would close it."
+    },
+    {
+      "t": "callout",
+      "md": "**Why open questions are worth more than arithmetic slips.** A slip in a results cell costs you a number you can compute yourself. An unasked question costs you the ability to decide whether to use the method at all — and unlike a slip, it cannot be repaired by the reader, because the answer requires data only the authors have. This is the part of reading a paper where the reader's leverage is smallest and the stakes are highest."
+    },
+    {
+      "t": "table",
+      "head": [
+        "#",
+        "Question",
+        "Why it matters",
+        "What would close it"
+      ],
+      "rows": [
+        [
+          "1",
+          "**Which labels does the rule encoder's pre-training see?**",
+          "Section IV says the TDR-Encoder pre-trains gradient-boosted trees \"with predefined tasks\". It never says whether those tasks are defined over labels, and if they are, whether the label set is restricted to the training split. If pre-training saw validation or test labels, the knowledge it supplies was fitted to information the evaluation withholds — and every accuracy in Tables V–X is inflated.",
+          "One clause in Section IV-D stating the label boundary. This is a disclosure, not an experiment."
+        ],
+        [
+          "2",
+          "**What does the 0/1 rule-content bit throw away?**",
+          "Equation (4) records whether a vertex satisfies a node's split condition as 0 or 1. So $x_2 = 2.01$ and $x_2 = 5.00$ are identical to the rule \"$x_2 \\ge 2$\". The distance to the threshold — how comfortably or marginally the rule was satisfied — is discarded. Whether that matters is unknown, because no softened variant is compared against the binary one.",
+          "A variant where the content value is a continuous function of the distance past the threshold, run on the same tables. A week of work."
+        ],
+        [
+          "3",
+          "**What does the method cost to run?**",
+          "The paper reports its hardware and no timings, no memory, no pre-training overhead, and no ledger widths. The width is the binding constraint: a vertex's rule block is at most $C_r \\le (\\text{trees}) \\times (2^{d} - 1)$ entries, doubled by the content-and-position pairing, so Table IV's settings can produce thousands of columns per vertex. A reader cannot tell whether the method fits in their memory.",
+          "One table of wall-clock time and peak memory per dataset, plus the realized $C_r$. Both are already computed during training."
+        ],
+        [
+          "4",
+          "**How should the hyperedges be built when a dataset has none?**",
+          "Two of the ten datasets, ModelNet40 and Heloc, have relations that were built rather than observed: each vertex is linked to its $k$ nearest neighbours in feature space. (The four ordinary graph datasets have no hyperedges either, and are used as plain graphs rather than converted - card 137 traces which dataset is which.) $k$ is chosen by rule of thumb between $5$ and $20$ — the paper's own guidance distinguishes sparse from dense features — and there is no sensitivity study. On those four datasets the hypergraph, and therefore the structural stream, is an artefact of a hand-made decision.",
+          "The same $k$-sweep that Figure 3 runs for $\\alpha$ and $\\beta$, run for $k$ on the four constructed datasets. The code path already exists."
+        ],
+        [
+          "5",
+          "**Why does the method lose on Github?**",
+          "On Github, under the production setting, the better of the two proposed models trails the plain HGNN baseline by $0.09$ points (printed as $+0.00$, ledger entry 10). The paper's own account — RD wins on graph datasets, DD on hypergraph datasets — predicts the opposite, since Github is a graph dataset. The case is named nowhere.",
+          "One paragraph. Either an analysis of why the prediction fails, or the observation that the deficit is inside the seed spread and the row should be read as a tie."
+        ],
+        [
+          "6",
+          "**Is a framework whose hyperparameters are re-searched per dataset still \"general\"?**",
+          "Table IV shows the tree count, the depth and both position coefficients chosen separately for each of the ten datasets, and Section V-A4 confirms the $\\alpha$/$\\beta$ pair comes from a five-by-five grid search on validation. That is standard practice — and it means the method's out-of-the-box behaviour on a new dataset is not characterised anywhere in the paper. \"General\" is claimed for the architecture and is true of it; nothing is claimed about configuration cost.",
+          "A second table reporting accuracy under one fixed global configuration, or an explicit statement that per-dataset tuning is assumed. Either answers the question a practitioner actually has."
+        ]
+      ]
+    },
+    {
+      "t": "h3",
+      "md": "Ordering the six by what they threaten"
+    },
+    {
+      "t": "p",
+      "md": "**Question 1 is in a class of its own**, and it is worth saying why rather than simply ranking it first. The other five bear on whether the method is practical, how it should be configured, or how one dataset's result should be read. Question 1 bears on whether the reported numbers mean what they are presented to mean. It is also the cheapest to answer — the authors know it and could state it in a sentence — which makes its absence the hardest of the six to account for."
+    },
+    {
+      "t": "p",
+      "md": "**Questions 4 and 6 combine into a single practical worry.** The hypergraph on four of the ten datasets is constructed by a rule of thumb, and every other hyperparameter is then tuned per dataset on top of that construction. So the method's configuration is a two-stage hand process: build relations by hand, then tune the model around them. That is a perfectly ordinary way to run an experiment, and a practitioner picking the method up cold has neither stage performed for them. **Reading a paper's results table tells you what the method does after two rounds of expert tuning; it does not tell you what happens on the first day.**"
+    },
+    {
+      "t": "p",
+      "md": "**Questions 2 and 5 are both small and both cheap, which makes them the two most likely to be answered by whoever picks this work up next.** The softened rule-content variant needs a change to Equation (4) and a rerun; the Github case needs a paragraph. Either would make a serviceable first project for a student — and the second requires no new code at all, only reading a row the authors already have."
+    },
+    {
+      "t": "h3",
+      "md": "Turning questions into experiments"
+    },
+    {
+      "t": "p",
+      "md": "There is a test for whether a question about a paper is well formed, and these six all pass it: **can you state the experiment that would answer it, and can you say in advance what each possible outcome would mean?** A question that fails this test is a wish; one that passes it is a research direction."
+    },
+    {
+      "t": "table",
+      "head": [
+        "Question",
+        "Experiment",
+        "If it comes out positive",
+        "If it comes out negative"
+      ],
+      "rows": [
+        [
+          "Binarisation loss (2)",
+          "Continuous rule-content variant, same tables",
+          "The ledger could be sharpened; Equation (4) was leaving accuracy on the table",
+          "The binary form was sufficient; a useful negative result for anyone considering a richer encoding"
+        ],
+        [
+          "Hyperedge construction (4)",
+          "Sweep $k$ over $3$–$30$ on the four constructed datasets",
+          "The construction is robust, and the $5$–$20$ guidance is defensible",
+          "The reported accuracies depend on a hand-chosen parameter, which bounds how comparable those four columns are"
+        ],
+        [
+          "Github (5)",
+          "Read the row; then vary the construction on Github alone",
+          "The deficit is a construction artefact and can be repaired",
+          "The deficit is inside the seed spread and the row is a tie, which the paper should simply say"
+        ]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**Reaching a list like this is what finishing a paper means.** A reader who has done the arithmetic, tracked the conventions through ten tables, and separated the claims the paper tests from the ones it asserts is in a position to generate experiments its authors have not run. That is not a hostile act — it is the normal way a field advances, and it is why the six items above are written as directions rather than as objections. **The last paragraph of a paper is where its authors stopped, not where its readers have to.**"
+    },
+    {
+      "t": "p",
+      "md": "One closing observation about the shape of the six. Four of them — questions 1, 3, 5 and 6 — are about what the paper does not *report* rather than what it has not *tried*: each is closed by a disclosure the authors already have the information to write. Only questions 2 and 4 require an experiment that does not yet exist. That asymmetry runs through most published work: the experiments that would answer a reader's practical questions are usually cheaper than the ones the paper already contains, and they were simply not run. **The gap between a paper's results and a practitioner's needs is more often a reporting gap than a knowledge gap**, and it is worth remembering the next time you write a results section — the reader at the other end of it is trying to decide whether to run your code, and one extra table would let them."
+    }
+  ],
+  "close": "**Next:** the Wrap-up — a map of everything this site has covered, an index of every number it verified, and a final self-test drawn from all seven chapters."
+}

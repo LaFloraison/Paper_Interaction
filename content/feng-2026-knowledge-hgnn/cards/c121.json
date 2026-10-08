@@ -1,0 +1,184 @@
+{
+  "id": "121",
+  "kind": "wrap",
+  "chapter": "wrap",
+  "section": "W2 · Number index",
+  "kicker": "Wrap-up · Numbers",
+  "title": "The number index: every quantity this site recomputed, and where it came from",
+  "body": [
+    {
+      "t": "p",
+      "md": "Every figure below was computed from the paper's own tables before being written, and each row names the card that did the work. Nothing in this index is a quotation from the paper's prose unless it is marked as one. Use it two ways: as a lookup when you want a value without reopening a table, and as a checklist if you want to verify this site against the paper yourself."
+    },
+    {
+      "t": "h3",
+      "md": "Table V — the transductive results (card 94, card 94p)"
+    },
+    {
+      "t": "table",
+      "head": ["Quantity", "Value", "How it is obtained"],
+      "rows": [
+        ["DD-HGNN column mean", "$87.648$", "sum the ten cells, divide by ten"],
+        ["RD-HGNN column mean", "$87.602$", "same"],
+        ["HGNN column mean", "$85.529$", "same"],
+        ["GCN column mean", "$84.805$", "same"],
+        ["GBDT column mean", "$81.992$", "same"],
+        ["MLP column mean", "$80.254$", "same"],
+        ["TLF column mean", "$77.720$", "same — the weakest of the seven"],
+        ["DD − GBDT", "$5.656$", "difference of the two means"],
+        ["DD − HGNN", "$2.119$", "difference of the two means"],
+        ["RD − HGNN", "$2.073$", "difference of the two means"],
+        ["DD − RD", "$0.046$", "difference of the two means"],
+        ["Average ranks, best-of-ties", "$1.7$, $1.5$, $3.3$, $3.9$, $5.1$, $5.8$, $6.1$", "RD, DD, HGNN, GCN, GBDT, MLP, TLF — reproduces the printed row exactly"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The two quoted gains in Section V-B are $5.86$ and $2.28$.** The nearest reproducible quantities are $5.656$ and $2.119$. The abstract's \"average improvement of 2.5%\" matches neither and states no comparison target. All three quoted values are recorded in the ledger, card 112, entries 2 and 3."
+    },
+    {
+      "t": "h3",
+      "md": "Tables II and III — the splits (cards 91, 92)"
+    },
+    {
+      "t": "table",
+      "head": ["Quantity", "Value", "Card"],
+      "rows": [
+        ["Training / validation / testing proportions", "$60\\%$ / $25\\%$ / $15\\%$, stratified within each class", "91"],
+        ["Table II rows whose three parts exceed the vertex count", "$3$ of $10$ — Amazon-P, Tencent, ModelNet40, each by exactly $1$", "91"],
+        ["Cause of the $+1$", "independent rounding of each part; e.g. $0.25 \\times 7{,}650 = 1{,}912.5 \\to 1{,}913$", "91"],
+        ["Inductive share of the test set", "$\\approx 40\\%$ in all ten rows — the text states $20\\%$", "92"],
+        ["Cora's inductive / transductive test split", "$162$ / $244$, summing to Table II's $406$ ✓", "92"],
+        ["Cora's production sub-graph", "$2{,}708 - 162 = 2{,}546$ vertices — printed nowhere", "92"],
+        ["DBLP-Conf test set", "$609$ in Table II, $365 + 243 = 608$ in Table III", "92"]
+      ]
+    },
+    {
+      "t": "h3",
+      "md": "Table VII — the ensemble size (card 97)"
+    },
+    {
+      "t": "table",
+      "head": ["Quantity", "Value", "Card"],
+      "rows": [
+        ["Peak of all three columns", "$50$ trees — GBDT $71.74$, RD $75.70$, DD $75.77$", "97"],
+        ["RD, 5 trees → 50 trees", "$+2.73$ points", "97"],
+        ["RD, 50 trees → 200 trees", "$-4.21$ points (the text says $5$)", "97"],
+        ["DD column range", "$75.77 - 73.46 = 2.31$, the flattest of the three columns", "97"],
+        ["RD column range", "$75.70 - 71.49 = 4.21$", "97"],
+        ["GBDT column range", "$71.74 - 68.94 = 2.80$", "97"]
+      ]
+    },
+    {
+      "t": "h3",
+      "md": "Table VIII — the depth bill (card 98)"
+    },
+    {
+      "t": "table",
+      "head": ["Model", "2 layers", "8 layers", "Loss", "Std. dev. at 8 layers"],
+      "rows": [
+        ["HGNN", "$73.41$", "$30.22$", "$43.19$", "$\\pm 0.00$ — five seeds identical"],
+        ["RD-HGNN", "$74.39$", "$40.39$", "$34.00$", "$\\pm 1.67$"],
+        ["DD-HGNN", "$76.06$", "$49.53$", "$26.53$", "$\\pm 9.21$"],
+        ["Chance level on 40 classes", "—", "—", "$1/40 = 2.5\\%$", "—"]
+      ]
+    },
+    {
+      "t": "h3",
+      "md": "Table IX — six backbones (card 99)"
+    },
+    {
+      "t": "table",
+      "head": ["Quantity", "Value", "Card"],
+      "rows": [
+        ["Number of $\\Delta_{Origin}$ cells", "$18$ — six backbones, three settings", "99"],
+        ["Signs", "all $18$ positive", "99"],
+        ["Smallest gain", "$+1.09$ — HGNN, transductive", "99"],
+        ["Largest gain", "$+8.35$ printed, $8.36$ from the cells — LightHGNN, inductive", "99"],
+        ["Convention", "the better of RD and DD minus Origin; twelve cells show a $0.01$ rounding offset", "99"]
+      ]
+    },
+    {
+      "t": "h3",
+      "md": "Table X — the plain-graph backbone (card 100)"
+    },
+    {
+      "t": "table",
+      "head": ["Dataset", "$\\Delta_{GCN}$", "Recomputed as"],
+      "rows": [
+        ["CA-Cora", "$+2.41$", "$77.64 - 75.23$"],
+        ["DBLP-Conf", "$+4.01$", "$94.58 - 90.57$"],
+        ["CC-Cora", "$+1.53$", "$74.74 - 73.21$"],
+        ["Tencent", "$+0.99$", "$94.53 - 93.54$"],
+        ["ModelNet40", "$+0.31$", "$98.09 - 97.78$ — the ceiling case"],
+        ["Heloc", "$+3.55$", "$71.74 - 68.19$"]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "Also in this table: MLP scores $68.55$ on both CA-Cora and CC-Cora and $69.04$ on Cora; GBDT scores $71.69$ on both and $74.30$ on Cora. A feature-only method cannot see the graph, so the two hypergraph columns agreeing exactly is the expected result and the plain-graph column differing is the anomaly — ledger entry 14."
+    },
+    {
+      "t": "h3",
+      "md": "Figure 3 — read off the plot (card 96)"
+    },
+    {
+      "t": "table",
+      "head": ["Panel", "Quantity", "Approximate value"],
+      "rows": [
+        ["(a) $\\alpha$ sweep", "RD span across $\\alpha = 1 \\dots 10$", "$1.4$ points — flat"],
+        ["(a) $\\alpha$ sweep", "DD span", "$1.3$ points — flat"],
+        ["(b) $\\beta$ sweep", "DD minus RD at $\\beta = 1$", "$\\approx 9.5$ points, matching the text's \"approximately 10\""],
+        ["(b) $\\beta$ sweep", "RD span from $\\beta = 9$ to $\\beta = 1$", "$\\approx 25$ points"],
+        ["(c) noise", "DD drop, 0% to 80%", "$\\approx 4.3$ points"],
+        ["(c) noise", "RD drop", "$\\approx 3.9$ points"],
+        ["(c) noise", "GBDT drop", "$\\approx 7.0$ points"],
+        ["(c) noise", "HGNN drop", "$\\approx 16.0$ points"],
+        ["(c) noise", "The crossing", "HGNN passes below GBDT between 20% and 40% noise"]
+      ]
+    },
+    {
+      "t": "callout",
+      "md": "**All panel readings are approximations from the plotted curves**, accurate to roughly half a gridline of the vertical axis, which is about one point. The $\\beta = 1$ gap and the ordering of the four noise curves are robust to that error; individual point values are not. Where this card gives a number the paper also states, the two agree except for the $\\beta$ gap, where the text's \"approximately 10\" and the read-off $9.5$ are the same claim."
+    },
+    {
+      "t": "h3",
+      "md": "Table VI — the footer and the sign (cards 95, 95p)"
+    },
+    {
+      "t": "table",
+      "head": ["Quantity", "Printed", "Recomputed", "Verdict"],
+      "rows": [
+        ["Average rank, RD / DD", "$1.7$ / $1.5$", "$1.70$ / $1.50$", "matches"],
+        ["Average rank, GBDT / HGNN", "$4.0$ / $2.8$", "$3.90$ / $2.90$", "each $0.1$ out"],
+        ["Mean $\\Delta_{GBDT}$ over production rows", "$+6.31$", "$+5.94$", "does not reproduce"],
+        ["Mean $\\Delta_{HGNN}$ over production rows", "$+2.53$", "$+2.72$", "does not reproduce"],
+        ["Github production $\\Delta_{HGNN}$", "$+0.00$", "$-0.09$", "**sign**"],
+        ["Reference model for the $\\Delta$ columns", "not stated", "the better of RD and DD, row by row", "holds on $29$ of $30$ rows"]
+      ]
+    },
+    {
+      "t": "h3",
+      "md": "The model's own quantities (cards 93, 96)"
+    },
+    {
+      "t": "table",
+      "head": ["Quantity", "Value", "Card"],
+      "rows": [
+        ["Inner nodes in a full binary tree of depth $d$", "$2^{d} - 1$", "93"],
+        ["Cora's rule-block bound", "$C_r \\le 60 \\times (2^{4} - 1) = 900$ questions", "93"],
+        ["Cora's fused vector width", "at most $2 \\times 900 = 1{,}800$ entries, against $1{,}433$ raw features", "93"],
+        ["$\\alpha$ and $\\beta$ search space", "the $5 \\times 5$ grid $\\{6, 7, 8, 9, 10\\}^2$, selected on validation", "70, 96"],
+        ["Github's tree count and depth", "$190$ trees at depth $7$, from Table IV", "93"],
+        ["$k$ for constructed hyperedges", "between $5$ and $20$, chosen by rule of thumb, never swept", "92, 113"]
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**How to use this index when you read the paper yourself.** Pick any row, open the table it names, and reproduce the value. If you match, the row was right and the index is doing its job as a shortcut. If you do not match, you have found either an error here or a cell whose reading is ambiguous — and either is worth knowing before you cite anything from this page. **The index is checkable on purpose: it is the one part of this site that makes a claim about a number in isolation from any argument, and a claim like that should always come with the means to falsify it.**"
+    }
+  ],
+  "close": "**Next:** the final self-test, drawn from all seven chapters."
+}

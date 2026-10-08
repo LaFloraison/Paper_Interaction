@@ -1,0 +1,238 @@
+{
+  "id": "98",
+  "kind": "table",
+  "chapter": "experiments",
+  "section": "6.10 Table VIII · number of layers",
+  "kicker": "6.10 · Table VIII",
+  "title": "Table VIII: the bill for depth, and a standard deviation of exactly zero",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "Table VIII varies the number of hypergraph convolution layers — 2, 4, 6 or 8 — and reports the accuracy of three models on the hypergraph dataset CC-Cora: a plain HGNN, RD-HGNN and DD-HGNN. Each cell is the mean over five random seeds with its standard deviation. **Over-smoothing** is the phenomenon this table measures: because each layer of Equation (1) replaces a vertex's features with a degree-weighted average over the vertices it shares hyperedges with, repeated layers drive every vertex in a connected component toward the same vector, so the features that distinguish classes are progressively averaged away.",
+      "plain": "Each layer averages a vertex with its neighbours. Stack enough layers and everything has been averaged with everything, so all vertices look alike and the classifier has nothing left to separate. This table is the price list: it shows how many points the accuracy costs for each extra layer, in three different models. Names used throughout: **HGNN** is the hypergraph neural network whose propagation is the paper's Equation (1); **RD-HGNN** and **DD-HGNN** are the paper's two models, taking the rule stream alone and the rule plus structural streams respectively (cards 74–75); a **hyperedge** is a link that can join any number of vertices at once (card 12); the **structural ledger** is the one-number-per-vertex encoding of how many hyperedges a vertex belongs to (card 64), and the **rule ledger** the vector of 0/1 question answers described in cards 68–72."
+    },
+    {
+      "t": "p",
+      "md": "The operator doing the averaging is Equation (1): at each layer $X \\leftarrow D_v^{-1/2} H D_e^{-1} H^{\\mathsf T} D_v^{-1/2} X \\Theta$, where $H$ is the incidence matrix, $D_v$ and $D_e$ the vertex and hyperedge degree matrices, and $\\Theta$ a learned transform (card 61 takes it apart). **Note what is absent: no term carries the previous $X$ forward**, so a layer replaces each vertex's features rather than adding to them. **Why depth is the operational definition of over-smoothing.** It would be cleaner to measure the phenomenon directly — for instance by tracking how the pairwise distances between vertex features shrink with depth. The paper does not do that; it measures the downstream consequence, which is accuracy. The two are related but not interchangeable, and the distinction matters for how the result should be read: a model whose accuracy is stable in depth has not been shown to avoid feature collapse, only to tolerate it. The paper's own experiments give a hint that collapse is the real mechanism, and it appears in a column of this table rather than in any plot."
+    },
+    {
+      "t": "p",
+      "md": "**The one number to look for before any other.** Every cell of this table carries a standard deviation over five seeds. When a model has genuinely collapsed, the seeds stop mattering, because the answer is the same regardless of where training started. That is a signature, and it is present here."
+    },
+    {
+      "t": "figure",
+      "src": "tab8.png",
+      "alt": "Table VIII of the paper: accuracy of HGNN, RD-HGNN and DD-HGNN at 2, 4, 6 and 8 hypergraph convolution layers",
+      "cap": "Original Table VIII (Feng et al., TPAMI 2026). Four depths, three models, on CC-Cora — a 40-class task, so blind guessing scores 2.5%."
+    }
+  ],
+  "example": [
+    {
+      "t": "table",
+      "head": [
+        "Layers",
+        "HGNN",
+        "RD-HGNN",
+        "DD-HGNN"
+      ],
+      "rows": [
+        [
+          "2",
+          "$73.41 \\pm 2.16$",
+          "$74.39 \\pm 2.68$",
+          "**$76.06 \\pm 3.48$**"
+        ],
+        [
+          "4",
+          "$51.10 \\pm 1.48$",
+          "$50.95 \\pm 3.06$",
+          "**$62.45 \\pm 6.05$**"
+        ],
+        [
+          "6",
+          "$43.19 \\pm 6.58$",
+          "$39.50 \\pm 2.00$",
+          "**$57.83 \\pm 8.08$**"
+        ],
+        [
+          "8",
+          "$30.22 \\pm 0.00$",
+          "$40.39 \\pm 1.67$",
+          "**$49.53 \\pm 9.21$**"
+        ]
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 1 — the plain HGNN column, and the anomaly in its last cell.**"
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Read the fall: $73.41$ at two layers, $51.10$ at four, $43.19$ at six, $30.22$ at eight. The total loss is $73.41 - 30.22 = 43.19$ points.",
+          "why": "Set that against the task: CC-Cora has 40 classes, so guessing at random scores about $1/40 = 2.5\\%$. At eight layers a plain HGNN retains $30.22\\%$ against a $2.5\\%$ floor — it is still far above chance, but it has surrendered well over half of the $73.41$ it had at two layers. Most of the damage happens between two and four layers: $-22.31$ points in one step, against $-7.91$ and $-12.97$ for the steps that follow."
+        },
+        {
+          "md": "Now read the standard deviation in the eight-layer cell: $\\pm 0.00$, to two decimal places. Five seeds, five identical accuracies.",
+          "why": "This is the most informative single number in the table, and it is not mentioned anywhere in the paper's prose. Identical results across five random initialisations mean the trained model no longer depends on where it started — the five runs converged to the same function. When a network's output stops depending on its initialisation, it has usually stopped depending on its input too: the vertices' features have been averaged into agreement, and the classifier's decision is being made on a collapapsed representation. **You are being shown a fixed point of the averaging operator, and the accuracy it earns is the accuracy of a model that can no longer tell the vertices apart.**"
+        },
+        {
+          "md": "Check the neighbouring cells for contrast: HGNN at six layers is $\\pm 6.58$, and at four layers $\\pm 1.48$. So the collapse of seed-dependence is not a property of the model at every depth — it appears only at the bottom of the sweep.",
+          "why": "A zero that appears only at the extreme of a sweep is a measurement, not a rounding artefact. Compare it to the rest of the column, which carries ordinary spreads. If the whole column were $\\pm 0.00$ you would suspect the paper had not actually run five seeds; one cell at zero, adjacent to cells at $6.58$ and $1.67$, is the signature of an actual collapse."
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — the three columns compared by how much they lose.**"
+    },
+    {
+      "t": "table",
+      "head": [
+        "Model",
+        "2 layers",
+        "8 layers",
+        "Loss over the sweep",
+        "Std. dev. at 8 layers"
+      ],
+      "rows": [
+        [
+          "HGNN",
+          "$73.41$",
+          "$30.22$",
+          "$43.19$",
+          "$\\pm 0.00$"
+        ],
+        [
+          "RD-HGNN",
+          "$74.39$",
+          "$40.39$",
+          "$34.00$",
+          "$\\pm 1.67$"
+        ],
+        [
+          "**DD-HGNN**",
+          "**$76.06$**",
+          "**$49.53$**",
+          "**$26.53$**",
+          "$\\pm 9.21$"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Order the losses: HGNN $43.19$, RD $34.00$, DD $26.53$.",
+          "why": "The ordering is the paper's claim, and it holds at every depth — DD is highest at 2, 4, 6 and 8 layers. That consistency is stronger evidence than the endpoint comparison alone, because it rules out the possibility that the ranking is an artefact of one particular depth setting."
+        },
+        {
+          "md": "Explain the ordering using what each model carries. HGNN consumes only its own averaged features. RD also carries the rule ledger, which is computed from a vertex's own feature vector down a pre-trained tree and is not smoothed by the convolution at all. DD carries that plus the structural ledger.",
+          "why": "This is the mechanism the paper gives, and it is worth stating in the reader's own terms: **each stream of knowledge that bypasses the averaging operator acts as an anchor that does not erode with depth.** Neither ledger is passed through the layer stack; both sit in the input feature matrix and are concatenated with the smoothed features. So while the smoothed component collapses toward a common vector, the unsmoothed components keep their per-vertex variation — and the more of a model's input that is unsmoothed, the more of it survives depth. RD has one anchor, DD has two, HGNN has none, and the losses order exactly that way."
+        },
+        {
+          "md": "Now read the standard deviation at eight layers across the three models again: $0.00$, $1.67$, $9.21$.",
+          "why": "Here the three models stop looking alike, and the readings diverge in an informative way. DD's $\\pm 9.21$ is the largest spread in the table — more than five times RD's $\\pm 1.67$ on the same 8-layer row, and four times its own $\\pm 2.00$-scale spreads at shallower depths. Interpretation: some seeds survive deep stacking and some do not, and the two-stream architecture is powerful when it trains well and unstable when it does not. **A model with the best mean and the largest variance is not straightforwardly the best model** — at eight layers DD's $49.53 \\pm 9.21$ has a lower bound below RD's mean of $40.39$, so for a single-seed user the choice between them is not settled by the means. The paper's text discusses the eight-layer row only in terms of DD being \"significantly more robust\", which is true of the mean and silent about the spread."
+        },
+        {
+          "md": "Finally, note the one non-monotonicity: RD at six layers scores $39.50$ and at eight layers $40.39$ — it improves with an extra layer.",
+          "why": "A single reversal of $0.89$ points, inside RD's own $\\pm 2.00$ and $\\pm 1.67$ spreads. It is not a real effect, and a reader should say so rather than constructing an explanation. But it is worth flagging as a reminder that these curves are noisy: the paper's main claim about depth is a large, monotone, consistently-ordered effect, and small wiggles on top of it should not be read as structure. (This walk reads the 2-layer and 8-layer cells of each column, plus the standard deviations on the 8-layer row. The intermediate 4- and 6-layer cells sit in the table above and are not walked, because every claim in this card is about the endpoints of the sweep.)"
+        }
+      ]
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**This table is the empirical justification for the paper's whole architecture, and it is worth saying so plainly.** Section III motivates the framework by arguing that ordinary hypergraph networks only smooth, discarding structure and washing out features. Table VIII is where that argument stops being a story: the plain network loses $43.19$ points over six extra layers, and its last cell has a standard deviation of zero. Every claimed component of the method — a structural ledger that never enters the averaging, a rule ledger likewise, and a fusion that keeps both — is designed to put unsmoothed information into the input, and the losses $43.19$, $34.00$, $26.53$ line up one-to-one with how much unsmoothed information each variant carries."
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**And when this reading would fail.** A standard deviation of exactly $0.00$ is a diagnostic, not a proof. It says the five runs converged to the same function, which is what a collapsed representation produces — but three other things produce it too: a model degenerated to predicting one class for every vertex (five seeds, five identical degenerate answers); a training script whose seed is never actually varied; and a metric computed over an empty or single-class evaluation slice. What separates them is the context of the row. Here HGNN's eight-layer accuracy is $30.22$ on a 40-class problem, roughly twelve times chance, so the model has not collapsed to a constant prediction — that would have shown as about $2.5$. And a broken seeding would usually have flattened the neighbouring cells as well, where this table shows $\\pm 6.58$ and $\\pm 1.67$. **The zero is evidence because of what surrounds it, not on its own.**"
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "Why can \"number of layers\" be read as \"amount of over-smoothing\"?",
+      "opts": [
+        {
+          "md": "Because deeper networks have more parameters and therefore overfit more",
+          "expl": "Parameter count and smoothing are different effects, and this table separates them: DD has strictly more parameters than HGNN at every depth and degrades far less. The right mechanism is the repeated averaging, not capacity."
+        },
+        {
+          "md": "Because each layer performs one round of neighbourhood averaging, so the number of layers is the number of times features are mixed with neighbours'",
+          "correct": true,
+          "expl": "Correct. Equation (1) has no residual connection, so a layer *replaces* a vertex's features with a weighted average over its hyperedge neighbourhoods; k layers means k rounds of that replacement. Each round reduces the differences between vertices, and the k-th round has no way to recover what the first one discarded."
+        },
+        {
+          "md": "Because deeper networks train more slowly and so converge less",
+          "expl": "The runs at eight layers report a standard deviation of exactly zero, which is the opposite of a model that has failed to converge — five seeds agreeing perfectly means they converged to the same place."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "By how many percentage points does RD-HGNN's accuracy fall between 4 layers and 8 layers? Give two decimals.",
+      "answer": 10.56,
+      "tol": 0.03,
+      "hint": "Both numbers are in the RD-HGNN column, at the 4-layer and 8-layer rows. Use those two cells only.",
+      "sol": "$50.95 - 40.39 = 10.56$ points. Compare the same two-step window in the other two columns: HGNN loses $51.10 - 30.22 = 20.88$ and DD loses $62.45 - 49.53 = 12.92$. The ordering — HGNN worst, DD best — holds on this window exactly as it does across the full sweep, which is the paper's claim.",
+      "unit": "points"
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "CC-Cora has 40 classes. As a percentage, what accuracy would a classifier get by guessing a class uniformly at random? Give one decimal place.",
+      "answer": 2.5,
+      "tol": 0.2,
+      "hint": "With 40 equally likely classes and one guess, the chance of being right is one in forty.",
+      "sol": "$1/40 = 0.025$, i.e. $2.5\\%$. This assumes the forty classes are equally frequent, which is the convention for a random-guess baseline; if they are not, the true random-guess rate is the sum of squared class proportions, which is larger, so $2.5\\%$ is a lower bound. The floor is what gives the eight-layer HGNN figure of $30.22$ its meaning: the model has lost $43.19$ points of a $73.41$-point starting position, but it still performs twelve times better than chance. Reporting that a model \"collapsed\" without a floor makes an unquantified claim; with the floor, \"collapsed to twelve times chance\" is a measurement.",
+      "unit": "%"
+    },
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "HGNN's cell at 8 layers reads $30.22 \\pm 0.00$ while DD's on the same row reads $49.53 \\pm 9.21$. What do these two spreads say?",
+      "opts": [
+        {
+          "md": "HGNN is the more reliable model, since its results are repeatable",
+          "expl": "Repeatability of a collapsed answer is not a virtue. Five seeds producing identical accuracies means the model's output has stopped depending on its initialisation — which is the signature of the features having been averaged into agreement, not of a well-behaved training procedure."
+        },
+        {
+          "md": "HGNN has collapsed to a seed-independent solution, while DD still depends on its initialisation — so DD is better on average but riskier on a single run",
+          "correct": true,
+          "expl": "Correct on both halves. A zero spread at the bottom of a sweep is a diagnostic, not a rounding artefact — it says the averaging has gone far enough that the starting point no longer matters. And DD's large spread cuts the other way: its mean of $49.53$ has a lower bound that falls below RD's mean of $40.39$, so the ranking of the two is not settled for someone who runs a single seed."
+        },
+        {
+          "md": "The zero means the authors ran only one seed at 8 layers",
+          "expl": "The other eleven cells all carry ordinary spreads, and this table's caption states five seeds throughout. If the setup had changed for one row, the honest reading would still be the same — the cell would be unusable — but there is no evidence of that, and a collapsed model explains the zero without needing one."
+        }
+      ]
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "You need a deep hypergraph model because your task requires reasoning across many hops, and you are choosing between these three options. Using Table VIII, what is the defensible basis for the choice?",
+      "opts": [
+        {
+          "md": "Pick DD-HGNN because it has the highest accuracy at every depth",
+          "expl": "True of the means, and incomplete. At eight layers DD's spread of $\\pm 9.21$ is large enough that a single-run user can plausibly land below RD, and the choice cannot be made on means alone when the variances differ by a factor of five."
+        },
+        {
+          "md": "Prefer a model that keeps unsmoothed information in its input, and use your own validation data to choose between them since their variances differ enough that the mean ordering is not decisive",
+          "correct": true,
+          "expl": "Correct, and this is the transferable principle rather than the table's ranking. The mechanism that survives depth is *information that bypasses the averaging operator* — a component of the input computed once and concatenated, never passed through the convolution. That principle applies to any deep message-passing architecture, whether or not it is this one. The second half matters too: when two models have similar means and very different spreads, the choice depends on how many runs you can afford, and no single table can make it for you."
+        },
+        {
+          "md": "Stay at two layers regardless, since every model is best there",
+          "expl": "Every model is best at two layers *on CC-Cora for this task*, but the question stipulates that the task needs depth. The accurate statement is that the method pays a price for depth and carries anchors that reduce the price — not that depth is never worth buying."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** Table IX, where the architecture is turned on its head — instead of varying the depth, the entire hypergraph backbone is replaced six times, and the knowledge embedding is asked to improve all six."
+}

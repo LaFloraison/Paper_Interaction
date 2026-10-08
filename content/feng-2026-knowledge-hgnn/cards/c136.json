@@ -1,0 +1,157 @@
+{
+  "id": "136",
+  "kind": "reference",
+  "chapter": "references",
+  "section": "R7 · Reference [21] · BGNN",
+  "kicker": "Reference [21]",
+  "title": "Reference [21]: BGNN — the nearest predecessor, argued against and never measured",
+  "what": [
+    {
+      "t": "definition",
+      "formal": "**Reference [21]** is *S. Ivanov and L. Prokhorenkova, \"Boost then convolve: gradient boosting meets graph neural networks\", in Proceedings of the International Conference on Learning Representations, 2020.* The paper cites it in two places and treats it as its **nearest predecessor**: in the related work, where BGNN \"combined boosting trees with graph neural networks to create a fused pipeline\"; and in its own discussion, where BGNN is described as using \"GBDT as a preprocessing module that transforms heterogeneous tabular node features into representations subsequently refined by GNNs\". BGNN appears in no results table.",
+      "plain": "BGNN was the first well-known attempt to bolt boosted trees onto a graph network. This paper's whole novelty claim is about how its own combination differs. The difference is stated in prose and never measured, because BGNN is not in any of the results."
+    },
+    {
+      "t": "p",
+      "md": "**The distinction the paper draws, in its own words.** BGNN treats the ensemble as a **preprocessing module**: the trees convert heterogeneous table features into a homogeneous representation, and the graph network is then applied on top. The paper's criticism is that this \"does not explicitly integrate the extracted rule knowledge with the graph structure\" — the trees' output is used, the trees' knowledge is not, and the two stages are pipelined rather than fused. The paper's alternative is to encode each rule's **content** (what was asked) and **position** (how near the root it sat) and fuse both with the structural information through the same gated mechanism."
+    },
+    {
+      "t": "p",
+      "md": "**Why the criticism is well aimed.** The two designs genuinely extract different objects from the same ensemble. A preprocessing module needs a fixed-width numeric output per vertex, so it must take something like the ensemble's prediction or its leaf assignments — a handful of values. A rule ledger takes one bit per internal node, so with sixty trees at depth four it keeps up to $900$ numbers per vertex. The paper's formulation is exact and checkable: BGNN uses the trees' **outputs**, this paper uses the trees' **questions**."
+    },
+    {
+      "t": "p",
+      "md": "**And why the aim is not a measurement.** A design distinction is a hypothesis about what produces the gain. To test it, the paper would need BGNN in a results table, on its datasets, under its protocol — and it is not there. What the paper's results establish is that *its own* rule encoding works; they cannot establish that it works better than the preprocessing alternative, nor that the longer ledger is what produces the gain rather than the fact of using trees at all. **The distinction is argued, and the argument is specific enough to be worth believing; it is simply not the kind of claim that a results table settles.**"
+    },
+    {
+      "t": "callout",
+      "tone": "warn",
+      "md": "**The gap is small and it is structural, not accidental.** A reader who wants the omitted experiment can run it: BGNN's method is published, and the paper's own eight datasets, splits and protocol are all documented. Adding one row would turn the paper's most important positioning claim from an argument into a measurement. That this is easy and was not done is the reason the item is worth naming rather than passing over — it is the difference between a paper that argues its novelty and one that demonstrates it."
+    }
+  ],
+  "example": [
+    {
+      "t": "p",
+      "md": "**Walk 1 — compare the two designs at the level of what each one can represent.**"
+    },
+    {
+      "t": "table",
+      "head": [
+        "",
+        "BGNN's design",
+        "This paper's design"
+      ],
+      "rows": [
+        [
+          "Role of the tree ensemble",
+          "preprocessing module",
+          "knowledge source"
+        ],
+        [
+          "What is taken from each tree",
+          "an output: a prediction or leaf index",
+          "every internal node's split outcome, plus its depth"
+        ],
+        [
+          "Width per vertex",
+          "one value per tree",
+          "one content bit and one position weight per internal node"
+        ],
+        [
+          "Cora's configuration, 60 trees at depth 4",
+          "at most $60$ values",
+          "at most $60 \\times 15 = 900$ questions, $1{,}800$ entries with positions"
+        ],
+        [
+          "How it meets the structure",
+          "pipelined: trees first, then the network",
+          "fused: both knowledge streams combined with structure before the network runs"
+        ],
+        [
+          "Distinguishable vertices",
+          "those in different leaves",
+          "those answering any question differently"
+        ]
+      ]
+    },
+    {
+      "t": "steps",
+      "items": [
+        {
+          "md": "Read the last row again, because it is the sharpest form of the difference. Under the preprocessing design two vertices are identical to the downstream network if they land in the same leaves of every tree — even if they took different routes to get there.",
+          "why": "\"Took a different route\" is exactly the information a rule ledger keeps. For an additive tree model the leaf determines the prediction, so the route is redundant *for prediction*. It is not redundant for representation: a vertex that satisfied \"$x_7 > 3$\" and one that did not may be equally well predicted by the ensemble and quite differently described by it."
+        },
+        {
+          "md": "Notice what this means about the paper's claim and about the missing row. The claim is not that its representation is wider — width is a cost, not a benefit — but that the wider representation is more useful to a graph network.",
+          "why": "Wider inputs are not automatically better; the paper's own Table VIII is a reminder that more can cost more than it returns — a plain hypergraph network loses $43.19$ accuracy points when its layer count rises from two to eight. So the paper's position is a substantive claim about utility, and it is the specific kind of claim an ablation answers. **The missing BGNN row and a missing internal ablation are the two experiments that would settle it; the paper has neither.**"
+        }
+      ]
+    },
+    {
+      "t": "p",
+      "md": "**Walk 2 — the general lesson about positioning claims.**"
+    },
+    {
+      "t": "p",
+      "md": "Nearly every paper has one comparison it wants to win and does not run. Sometimes the reason is practical — the competing code was unavailable, or the protocol would not translate. Here the code is public and the protocol is the paper's own. When you read a positioning claim, it is worth sorting the possible reasons: **practical obstacle, oversight, or the author's expectation that the comparison would be unfavourable.** The three call for different reader responses. A practical obstacle means the claim should be marked provisional; oversight means the claim is probably fine and the paper is simply thinner than it could be; the third is the one that should make you look harder at the tables the paper did include."
+    },
+    {
+      "t": "callout",
+      "tone": "good",
+      "md": "**On the evidence here, the second explanation fits.** The paper's own words about BGNN are specific, technical and consistent with what is known about the preprocessing design; the paper's results are internally coherent; and the audit in this site's critique chapter found small offsets rather than invented numbers. The natural reading is that the authors considered the design difference decisive enough to argue in prose and did not think it needed a row. That is a defensible position about writing and an indefensible one about evidence — and it is a reminder that the two are not the same thing."
+    }
+  ],
+  "quiz": [
+    {
+      "t": "choice",
+      "level": "understand",
+      "q": "What is the essential difference between BGNN's use of a tree ensemble and this paper's?",
+      "opts": [
+        {
+          "md": "BGNN uses the trees' outputs as a fixed-width representation; this paper records each internal node's split outcome and its depth",
+          "correct": true,
+          "expl": "Correct, and the paper states it precisely: BGNN employs GBDT \"as a preprocessing module\" and \"does not explicitly integrate the extracted rule knowledge with the graph structure\". The consequence is a difference in what the downstream network can distinguish — leaf identity versus the full path of satisfied and unsatisfied conditions."
+        },
+        {
+          "md": "BGNN uses gradient boosting and this paper uses random forests",
+          "expl": "Both use gradient-boosted trees. The paper's TDR-Encoder pre-trains a GBDT, and reference [22] is cited for the algorithm in both cases."
+        },
+        {
+          "md": "BGNN applies trees after the graph network rather than before",
+          "expl": "Both apply the trees first — BGNN's paper is titled \"boost then convolve\" and the order is the same here. The difference is what is passed across the boundary between the two stages."
+        }
+      ]
+    },
+    {
+      "t": "num",
+      "level": "apply",
+      "q": "Under this paper's design a vertex contributes one content value per internal node, plus one position weight. For Cora — 60 trees of maximum depth 4 — how many entries per vertex is the ledger, at most? Count both kinds.",
+      "answer": 1800,
+      "tol": 1,
+      "hint": "First get the content count — internal nodes per tree times the number of trees — then double it for the position weights. A full binary tree of depth 4 has a root plus three levels of internal decisions beneath it, which comes to 15 such nodes; a leaf, by contrast, is a node with no decision under it and carries no question.",
+      "sol": "A full binary tree of depth $4$ has $2^{4} - 1 = 15$ internal nodes: the root, then $2$, $4$ and $8$ below it. So the content half is at most $60 \\times 15 = 900$, and adding one position weight per node gives $2 \\times 900 = 1{,}800$ entries per vertex. Compare that with BGNN's preprocessing design, which passes one value per tree — $60$. The ratio is thirty to one on this configuration, and it is the concrete form of the design difference the paper argues in prose.",
+      "unit": "values"
+    },
+    {
+      "t": "choice",
+      "level": "transfer",
+      "q": "Your paper's novelty is a design difference from the closest prior work, and you have not run that prior work as a baseline. What is the strongest thing you can honestly say?",
+      "opts": [
+        {
+          "md": "That your method outperforms the prior work",
+          "expl": "Not supported by anything you have run. The claim would rest entirely on the design argument, and a reader who notices the missing baseline will treat every comparison you did run as suspect — which is a far larger cost than the one the sentence appears to win."
+        },
+        {
+          "md": "That the two designs differ in a specific, checkable way, stated precisely enough that a reader could run the comparison — and that the difference is the hypothesis your own results are consistent with",
+          "correct": true,
+          "expl": "Correct, and the structure of the sentence is what makes it honest: it separates what is established (the designs differ, in a way you name) from what is hypothesised (that the difference is why your method works). A reader can then disagree with the hypothesis while trusting everything else. This paper's BGNN discussion is a good model of the specific half and a good illustration of the cost of leaving the measured half out: **a design difference stated precisely is a contribution even when it is not tested; the same difference asserted as a superiority is a liability.**"
+        },
+        {
+          "md": "Nothing — omit the prior work from the related work section",
+          "expl": "Omitting the nearest predecessor is worse than arguing against it. A reader who knows the literature will find the omission and read it as concealment, and the paper then loses the credit it deserves for the part of the distinction that is clear and correct."
+        }
+      ]
+    }
+  ],
+  "close": "**Next:** the ten datasets and where they came from — reference [28] through [35], which supply the material every table in this paper is computed on."
+}

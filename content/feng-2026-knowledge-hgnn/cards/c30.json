@@ -3,6 +3,6 @@
   "kind": "include",
   "library": "metrics",
   "chapter": "pre",
-  "section": "2.5 How results are read",
+  "section": "Reading results",
   "kicker": "Extension · Classification metrics"
 }
