@@ -16,3 +16,8 @@ Thumbs.db
 desktop.ini
 .DS_Store
 *.tmp
+
+# Python 编译产物与一次性脚本（含 js 变体）
+__pycache__/
+*.pyc
+tools/_*
