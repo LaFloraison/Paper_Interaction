@@ -1,226 +1,334 @@
 {
-  "_note": "卡片 ↔ 原 PDF 对应表。page 为 1-based 页号；anchor 是要在页面上高亮的文字（构建时用 PyMuPDF 定位出矩形）。defaults 按章给默认页，cards 逐卡覆盖。",
-  "file": "Paper/Knowledge-Embedded_Hypergraph_Neural_Networks.pdf",
-  "defaults": {
-    "start": 1,
-    "title": 1,
-    "pre": 2,
-    "abstract": 1,
-    "intro": 1,
-    "method": 3,
-    "experiments": 6,
-    "conclusion": 12,
-    "wrap": 1,
-    "references": 12
+ "_note": "卡片 ↔ 原 PDF 对应表。page 为 1-based 页号；anchor 是要在页面上高亮的文字（构建时用 PyMuPDF 定位出矩形）。defaults 按章给默认页，cards 逐卡覆盖。",
+ "file": "Paper/Knowledge-Embedded_Hypergraph_Neural_Networks.pdf",
+ "defaults": {
+  "start": 1,
+  "title": 1,
+  "pre": 2,
+  "abstract": 1,
+  "intro": 1,
+  "method": 3,
+  "experiments": 6,
+  "conclusion": 12,
+  "wrap": 1,
+  "references": 12
+ },
+ "cards": {
+  "12": 2,
+  "13": 3,
+  "14": 3,
+  "15": 3,
+  "16": 3,
+  "20": 2,
+  "21": 2,
+  "22": 2,
+  "23": 2,
+  "24": 3,
+  "26": 5,
+  "27": 5,
+  "28": 7,
+  "30": 7,
+  "31": 9,
+  "32": 8,
+  "33": 7,
+  "61": 2,
+  "62": 3,
+  "63": 4,
+  "64": 3,
+  "65": 3,
+  "66": 3,
+  "67": 4,
+  "68": 4,
+  "69": 4,
+  "70": 4,
+  "71": 5,
+  "72": 5,
+  "73": 5,
+  "74": 5,
+  "75": 6,
+  "76": 6,
+  "77": 3,
+  "78": 4,
+  "85": 6,
+  "86": 6,
+  "90": 7,
+  "90p": 7,
+  "91": 7,
+  "92": 8,
+  "93": 8,
+  "93p": 7,
+  "94": 8,
+  "94p": 8,
+  "95": 9,
+  "95p": 9,
+  "96": 10,
+  "97": 9,
+  "98": 9,
+  "99": 11,
+  "100": 12,
+  "110": 12,
+  "111": 12,
+  "112": 12,
+  "113": 12,
+  "120": 1,
+  "121": 1,
+  "122": 1,
+  "130": 12,
+  "131": 3,
+  "132": 2,
+  "133": 2,
+  "134": 3,
+  "135": 3,
+  "136": 3,
+  "137": 7,
+  "138": 3,
+  "139": 2,
+  "140": 12
+ },
+ "anchors": {
+  "63": {
+   "page": 4,
+   "text": "Fig. 1."
   },
-  "cards": {
-    "12": 2,
-    "13": 3,
-    "14": 3,
-    "15": 3,
-    "16": 3,
-    "20": 2,
-    "21": 2,
-    "22": 2,
-    "23": 2,
-    "24": 3,
-    "26": 5,
-    "27": 5,
-    "28": 7,
-    "30": 7,
-    "31": 9,
-    "32": 8,
-    "33": 7,
-    "61": 2,
-    "62": 3,
-    "63": 4,
-    "64": 3,
-    "65": 3,
-    "66": 3,
-    "67": 4,
-    "68": 4,
-    "69": 4,
-    "70": 4,
-    "71": 5,
-    "72": 5,
-    "73": 5,
-    "74": 5,
-    "75": 6,
-    "76": 6,
-    "77": 3,
-    "78": 4,
-    "85": 6,
-    "86": 6,
-    "90": 7,
-    "90p": 7,
-    "91": 7,
-    "92": 8,
-    "93": 8,
-    "93p": 7,
-    "94": 8,
-    "94p": 8,
-    "95": 9,
-    "95p": 9,
-    "96": 10,
-    "97": 9,
-    "98": 9,
-    "99": 11,
-    "100": 12,
-    "110": 12,
-    "111": 12,
-    "112": 12,
-    "113": 12,
-    "120": 1,
-    "121": 1,
-    "122": 1,
-    "130": 12,
-    "131": 3,
-    "132": 2,
-    "133": 2,
-    "134": 3,
-    "135": 3,
-    "136": 3,
-    "137": 7,
-    "138": 3,
-    "139": 2,
-    "140": 12
+  "67": {
+   "page": 4,
+   "text": "Fig. 2."
   },
-  "anchors": {
-    "63": {
-      "page": 4,
-      "text": "Fig. 1."
-    },
-    "67": {
-      "page": 4,
-      "text": "Fig. 2."
-    },
-    "96": {
-      "page": 10,
-      "text": "Fig. 3."
-    },
-    "90": {
-      "page": 7,
-      "text": "TABLE I"
-    },
-    "91": {
-      "page": 7,
-      "text": "2) Splitting Under the Transductive Setting"
-    },
-    "92": {
-      "page": 7,
-      "text": "3) Splitting Under the Production"
-    },
-    "93": {
-      "page": 8,
-      "text": "TABLE IV"
-    },
-    "94": {
-      "page": 8,
-      "text": "TABLE V"
-    },
-    "95": {
-      "page": 9,
-      "text": "C. Experiments Under the Production Setting"
-    },
-    "97": {
-      "page": 10,
-      "text": "D. Ablation Studies"
-    },
-    "98": {
-      "page": 9,
-      "text": "TABLE VIII"
-    },
-    "99": {
-      "page": 11,
-      "text": "TABLE IX"
-    },
-    "100": {
-      "page": 12,
-      "text": "TABLE X"
-    },
-    "60": {
-      "page": 3,
-      "text": "IV. METHODOLOGY"
-    },
-    "61": {
-      "page": 2,
-      "text": "III. PRELIMINAR"
-    },
-    "62": {
-      "page": 3,
-      "text": "B. Gradient Boosting Decision Trees"
-    },
-    "64": {
-      "page": 3,
-      "text": "1) High-Order"
-    },
-    "65": {
-      "page": 3,
-      "text": "1) High-Order"
-    },
-    "66": {
-      "page": 3,
-      "text": "1) High-Order"
-    },
-    "68": {
-      "page": 4,
-      "text": "2) Task-Driven"
-    },
-    "69": {
-      "page": 4,
-      "text": "2) Task-Driven"
-    },
-    "70": {
-      "page": 4,
-      "text": "2) Task-Driven"
-    },
-    "71": {
-      "page": 4,
-      "text": "2) Task-Driven"
-    },
-    "72": {
-      "page": 4,
-      "text": "2) Task-Driven"
-    },
-    "75": {
-      "page": 6,
-      "text": "D. Discussions"
-    },
-    "76": {
-      "page": 6,
-      "text": "D. Discussions"
-    },
-    "85": {
-      "page": 6,
-      "text": "A. Experimental Settings"
-    },
-    "86": {
-      "page": 6,
-      "text": "A. Experimental Settings"
-    },
-    "93p": {
-      "page": 7,
-      "text": "5) Implemental Details"
-    },
-    "110": {
-      "page": 12,
-      "text": "VI. CONCLUSION"
-    },
-    "111": {
-      "page": 12,
-      "text": "VI. CONCLUSION"
-    },
-    "112": {
-      "page": 12,
-      "text": "VI. CONCLUSION"
-    },
-    "113": {
-      "page": 12,
-      "text": "VI. CONCLUSION"
-    },
-    "140": {
-      "page": 12,
-      "text": "REFERENCES"
-    }
+  "96": {
+   "page": 10,
+   "text": "Fig. 3."
+  },
+  "90": {
+   "page": 7,
+   "text": "TABLE I"
+  },
+  "91": {
+   "page": 7,
+   "text": "2) Splitting Under the Transductive Setting"
+  },
+  "92": {
+   "page": 7,
+   "text": "3) Splitting Under the Production"
+  },
+  "93": {
+   "page": 8,
+   "text": "TABLE IV"
+  },
+  "94": {
+   "page": 8,
+   "text": "TABLE V"
+  },
+  "95": {
+   "page": 9,
+   "text": "C. Experiments Under the Production Setting"
+  },
+  "97": {
+   "page": 10,
+   "text": "D. Ablation Studies"
+  },
+  "98": {
+   "page": 9,
+   "text": "TABLE VIII"
+  },
+  "99": {
+   "page": 11,
+   "text": "TABLE IX"
+  },
+  "100": {
+   "page": 12,
+   "text": "TABLE X"
+  },
+  "60": {
+   "page": 3,
+   "text": "IV. METHODOLOGY"
+  },
+  "61": {
+   "page": 2,
+   "text": "III. PRELIMINAR"
+  },
+  "62": {
+   "page": 3,
+   "text": "B. Gradient Boosting Decision Trees"
+  },
+  "64": {
+   "page": 3,
+   "text": "1) High-Order"
+  },
+  "65": {
+   "page": 3,
+   "text": "1) High-Order"
+  },
+  "66": {
+   "page": 3,
+   "text": "1) High-Order"
+  },
+  "68": {
+   "page": 4,
+   "text": "2) Task-Driven"
+  },
+  "69": {
+   "page": 4,
+   "text": "2) Task-Driven"
+  },
+  "70": {
+   "page": 4,
+   "text": "2) Task-Driven"
+  },
+  "71": {
+   "page": 4,
+   "text": "2) Task-Driven"
+  },
+  "72": {
+   "page": 4,
+   "text": "2) Task-Driven"
+  },
+  "75": {
+   "page": 6,
+   "text": "D. Discussions"
+  },
+  "76": {
+   "page": 6,
+   "text": "D. Discussions"
+  },
+  "85": {
+   "page": 6,
+   "text": "A. Experimental Settings"
+  },
+  "86": {
+   "page": 6,
+   "text": "A. Experimental Settings"
+  },
+  "93p": {
+   "page": 7,
+   "text": "5) Implemental Details"
+  },
+  "110": {
+   "page": 12,
+   "text": "VI. CONCLUSION"
+  },
+  "111": {
+   "page": 12,
+   "text": "VI. CONCLUSION"
+  },
+  "112": {
+   "page": 12,
+   "text": "VI. CONCLUSION"
+  },
+  "113": {
+   "page": 12,
+   "text": "VI. CONCLUSION"
+  },
+  "140": {
+   "page": 12,
+   "text": "REFERENCES"
+  },
+  "3": {
+   "page": 1,
+   "text": "Knowledge-Embedded Hypergraph Neural Networks"
+  },
+  "4": {
+   "page": 1,
+   "text": "Knowledge-Embedded Hypergraph Neural Networks"
+  },
+  "5": {
+   "page": 1,
+   "text": "Knowledge-Embedded Hypergraph Neural Networks"
+  },
+  "6": {
+   "page": 1,
+   "text": "Knowledge-Embedded Hypergraph Neural Networks"
+  },
+  "40": {
+   "page": 1,
+   "text": "Hypergraph Neural Networks (HGNNs) enhance"
+  },
+  "41": {
+   "page": 1,
+   "text": "two complementary encoders and a multi-dimensional fusion strategy"
+  },
+  "42": {
+   "page": 1,
+   "text": "achieving a 7.3% gain on the Cora dataset"
+  },
+  "43": {
+   "page": 1,
+   "text": "These results highlight"
+  },
+  "51": {
+   "page": 1,
+   "text": "there are notable limitations in their ability to extract knowledge"
+  },
+  "52": {
+   "page": 2,
+   "text": "Our contributions are as follows"
+  },
+  "53": {
+   "page": 2,
+   "text": "this paper introduces a general framework called"
+  },
+  "54": {
+   "page": 2,
+   "text": "II. RELATED WORK"
+  },
+  "73": {
+   "page": 5,
+   "text": "MDK-Fusion"
+  },
+  "74": {
+   "page": 5,
+   "text": "MDK-Fusion"
+  },
+  "77": {
+   "page": 2,
+   "text": "III. PRELIMINAR"
+  },
+  "78": {
+   "page": 4,
+   "text": "2) Task-Driven"
+  },
+  "90p": {
+   "page": 7,
+   "text": "TABLE I"
+  },
+  "94p": {
+   "page": 8,
+   "text": "TABLE V"
+  },
+  "95p": {
+   "page": 9,
+   "text": "TABLE VI"
+  },
+  "131": {
+   "page": 2,
+   "text": "A. Hypergraph Neural Networks"
+  },
+  "133": {
+   "page": 2,
+   "text": "A. Hypergraph Neural Networks"
+  },
+  "134": {
+   "page": 2,
+   "text": "B. Combining NNs and GBDTs"
+  },
+  "135": {
+   "page": 2,
+   "text": "B. Combining NNs and GBDTs"
+  },
+  "136": {
+   "page": 6,
+   "text": "D. Discussions"
+  },
+  "137": {
+   "page": 7,
+   "text": "TABLE I"
+  },
+  "138": {
+   "page": 6,
+   "text": "A. Experimental Settings"
+  },
+  "50": {
+   "page": 1,
+   "text": "in the academic community"
   }
+ }
 }

@@ -353,7 +353,7 @@ def render_card(card, chap):
     if card.get("_quote"):
         attrs.append('data-quote="' + esc(card["_quote"]) + '"')
     if card.get("_clip"):
-        attrs.append('data-clip="1"')
+        attrs.append('data-clip="' + esc(card["_clip"]) + '"')
     if card.get("kp"):
         attrs.append('data-kp="' + esc(card["kp"]) + '"')
 
@@ -468,21 +468,37 @@ CAP_GUTTER = 295          # 双栏中缝
 PAGE_X = (32.0, 562.0)    # 版心左右界
 
 
+def _norm_alnum(x):
+    return re.sub(r"[^A-Za-z0-9]", "", x)
+
+
 def find_caption_rect(page, text):
-    """大小写敏感地定位题注文字，返回合并矩形；找不到返回 None。"""
-    want = [w.strip(".,:;") for w in text.split()]
+    """把整页词拼成一条“去标点字符流”，在其中定位目标，再映射回词的矩形。
+    这样前缀（'III. PRELIMINAR' 命中 'III. PRELIMINARIES'）与跨连字符的词
+    （'Abstract—Hypergraph'）都能命中。全大写目标优先取全大写的那次出现，
+    以免命中正文里的 'Table VII' 引用。"""
+    want = _norm_alnum(text).upper()
+    if not want:
+        return None
     words = page.get_text("words")
-    n = len(want)
-    for i in range(len(words) - n + 1):
-        chunk = words[i:i + n]
-        got = [w[4].strip(".,:;") for w in chunk]
-        if got != want:
-            continue
+    chars, owner = [], []
+    for wi, w in enumerate(words):
+        for ch in _norm_alnum(w[4]).upper():
+            chars.append(ch)
+            owner.append(wi)
+    stream = "".join(chars)
+    at = 0
+    while True:
+        k = stream.find(want, at)
+        if k < 0:
+            return None
+        wids = sorted(set(owner[k:k + len(want)]))
+        chunk = [words[i] for i in wids]
         if text == text.upper() and any(w[4] != w[4].upper() for w in chunk):
+            at = k + 1
             continue
         return fitz.Rect(min(w[0] for w in chunk), min(w[1] for w in chunk),
                          max(w[2] for w in chunk), max(w[3] for w in chunk))
-    return None
 
 
 def compute_clip(page, blocks, cap, is_table):
@@ -515,7 +531,7 @@ def load_pdf_map(cdir, chap_meta):
     if not f.exists():
         return {}, None
     m = json.loads(f.read_text(encoding="utf-8"))
-    pages, frags, quotes, clips = {}, {}, {}, {}
+    pages, frags, quotes, clips, clipkeys = {}, {}, {}, {}, {}
     defaults = m.get("defaults", {})
     for cid, pg in (m.get("cards") or {}).items():
         pages[str(cid)] = int(pg)
@@ -570,10 +586,14 @@ def load_pdf_map(cdir, chap_meta):
                     ann.update()
             except Exception:
                 pass
-        clip = compute_clip(page, pages_blocks[pg - 1], cap, a["text"].startswith("TABLE"))
-        pix = page.get_pixmap(clip=clip, dpi=140)
-        clips[str(cid)] = base64.b64encode(pix.tobytes("png")).decode("ascii")
-    meta = {"doc": doc, "defaults": defaults, "pages": pages, "frags": frags, "quotes": quotes, "clips": clips, "blocks": pages_blocks}
+        key = "%d|%s" % (pg, a["text"])
+        clipkeys[str(cid)] = key
+        if key not in clips:
+            clip = compute_clip(page, pages_blocks[pg - 1], cap, a["text"].startswith("TABLE"))
+            pix = page.get_pixmap(clip=clip, dpi=140)
+            clips[key] = base64.b64encode(pix.tobytes("png")).decode("ascii")
+    meta = {"doc": doc, "defaults": defaults, "pages": pages, "frags": frags, "quotes": quotes, "clips": clips, "clipkeys": clipkeys,
+            "blocks": pages_blocks}
     return meta, doc
 
 BOILER = ("Authorized licensed use limited", "FENG et al.: KNOWLEDGE-EMBEDDED",
@@ -592,8 +612,8 @@ def embed_paper_text(meta):
     """论文全文的文本块（隐藏数据源）+ 单段显示所需的面板骨架之外的仅数据部分。"""
     pages_blocks = meta["blocks"]
     parts = ['<div id="paperPages" hidden>']
-    for cid, b64 in sorted(meta.get("clips", {}).items()):
-        parts.append('<img data-clip="%s" alt="" src="data:image/png;base64,%s">' % (cid, b64))
+    for key, b64 in sorted(meta.get("clips", {}).items()):
+        parts.append('<img data-clip="%s" alt="" src="data:image/png;base64,%s">' % (H.escape(key), b64))
     for pi, blocks in enumerate(pages_blocks):
         parts.append('<div class="pgt" data-page="%d">' % (pi + 1))
         for bi, b in enumerate(blocks):
@@ -669,8 +689,8 @@ def main():
                 c["_rect"] = pdfmeta["frags"][cid]
             if cid in pdfmeta["quotes"]:
                 c["_quote"] = pdfmeta["quotes"][cid]
-            if cid in pdfmeta["clips"]:
-                c["_clip"] = pdfmeta["clips"][cid]
+            if cid in pdfmeta["clipkeys"]:
+                c["_clip"] = pdfmeta["clipkeys"][cid]
 
     for c in sections:
         c["_html"] = render_card(c, chap_meta[c.get("chapter", "main")])

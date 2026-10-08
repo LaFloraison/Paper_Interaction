@@ -303,7 +303,8 @@ function paperSync() {
   figBox.innerHTML = '';
   var im = card.querySelector('.figbox img');
   var cap = card.querySelector('.figcap');
-  var clip = piGet('paperPages').querySelector('img[data-clip="' + card.getAttribute('data-c') + '"]');
+  var ckey = card.getAttribute('data-clip');
+  var clip = ckey ? piGet('paperPages').querySelector('img[data-clip="' + ckey.replace(/"/g, '') + '"]') : null;
   if (clip) {
     /* 首选：那一段的原 PDF 截图（关键词已高亮） */
     var cl = clip.cloneNode(false);
